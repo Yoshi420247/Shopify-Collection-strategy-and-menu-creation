@@ -11,7 +11,9 @@
     "bot:execute": "node src/collection-strategy-bot.js --execute",
     "analyze": "node src/collection-strategy-bot.js --skip-collections --skip-menus",
     "menu:analyze": "node src/menu-fixer.js",
-    "menu:fix": "node src/menu-fixer.js --execute"
+    "menu:fix": "node src/menu-fixer.js --execute",
+    "menu:auto": "node src/auto-menu-setup.js",
+    "menu:auto:execute": "node src/auto-menu-setup.js --execute"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
