@@ -9,7 +9,9 @@
     "start": "node index.js",
     "bot": "node src/collection-strategy-bot.js",
     "bot:execute": "node src/collection-strategy-bot.js --execute",
-    "analyze": "node src/collection-strategy-bot.js --skip-collections --skip-menus"
+    "analyze": "node src/collection-strategy-bot.js --skip-collections --skip-menus",
+    "menu:analyze": "node src/menu-fixer.js",
+    "menu:fix": "node src/menu-fixer.js --execute"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
