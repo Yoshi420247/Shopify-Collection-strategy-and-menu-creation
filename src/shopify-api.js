@@ -13,7 +13,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function rateLimitedRequest(url, method = 'GET', body = null) {
+async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3) {
   const now = Date.now();
   const timeSinceLastRequest = now - lastRequestTime;
 
@@ -23,7 +23,7 @@ async function rateLimitedRequest(url, method = 'GET', body = null) {
   lastRequestTime = Date.now();
 
   // Build curl command
-  let curlCmd = `curl -s -X ${method} "${url}" `;
+  let curlCmd = `curl -s --max-time 30 -X ${method} "${url}" `;
   curlCmd += `-H "X-Shopify-Access-Token: ${config.shopify.accessToken}" `;
   curlCmd += `-H "Content-Type: application/json" `;
 
@@ -33,15 +33,33 @@ async function rateLimitedRequest(url, method = 'GET', body = null) {
     curlCmd += `-d '${escapedBody}'`;
   }
 
-  try {
-    const result = execSync(curlCmd, {
-      encoding: 'utf8',
-      maxBuffer: 50 * 1024 * 1024, // 50MB buffer for large responses
-    });
-    return JSON.parse(result);
-  } catch (error) {
-    console.error(`API Error: ${error.message}`);
-    throw error;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const result = execSync(curlCmd, {
+        encoding: 'utf8',
+        maxBuffer: 50 * 1024 * 1024, // 50MB buffer for large responses
+      });
+
+      // Check for error responses
+      if (result.includes('upstream connect error') || result.includes('error')) {
+        const parsed = JSON.parse(result);
+        if (parsed.errors) {
+          throw new Error(JSON.stringify(parsed.errors));
+        }
+        return parsed;
+      }
+
+      return JSON.parse(result);
+    } catch (error) {
+      if (attempt < retries) {
+        const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff
+        console.log(`  Retry ${attempt}/${retries} after ${waitTime/1000}s...`);
+        await sleep(waitTime);
+      } else {
+        console.error(`API Error after ${retries} attempts: ${error.message}`);
+        throw error;
+      }
+    }
   }
 }
 
