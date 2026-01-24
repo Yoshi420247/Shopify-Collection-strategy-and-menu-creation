@@ -1,0 +1,18 @@
+{
+  "name": "shopify-collection-strategy",
+  "version": "1.0.0",
+  "description": "Shopify Collection Strategy and Menu Creation Tool",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test-api": "node test-api.js",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@shopify/shopify-api": "^9.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": ["shopify", "collections", "menu", "navigation"],
+  "author": "",
+  "license": "MIT"
+}
