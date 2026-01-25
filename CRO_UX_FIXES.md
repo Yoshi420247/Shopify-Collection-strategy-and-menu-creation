@@ -115,4 +115,109 @@ To verify these fixes:
 
 ---
 
+## Phase 2 Fixes (Presentation & Navigation)
+
+### 6. Duplicate "Scale Sale!" Promo Text
+
+**Problem:** Header promo bar showed "Scale Sale!" twice, looking cluttered and unprofessional.
+
+**Before:**
+```html
+<p><a href="...">Scale Sale!</a> add a scale to your order $10 <a href="...">Scale Sale!</a></p>
+```
+
+**After:**
+```html
+<p><strong>Scale Sale!</strong> Add a digital scale to any order for just $10 → <a href="/collections/accessories">Shop Now</a></p>
+```
+
+**Files Changed:** `config/settings_data.json` (header.settings.promo_text)
+
+---
+
+### 7. Variant Pricing Sticker Shock
+
+**Problem:** Products with wide variant ranges showed expensive bulk options as the default, causing sticker shock (e.g., $845 instead of $75 entry-level option).
+
+**Solution:** Reordered variants on affected products so cheapest options appear first.
+
+**Products Fixed:**
+| Product | Before (First Variant) | After (First Variant) |
+|---------|----------------------|----------------------|
+| Blank Boxes for Jars | $845 (1000 units) | $75 (50 units) |
+| Oil Slick Large Acrylic Jar | $79 (case of 75) | $29 (case of 22) |
+| Hammer | $55 (with banger) | $35 (without banger) |
+
+**API Used:** `PUT /variants/{id}.json` with position updates
+
+---
+
+### 8. Collection Filter Taxonomy Cleanup
+
+**Problem:** Collection filters showed irrelevant product types across all collections (e.g., "Spoon pipe" showing in Concentrate Jars collection).
+
+**Solution:** Updated filter tag lists to be more universally applicable:
+
+**Before:**
+- Sort by Type: `Bong, Dab Rig, spoon, nectar collector, Electronic, Ashtray, Banger, rolling tray`
+- Sort by Use: `Dabbing, rectangular`
+
+**After:**
+- Product Type: `Bong, Dab Rig, Hand Pipe, Nectar Collector, Banger, Jars, Containers, Accessories`
+- Use: `Dabbing, Smoking, Storage, Packaging`
+
+**Files Changed:** `config/settings_data.json` (collection-template.blocks)
+
+---
+
+### 9. Homepage Hero Messaging Update
+
+**Problem:** Hero headline "Welcome to Oil Slick" wasn't specific enough for cold traffic to understand the value proposition.
+
+**Solution:** Updated hero content to immediately clarify offerings:
+
+**Before:**
+- Pretext: "Welcome to"
+- Title: "Oil Slick"
+- Subtitle: (empty)
+- Button 1: "Extraction & Packaging"
+- Button 2: "Smoke & Vape"
+
+**After:**
+- Pretext: "Lab-Grade Nonstick & Packaging"
+- Title: "Oil Slick"
+- Subtitle: "Plus curated glass pipes, rigs & accessories"
+- Button 1: "Shop Packaging & Lab"
+- Button 2: "Shop Smokeshop Gear"
+
+**Files Changed:** `config/settings_data.json` (section 1489283389016)
+
+---
+
+## Complete Summary
+
+| Phase | Issue | Fix Method |
+|-------|-------|------------|
+| 1 | Mega menu placeholder | Cleared empty blocks |
+| 1 | Payment terms text | CSS hide |
+| 1 | Internal tags (google/MCF) | Bulk tag removal |
+| 1 | Subheading placeholder | Set empty values |
+| 1 | Empty filter dead ends | Enhanced HTML/CSS |
+| 2 | Duplicate promo text | Clean promo HTML |
+| 2 | Variant sticker shock | Reorder variants |
+| 2 | Filter taxonomy | Update filter tags |
+| 2 | Homepage hero | Update messaging |
+
+---
+
+## Remaining Recommendations (Manual)
+
+These items require admin access or policy decisions:
+
+1. **Shop Pay Installments** - Disable in Shopify Payments settings if "recurring/deferred" text persists
+2. **Search & Discovery Filters** - Consider migrating from tag-based to metafield-based filters for more granular control per collection
+3. **Navigation Restructure** - Consider renaming "Smoke & Vape" to "Smokeshop Gear" and splitting by use (Dabs, Flower, Travel)
+
+---
+
 *All fixes applied directly via Shopify Admin API and GraphQL*
