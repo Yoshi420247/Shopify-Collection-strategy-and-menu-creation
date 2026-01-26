@@ -1,0 +1,122 @@
+name: Generate Product Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Image generation prompt'
+        required: true
+        type: string
+      model:
+        description: 'Model to use'
+        required: false
+        default: 'gemini'
+        type: choice
+        options:
+          - gemini
+          - gemini-pro
+          - imagen3
+          - imagen4
+          - imagen4-ultra
+      aspect_ratio:
+        description: 'Aspect ratio'
+        required: false
+        default: '1:1'
+        type: choice
+        options:
+          - '1:1'
+          - '3:4'
+          - '4:3'
+          - '9:16'
+          - '16:9'
+      product_id:
+        description: 'Shopify Product ID (optional - to upload directly)'
+        required: false
+        type: string
+      num_images:
+        description: 'Number of images to generate'
+        required: false
+        default: '1'
+        type: string
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Test API Key
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          python tools/nano_banana_generator.py --test
+
+      - name: Generate Image(s)
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          mkdir -p generated_images
+          for i in $(seq 1 ${{ inputs.num_images }}); do
+            python tools/nano_banana_generator.py \
+              "${{ inputs.prompt }}" \
+              --model ${{ inputs.model }} \
+              --aspect ${{ inputs.aspect_ratio }} \
+              --output "generated_images/product_image_${i}.png"
+            sleep 2
+          done
+
+      - name: Upload to Shopify (if product_id provided)
+        if: ${{ inputs.product_id != '' }}
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          python -c "
+          import os
+          import glob
+          from tools.nano_banana_generator import upload_to_shopify
+
+          product_id = int('${{ inputs.product_id }}')
+          images = sorted(glob.glob('generated_images/*.png'))
+
+          for i, img_path in enumerate(images, 1):
+              print(f'Uploading {img_path} to Shopify product {product_id}...')
+              result = upload_to_shopify(img_path, product_id, position=i)
+              if result['success']:
+                  print(f'  ✓ Uploaded: {result[\"src\"]}')
+              else:
+                  print(f'  ✗ Error: {result[\"error\"]}')
+          "
+
+      - name: Upload generated images as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-product-images
+          path: generated_images/
+          retention-days: 30
+
+      - name: Summary
+        run: |
+          echo "## Generated Images" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Prompt:** ${{ inputs.prompt }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Model:** ${{ inputs.model }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Aspect Ratio:** ${{ inputs.aspect_ratio }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Generated Files" >> $GITHUB_STEP_SUMMARY
+          ls -la generated_images/ >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ inputs.product_id }}" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Uploaded to Shopify Product ID:** ${{ inputs.product_id }}" >> $GITHUB_STEP_SUMMARY
+          fi
