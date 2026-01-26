@@ -1,34 +1,41 @@
 #!/usr/bin/env python3
 """
-Nano Banana Image Generator
-===========================
-Uses Google's Gemini/Imagen models for high-quality product image generation.
+Nano Banana Pro Image Generator
+===============================
+Uses Google's Gemini 3 Pro Image (flagship) for high-quality product image generation.
+Supports reference images from competitors to generate accurate product photos.
 
-Supported Models:
-- gemini-2.0-flash-exp (Gemini 2.0 with image output - recommended)
-- imagen-3.0-generate-002 (Imagen 3)
-- imagen-4.0-ultra-generate-001 (Imagen 4 Ultra - highest quality)
-
-SETUP REQUIRED:
-1. Go to https://aistudio.google.com/apikey
-2. Create or use an existing API key
-3. The API key must have "Generative Language API" enabled
-4. For Imagen models, billing must be enabled on your Google Cloud project
+Features:
+- Gemini 3 Pro Image with 2K/4K output
+- Multi-reference image support (up to 14 images)
+- Competitor image search and download
+- Product presets for common items
+- Direct Shopify upload
 
 Usage:
-    python nano_banana_generator.py "Product description prompt" --output image.png
-    python nano_banana_generator.py "Product description prompt" --aspect 1:1 --model gemini
-    python nano_banana_generator.py --test  # Test API key
+    # Generate with preset
+    python nano_banana_generator.py --preset mylar-bags --output images/
+
+    # Generate with reference images
+    python nano_banana_generator.py "Black mylar bag" --reference ref1.jpg ref2.jpg
+
+    # Search competitors and generate
+    python nano_banana_generator.py --preset mylar-bags --search-competitors
+
+    # Test API
+    python nano_banana_generator.py --test
 """
 
 import argparse
 import base64
 import json
 import os
+import re
 import sys
 import time
+import urllib.parse
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 try:
     import requests
@@ -118,6 +125,213 @@ ASPECT_RATIOS = ["1:1", "3:4", "4:3", "9:16", "16:9"]
 # Image sizes for Imagen
 IMAGE_SIZES = ["1024x1024", "1536x1536", "2048x2048"]
 
+# =============================================================================
+# PRODUCT PRESETS - Pre-configured settings for specific products
+# =============================================================================
+PRODUCT_PRESETS = {
+    "mylar-bags": {
+        "name": "Oil Slick Mylar Bags",
+        "product_id": 10049313440024,
+        "search_terms": [
+            "black matte mylar bag flat pouch",
+            "mylar smell proof bag flat",
+            "heat seal mylar pouch black matte",
+            "food grade mylar bag black"
+        ],
+        "variants": [
+            {"size": "3x4.5", "name": "3x4.5 inches", "finish": "Black"},
+            {"size": "3x4.5", "name": "3x4.5 inches", "finish": "Black w/ Clear Window"},
+            {"size": "3.6x5", "name": "3.6x5 inches", "finish": "Black"},
+            {"size": "3.6x5", "name": "3.6x5 inches", "finish": "Black w/ Clear Window"},
+            {"size": "4x6.5", "name": "4x6.5 inches", "finish": "Black"},
+            {"size": "4x6.5", "name": "4x6.5 inches", "finish": "Black w/ Clear Window"},
+            {"size": "5x8", "name": "5x8 inches", "finish": "Black"},
+            {"size": "5x8", "name": "5x8 inches", "finish": "Black w/ Clear Window"},
+            {"size": "6x9", "name": "6x9 inches", "finish": "Black"},
+            {"size": "9x2.5", "name": "9x2.5 Preroll Size", "finish": "Black"},
+        ],
+        "base_prompt": """Flat rectangular matte black mylar bag pouch, {size}, heat-seal closure at top edge.
+The bag is lying completely flat on a pure white background, photographed from directly above (bird's eye view).
+This is a FLAT 2D pouch - NOT a stand-up pouch, NOT 3D, NOT inflated.
+{finish_detail}
+Professional product photography, e-commerce style, studio lighting.
+CRITICAL: No text, no labels, no logos, no branding anywhere on the bag or in the image.""",
+        "finish_prompts": {
+            "Black": "Completely matte black opaque surface with no windows or transparent areas.",
+            "Black w/ Clear Window": "Matte black with a clear transparent window on the front showing the inside of the empty bag."
+        },
+        "aspect_ratio": "1:1",
+        "num_images": 4
+    },
+    "glass-jars": {
+        "name": "Oil Slick Glass Jars",
+        "product_id": None,  # Set when product exists
+        "search_terms": [
+            "glass concentrate jar black lid",
+            "small glass jar cosmetic black cap",
+            "5ml glass jar black lid"
+        ],
+        "variants": [
+            {"size": "5ml", "name": "5ml Mini"},
+            {"size": "9ml", "name": "9ml Standard"},
+        ],
+        "base_prompt": """Clear glass jar with black screw-top lid, {size} capacity.
+Professional product photography on white background.
+CRITICAL: No text, no labels, no logos.""",
+        "aspect_ratio": "1:1",
+        "num_images": 2
+    }
+}
+
+
+def search_competitor_images(search_terms: List[str], max_images: int = 6) -> List[dict]:
+    """
+    Search for competitor product images using DuckDuckGo image search.
+    Returns list of image URLs that can be used as references.
+
+    Args:
+        search_terms: List of search queries
+        max_images: Maximum number of images to return (max 6 for high-fidelity reference)
+
+    Returns:
+        List of dicts with 'url', 'title', 'source'
+    """
+    print(f"\n[Nano Banana Pro] Searching for competitor reference images...")
+
+    images = []
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+
+    for term in search_terms[:3]:  # Limit to 3 search terms
+        if len(images) >= max_images:
+            break
+
+        try:
+            # Use DuckDuckGo image search
+            search_url = f"https://duckduckgo.com/?q={urllib.parse.quote(term)}&iax=images&ia=images"
+            print(f"  Searching: {term}")
+
+            # DuckDuckGo requires a token, so we'll use their API endpoint
+            token_url = "https://duckduckgo.com/"
+            token_resp = requests.get(token_url, headers=headers, timeout=10)
+
+            # Extract vqd token
+            vqd_match = re.search(r'vqd=([^&]+)', token_resp.text)
+            if not vqd_match:
+                vqd_match = re.search(r"vqd='([^']+)'", token_resp.text)
+
+            if vqd_match:
+                vqd = vqd_match.group(1)
+                api_url = f"https://duckduckgo.com/i.js?q={urllib.parse.quote(term)}&vqd={vqd}&p=1"
+
+                img_resp = requests.get(api_url, headers=headers, timeout=10)
+                if img_resp.status_code == 200:
+                    try:
+                        data = img_resp.json()
+                        for result in data.get("results", [])[:3]:
+                            if len(images) < max_images:
+                                images.append({
+                                    "url": result.get("image"),
+                                    "thumbnail": result.get("thumbnail"),
+                                    "title": result.get("title", ""),
+                                    "source": result.get("source", "")
+                                })
+                    except:
+                        pass
+
+            time.sleep(1)  # Rate limiting
+
+        except Exception as e:
+            print(f"  Warning: Search failed for '{term}': {e}")
+            continue
+
+    print(f"  Found {len(images)} reference images")
+    return images
+
+
+def download_reference_images(image_urls: List[str], output_dir: str = "./reference_images") -> List[str]:
+    """
+    Download reference images to local files.
+
+    Args:
+        image_urls: List of image URLs to download
+        output_dir: Directory to save images
+
+    Returns:
+        List of local file paths
+    """
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    downloaded = []
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+
+    for i, url in enumerate(image_urls):
+        try:
+            print(f"  Downloading reference {i+1}/{len(image_urls)}...")
+            resp = requests.get(url, headers=headers, timeout=30)
+
+            if resp.status_code == 200:
+                # Determine extension from content type
+                content_type = resp.headers.get("content-type", "image/jpeg")
+                ext = "jpg" if "jpeg" in content_type else "png" if "png" in content_type else "jpg"
+
+                filepath = output_path / f"reference_{i+1}.{ext}"
+                with open(filepath, "wb") as f:
+                    f.write(resp.content)
+
+                downloaded.append(str(filepath))
+                print(f"    ✓ Saved: {filepath}")
+
+            time.sleep(0.5)
+
+        except Exception as e:
+            print(f"    ✗ Failed to download: {e}")
+
+    return downloaded
+
+
+def load_reference_images(image_paths: List[str]) -> List[dict]:
+    """
+    Load reference images and convert to base64 for API.
+
+    Args:
+        image_paths: List of local file paths
+
+    Returns:
+        List of dicts with 'mime_type' and 'data' (base64)
+    """
+    images = []
+
+    for path in image_paths[:6]:  # Max 6 high-fidelity reference images
+        try:
+            with open(path, "rb") as f:
+                data = base64.b64encode(f.read()).decode("utf-8")
+
+            # Determine MIME type
+            ext = Path(path).suffix.lower()
+            mime_type = {
+                ".jpg": "image/jpeg",
+                ".jpeg": "image/jpeg",
+                ".png": "image/png",
+                ".webp": "image/webp",
+                ".gif": "image/gif"
+            }.get(ext, "image/jpeg")
+
+            images.append({
+                "mime_type": mime_type,
+                "data": data
+            })
+            print(f"  Loaded reference: {path}")
+
+        except Exception as e:
+            print(f"  Warning: Could not load {path}: {e}")
+
+    return images
+
 
 def test_api_key(verbose: bool = True) -> dict:
     """Test if the API key is valid and has required permissions."""
@@ -186,6 +400,7 @@ def generate_image_gemini(
     model_id: str,
     aspect_ratio: str = "1:1",
     image_size: str = None,
+    reference_images: List[dict] = None,
     verbose: bool = True
 ) -> dict:
     """Generate image using Gemini model with native image output.
@@ -195,6 +410,7 @@ def generate_image_gemini(
         model_id: Gemini model ID
         aspect_ratio: Image aspect ratio (1:1, 16:9, etc.)
         image_size: Output resolution - "1K", "2K", or "4K" (Gemini 3 Pro only)
+        reference_images: List of reference images (dicts with 'mime_type' and 'data')
         verbose: Print progress messages
     """
 
@@ -205,8 +421,30 @@ def generate_image_gemini(
         "x-goog-api-key": API_KEY
     }
 
-    # Enhanced prompt for product photography with Gemini 3 Pro reasoning
-    enhanced_prompt = f"""Generate a professional e-commerce product photograph.
+    # Build the prompt with reference image context
+    if reference_images:
+        enhanced_prompt = f"""You are given {len(reference_images)} reference images of similar products from competitors.
+Study these reference images carefully to understand:
+- The exact product type and shape
+- How the product is photographed (angle, lighting, positioning)
+- The realistic appearance and materials
+
+Now generate a NEW professional e-commerce product photograph based on this description:
+
+{prompt}
+
+CRITICAL REQUIREMENTS:
+- The generated image must match the STYLE and QUALITY of the reference images
+- Photorealistic rendering - must look like a real photograph, not AI-generated
+- Clean pure white background (#FFFFFF)
+- Professional studio lighting with soft shadows
+- Sharp focus, extremely high detail
+- Commercial quality suitable for online retail
+- ABSOLUTELY NO text, watermarks, labels, or logos anywhere in the image
+- Product should be the sole focus
+- Match the realistic appearance seen in the reference images"""
+    else:
+        enhanced_prompt = f"""Generate a professional e-commerce product photograph.
 
 {prompt}
 
@@ -220,6 +458,24 @@ CRITICAL REQUIREMENTS:
 - Product should be the sole focus
 - Accurate representation of the product's real-world appearance"""
 
+    # Build parts list - reference images first, then prompt
+    parts = []
+
+    # Add reference images if provided (Gemini 3 Pro supports up to 14)
+    if reference_images:
+        for i, ref_img in enumerate(reference_images[:6]):  # Max 6 for high-fidelity
+            parts.append({
+                "inline_data": {
+                    "mime_type": ref_img["mime_type"],
+                    "data": ref_img["data"]
+                }
+            })
+        if verbose:
+            print(f"[Nano Banana Pro] Using {len(reference_images[:6])} reference images")
+
+    # Add the text prompt
+    parts.append({"text": enhanced_prompt})
+
     # Build imageConfig based on model capabilities
     image_config = {"aspectRatio": aspect_ratio}
 
@@ -230,7 +486,7 @@ CRITICAL REQUIREMENTS:
     # Payload format for Gemini 3 Pro and 2.5+ models
     payload = {
         "contents": [{
-            "parts": [{"text": enhanced_prompt}]
+            "parts": parts
         }],
         "generationConfig": {
             "responseModalities": ["TEXT", "IMAGE"],
@@ -355,6 +611,7 @@ def generate_image(
     model: str = "gemini",
     aspect_ratio: str = "1:1",
     output_path: Optional[str] = None,
+    reference_images: List[dict] = None,
     verbose: bool = True
 ) -> dict:
     """
@@ -365,6 +622,7 @@ def generate_image(
         model: Model key from MODELS dict (default: gemini = Nano Banana Pro)
         aspect_ratio: Image aspect ratio
         output_path: Path to save the generated image
+        reference_images: List of reference images (dicts with 'mime_type' and 'data')
         verbose: Print progress messages
 
     Returns:
@@ -386,12 +644,14 @@ def generate_image(
         print(f"[Nano Banana Pro] Aspect Ratio: {aspect_ratio}")
         if image_size:
             print(f"[Nano Banana Pro] Output Resolution: {image_size}")
+        if reference_images:
+            print(f"[Nano Banana Pro] Reference Images: {len(reference_images)}")
         print(f"[Nano Banana Pro] Prompt: {prompt[:100]}...")
         print(f"{'='*60}")
 
     # Generate based on model type
     if model_type == "gemini":
-        result = generate_image_gemini(prompt, model_id, aspect_ratio, image_size, verbose)
+        result = generate_image_gemini(prompt, model_id, aspect_ratio, image_size, reference_images, verbose)
     else:
         result = generate_image_imagen(prompt, model_id, aspect_ratio, 1, verbose)
 
@@ -460,6 +720,139 @@ Professional product photography, clean white background, studio lighting, sharp
                 output_path=output_path / f"{filename}_{variant.replace(' ', '_')}.png"
             )
             results.append({"type": f"variant_{variant}", "result": variant_result})
+
+    return results
+
+
+def generate_from_preset(
+    preset_name: str,
+    search_competitors: bool = True,
+    upload_to_shopify_product: bool = False,
+    model: str = "gemini",
+    output_dir: str = "./generated_images",
+    num_images_per_variant: int = 1
+) -> dict:
+    """
+    Generate product images using a preset configuration.
+    Automatically searches for competitor images and uses them as references.
+
+    Args:
+        preset_name: Name of the preset (e.g., 'mylar-bags')
+        search_competitors: Whether to search for competitor reference images
+        upload_to_shopify_product: Whether to upload images to Shopify
+        model: Model to use (default: gemini = Nano Banana Pro)
+        output_dir: Directory to save generated images
+        num_images_per_variant: Number of images to generate per variant
+
+    Returns:
+        dict with results for each variant
+    """
+    if preset_name not in PRODUCT_PRESETS:
+        available = ", ".join(PRODUCT_PRESETS.keys())
+        return {"success": False, "error": f"Unknown preset '{preset_name}'. Available: {available}"}
+
+    preset = PRODUCT_PRESETS[preset_name]
+    print(f"\n{'='*70}")
+    print(f"  NANO BANANA PRO - PRESET: {preset['name']}")
+    print(f"{'='*70}")
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    # Step 1: Search for competitor reference images
+    reference_images = []
+    if search_competitors:
+        print(f"\n[Step 1/4] Searching for competitor reference images...")
+        competitor_results = search_competitor_images(preset["search_terms"], max_images=6)
+
+        if competitor_results:
+            # Download the reference images
+            image_urls = [img["url"] for img in competitor_results if img.get("url")]
+            if image_urls:
+                downloaded_paths = download_reference_images(image_urls, output_dir=f"{output_dir}/references")
+                if downloaded_paths:
+                    reference_images = load_reference_images(downloaded_paths)
+                    print(f"  ✓ Loaded {len(reference_images)} reference images")
+        else:
+            print("  ⚠ No competitor images found, proceeding without references")
+    else:
+        print(f"\n[Step 1/4] Skipping competitor search (disabled)")
+
+    # Step 2: Generate images for each variant
+    print(f"\n[Step 2/4] Generating product images...")
+    results = {"preset": preset_name, "variants": [], "success": True}
+
+    variants = preset.get("variants", [{"size": "standard", "name": "Standard"}])
+    aspect_ratio = preset.get("aspect_ratio", "1:1")
+
+    for i, variant in enumerate(variants):
+        print(f"\n  Variant {i+1}/{len(variants)}: {variant.get('name', variant.get('size', 'Unknown'))}")
+
+        # Build the prompt from preset
+        base_prompt = preset["base_prompt"]
+
+        # Replace placeholders
+        prompt = base_prompt.format(
+            size=variant.get("size", ""),
+            name=variant.get("name", ""),
+            finish_detail=preset.get("finish_prompts", {}).get(variant.get("finish", ""), "")
+        )
+
+        variant_results = []
+        for img_num in range(num_images_per_variant):
+            # Generate unique filename
+            safe_name = f"{variant.get('size', 'std')}_{variant.get('finish', 'default')}".replace(" ", "_").replace("/", "-")
+            filename = f"{preset_name}_{safe_name}_{img_num+1}.png"
+            filepath = output_path / filename
+
+            result = generate_image(
+                prompt=prompt,
+                model=model,
+                aspect_ratio=aspect_ratio,
+                output_path=str(filepath),
+                reference_images=reference_images if reference_images else None
+            )
+
+            if result["success"]:
+                result["filepath"] = str(filepath)
+                result["variant"] = variant
+                variant_results.append(result)
+                print(f"    ✓ Generated: {filename}")
+            else:
+                print(f"    ✗ Failed: {result.get('error', 'Unknown error')}")
+                results["success"] = False
+
+            time.sleep(2)  # Rate limiting between images
+
+        results["variants"].append({
+            "variant": variant,
+            "images": variant_results
+        })
+
+    # Step 3: Upload to Shopify if requested
+    if upload_to_shopify_product and preset.get("product_id"):
+        print(f"\n[Step 3/4] Uploading to Shopify product {preset['product_id']}...")
+
+        for variant_data in results["variants"]:
+            for img_result in variant_data["images"]:
+                if img_result.get("filepath"):
+                    upload_result = upload_to_shopify(
+                        img_result["filepath"],
+                        preset["product_id"],
+                        alt_text=f"{preset['name']} - {variant_data['variant'].get('name', '')}"
+                    )
+                    if upload_result["success"]:
+                        print(f"    ✓ Uploaded: {img_result['filepath']}")
+                    else:
+                        print(f"    ✗ Upload failed: {upload_result.get('error', 'Unknown')}")
+    else:
+        print(f"\n[Step 3/4] Skipping Shopify upload")
+
+    # Step 4: Summary
+    print(f"\n[Step 4/4] Generation Complete!")
+    total_generated = sum(len(v["images"]) for v in results["variants"])
+    print(f"  Total images generated: {total_generated}")
+    print(f"  Output directory: {output_dir}")
 
     return results
 
@@ -561,26 +954,49 @@ def print_setup_help():
 # CLI interface
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Nano Banana Image Generator - Google AI for product images",
+        description="Nano Banana Pro Image Generator - Gemini 3 Pro for product images",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python nano_banana_generator.py "Black mylar bags" --output bag.png
-  python nano_banana_generator.py "Glass jar with lid" --model imagen4-ultra
+  # Generate with preset (recommended - auto-finds competitor images)
+  python nano_banana_generator.py --preset mylar-bags
+
+  # Generate with preset and upload to Shopify
+  python nano_banana_generator.py --preset mylar-bags --upload
+
+  # Generate single image with custom prompt
+  python nano_banana_generator.py "Black mylar bag 4x6 inches" --output bag.png
+
+  # Generate with reference images
+  python nano_banana_generator.py "Black mylar bag" --reference ref1.jpg ref2.jpg
+
+  # Test API key
   python nano_banana_generator.py --test
-  python nano_banana_generator.py --help-setup
+
+Available Presets: mylar-bags, glass-jars
         """
     )
-    parser.add_argument("prompt", nargs="?", help="Image generation prompt")
-    parser.add_argument("--output", "-o", help="Output file path", default="generated_image.png")
+    parser.add_argument("prompt", nargs="?", help="Image generation prompt (not needed with --preset)")
+    parser.add_argument("--output", "-o", help="Output file/directory path", default="./generated_images")
     parser.add_argument("--model", "-m", choices=list(MODELS.keys()), default="gemini",
-                        help="Model to use (default: gemini)")
+                        help="Model to use (default: gemini = Nano Banana Pro)")
     parser.add_argument("--aspect", "-a", choices=ASPECT_RATIOS, default="1:1",
                         help="Aspect ratio (default: 1:1)")
+    parser.add_argument("--preset", "-p", choices=list(PRODUCT_PRESETS.keys()),
+                        help="Use a product preset (auto-configures everything)")
+    parser.add_argument("--reference", "-r", nargs="+",
+                        help="Reference image files to use for generation")
+    parser.add_argument("--search-competitors", action="store_true",
+                        help="Search for competitor images to use as references")
+    parser.add_argument("--upload", action="store_true",
+                        help="Upload generated images to Shopify")
+    parser.add_argument("--num-images", "-n", type=int, default=1,
+                        help="Number of images per variant (default: 1)")
     parser.add_argument("--test", action="store_true", help="Test API key")
     parser.add_argument("--help-setup", action="store_true", help="Show setup instructions")
     parser.add_argument("--quiet", "-q", action="store_true", help="Suppress progress messages")
     parser.add_argument("--list-models", action="store_true", help="List available models")
+    parser.add_argument("--list-presets", action="store_true", help="List available presets")
 
     args = parser.parse_args()
 
@@ -596,20 +1012,60 @@ Examples:
         print()
         sys.exit(0)
 
+    if args.list_presets:
+        print("\nAvailable Product Presets:")
+        print("-" * 60)
+        for key, config in PRODUCT_PRESETS.items():
+            print(f"  {key:15} - {config['name']}")
+            print(f"                  Product ID: {config.get('product_id', 'Not set')}")
+            print(f"                  Variants: {len(config.get('variants', []))}")
+        print()
+        sys.exit(0)
+
     if args.test:
         result = test_api_key(verbose=True)
         sys.exit(0 if result["success"] else 1)
 
+    # Preset mode - fully automated
+    if args.preset:
+        result = generate_from_preset(
+            preset_name=args.preset,
+            search_competitors=True,  # Always search for competitors
+            upload_to_shopify_product=args.upload,
+            model=args.model,
+            output_dir=args.output,
+            num_images_per_variant=args.num_images
+        )
+        sys.exit(0 if result.get("success") else 1)
+
+    # Manual mode - requires prompt
     if not args.prompt:
         parser.print_help()
-        print("\nError: prompt is required (unless using --test or --help-setup)")
+        print("\nError: prompt is required (or use --preset for automated mode)")
         sys.exit(1)
+
+    # Load reference images if provided
+    reference_images = None
+    if args.reference:
+        print(f"\n[Nano Banana Pro] Loading {len(args.reference)} reference images...")
+        reference_images = load_reference_images(args.reference)
+    elif args.search_competitors:
+        print(f"\n[Nano Banana Pro] Searching for competitor reference images...")
+        # Extract search terms from prompt
+        search_terms = [args.prompt[:100]]
+        competitor_results = search_competitor_images(search_terms, max_images=4)
+        if competitor_results:
+            image_urls = [img["url"] for img in competitor_results if img.get("url")]
+            downloaded_paths = download_reference_images(image_urls)
+            if downloaded_paths:
+                reference_images = load_reference_images(downloaded_paths)
 
     result = generate_image(
         prompt=args.prompt,
         model=args.model,
         aspect_ratio=args.aspect,
-        output_path=args.output,
+        output_path=args.output if args.output.endswith('.png') else f"{args.output}/custom_image.png",
+        reference_images=reference_images,
         verbose=not args.quiet
     )
 

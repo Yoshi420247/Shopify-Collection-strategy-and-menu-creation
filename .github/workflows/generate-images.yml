@@ -3,12 +3,28 @@ name: Generate Product Images (Nano Banana Pro)
 on:
   workflow_dispatch:
     inputs:
-      prompt:
-        description: 'Image generation prompt'
+      mode:
+        description: 'Generation mode'
         required: true
+        default: 'preset'
+        type: choice
+        options:
+          - preset    # Use preset (auto-finds competitor images, auto-fills everything)
+          - custom    # Custom prompt mode
+      preset:
+        description: 'Product preset (for preset mode)'
+        required: false
+        default: 'mylar-bags'
+        type: choice
+        options:
+          - mylar-bags    # Oil Slick Mylar Bags - all variants
+          - glass-jars    # Oil Slick Glass Jars
+      prompt:
+        description: 'Custom prompt (for custom mode only)'
+        required: false
         type: string
       model:
-        description: 'Model to use (gemini = Nano Banana Pro flagship)'
+        description: 'Model to use'
         required: false
         default: 'gemini'
         type: choice
@@ -16,27 +32,15 @@ on:
           - gemini        # Nano Banana Pro (Gemini 3 Pro) 2K - FLAGSHIP
           - gemini-4k     # Nano Banana Pro 4K - Maximum resolution
           - gemini-flash  # Gemini 2.5 Flash - Fast/budget
-          - imagen3       # Imagen 3 (requires billing)
-          - imagen4-ultra # Imagen 4 Ultra (requires billing)
-      aspect_ratio:
-        description: 'Aspect ratio'
+      upload_to_shopify:
+        description: 'Upload images to Shopify product'
         required: false
-        default: '1:1'
-        type: choice
-        options:
-          - '1:1'
-          - '3:4'
-          - '4:3'
-          - '9:16'
-          - '16:9'
-      product_id:
-        description: 'Shopify Product ID (optional - to upload directly)'
+        default: true
+        type: boolean
+      num_images_per_variant:
+        description: 'Images per variant (preset mode) or total images (custom mode)'
         required: false
-        type: string
-      num_images:
-        description: 'Number of images to generate'
-        required: false
-        default: '4'
+        default: '1'
         type: string
 
 jobs:
@@ -61,43 +65,60 @@ jobs:
         run: |
           python tools/nano_banana_generator.py --test
 
-      - name: Generate Image(s)
-        env:
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-        run: |
-          mkdir -p generated_images
-          for i in $(seq 1 ${{ inputs.num_images }}); do
-            python tools/nano_banana_generator.py \
-              "${{ inputs.prompt }}" \
-              --model ${{ inputs.model }} \
-              --aspect ${{ inputs.aspect_ratio }} \
-              --output "generated_images/product_image_${i}.png"
-            sleep 2
-          done
-
-      - name: Upload to Shopify (if product_id provided)
-        if: ${{ inputs.product_id != '' }}
+      # PRESET MODE - Fully automated with competitor image search
+      - name: Generate Images (Preset Mode)
+        if: ${{ inputs.mode == 'preset' }}
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
         run: |
-          python -c "
-          import os
-          import glob
-          from tools.nano_banana_generator import upload_to_shopify
+          echo "🚀 Running in PRESET mode: ${{ inputs.preset }}"
+          echo "   - Auto-searching for competitor reference images"
+          echo "   - Using Nano Banana Pro (Gemini 3 Pro Image)"
+          echo ""
 
-          product_id = int('${{ inputs.product_id }}')
-          images = sorted(glob.glob('generated_images/*.png'))
+          UPLOAD_FLAG=""
+          if [ "${{ inputs.upload_to_shopify }}" = "true" ]; then
+            UPLOAD_FLAG="--upload"
+          fi
 
-          for i, img_path in enumerate(images, 1):
-              print(f'Uploading {img_path} to Shopify product {product_id}...')
-              result = upload_to_shopify(img_path, product_id, position=i)
-              if result['success']:
-                  print(f'  ✓ Uploaded: {result[\"src\"]}')
-              else:
-                  print(f'  ✗ Error: {result[\"error\"]}')
-          "
+          python tools/nano_banana_generator.py \
+            --preset ${{ inputs.preset }} \
+            --model ${{ inputs.model }} \
+            --num-images ${{ inputs.num_images_per_variant }} \
+            --output generated_images \
+            $UPLOAD_FLAG
+
+      # CUSTOM MODE - Manual prompt with optional competitor search
+      - name: Generate Images (Custom Mode)
+        if: ${{ inputs.mode == 'custom' }}
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          echo "🎨 Running in CUSTOM mode"
+          echo "   Prompt: ${{ inputs.prompt }}"
+          echo ""
+
+          mkdir -p generated_images
+          for i in $(seq 1 ${{ inputs.num_images_per_variant }}); do
+            python tools/nano_banana_generator.py \
+              "${{ inputs.prompt }}" \
+              --model ${{ inputs.model }} \
+              --search-competitors \
+              --output "generated_images/custom_image_${i}.png"
+            sleep 2
+          done
+
+      # Upload custom mode images to Shopify if requested
+      - name: Upload Custom Images to Shopify
+        if: ${{ inputs.mode == 'custom' && inputs.upload_to_shopify == true }}
+        env:
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "⚠️  Custom mode: Shopify upload requires product_id in preset."
+          echo "    Images saved to artifacts instead."
 
       - name: Upload generated images as artifact
         uses: actions/upload-artifact@v4
@@ -108,15 +129,27 @@ jobs:
 
       - name: Summary
         run: |
-          echo "## Generated Images" >> $GITHUB_STEP_SUMMARY
+          echo "## 🍌 Nano Banana Pro - Generation Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Prompt:** ${{ inputs.prompt }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** ${{ inputs.mode }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.mode }}" = "preset" ]; then
+            echo "**Preset:** ${{ inputs.preset }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Prompt:** ${{ inputs.prompt }}" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "**Model:** ${{ inputs.model }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Aspect Ratio:** ${{ inputs.aspect_ratio }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Upload to Shopify:** ${{ inputs.upload_to_shopify }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Generated Files" >> $GITHUB_STEP_SUMMARY
-          ls -la generated_images/ >> $GITHUB_STEP_SUMMARY
-          if [ -n "${{ inputs.product_id }}" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Uploaded to Shopify Product ID:** ${{ inputs.product_id }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          ls -la generated_images/ >> $GITHUB_STEP_SUMMARY || echo "No images generated" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Reference Images Used" >> $GITHUB_STEP_SUMMARY
+          if [ -d "generated_images/references" ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            ls -la generated_images/references/ >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No reference images directory found" >> $GITHUB_STEP_SUMMARY
           fi
