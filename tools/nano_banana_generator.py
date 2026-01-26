@@ -46,49 +46,71 @@ API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
 # Model configurations - Updated January 2026
-# Note: gemini-2.0-flash-exp was retired. Using latest models.
+# Nano Banana Pro (Gemini 3 Pro Image) is the flagship model
 MODELS = {
-    # Gemini 2.5 Flash Image - Production-ready (recommended)
+    # FLAGSHIP: Gemini 3 Pro Image Preview - Highest quality (DEFAULT)
     "gemini": {
-        "id": "gemini-2.5-flash-image",
+        "id": "gemini-3-pro-image-preview",
         "endpoint": "generateContent",
         "type": "gemini",
-        "description": "Gemini 2.5 Flash Image - Fast, production-ready (recommended)"
+        "image_size": "2K",  # Supports 1K, 2K, 4K
+        "description": "Nano Banana Pro (Gemini 3 Pro) - FLAGSHIP model, 2K output"
     },
-    # Gemini 3 Pro Image Preview - Highest quality
+    # Alias for flagship
     "gemini-pro": {
         "id": "gemini-3-pro-image-preview",
         "endpoint": "generateContent",
         "type": "gemini",
-        "description": "Gemini 3 Pro Image Preview - Professional asset production"
+        "image_size": "2K",
+        "description": "Nano Banana Pro (Gemini 3 Pro) - FLAGSHIP model, 2K output"
+    },
+    # 4K version for maximum quality
+    "gemini-4k": {
+        "id": "gemini-3-pro-image-preview",
+        "endpoint": "generateContent",
+        "type": "gemini",
+        "image_size": "4K",
+        "description": "Nano Banana Pro 4K - Maximum resolution output"
+    },
+    # Fast/budget option
+    "gemini-flash": {
+        "id": "gemini-2.5-flash-image",
+        "endpoint": "generateContent",
+        "type": "gemini",
+        "image_size": None,
+        "description": "Gemini 2.5 Flash Image - Fast, budget-friendly"
     },
     # Legacy alias for backwards compatibility
     "gemini-2.5": {
         "id": "gemini-2.5-flash-image",
         "endpoint": "generateContent",
         "type": "gemini",
-        "description": "Gemini 2.5 Flash Image (alias)"
+        "image_size": None,
+        "description": "Gemini 2.5 Flash Image (legacy alias)"
     },
     # Imagen models (require billing)
     "imagen3": {
         "id": "imagen-3.0-generate-002",
         "endpoint": "predict",
         "type": "imagen",
-        "description": "Imagen 3 - High quality"
+        "description": "Imagen 3 - High quality (requires billing)"
     },
     "imagen4": {
         "id": "imagen-4.0-generate-001",
         "endpoint": "predict",
         "type": "imagen",
-        "description": "Imagen 4 Standard"
+        "description": "Imagen 4 Standard (requires billing)"
     },
     "imagen4-ultra": {
         "id": "imagen-4.0-ultra-generate-001",
         "endpoint": "predict",
         "type": "imagen",
-        "description": "Imagen 4 Ultra - Maximum quality"
+        "description": "Imagen 4 Ultra - Maximum quality (requires billing)"
     },
 }
+
+# Default model is the flagship Nano Banana Pro
+DEFAULT_MODEL = "gemini"
 
 # Supported aspect ratios
 ASPECT_RATIOS = ["1:1", "3:4", "4:3", "9:16", "16:9"]
@@ -163,9 +185,18 @@ def generate_image_gemini(
     prompt: str,
     model_id: str,
     aspect_ratio: str = "1:1",
+    image_size: str = None,
     verbose: bool = True
 ) -> dict:
-    """Generate image using Gemini model with native image output."""
+    """Generate image using Gemini model with native image output.
+
+    Args:
+        prompt: Text description of image to generate
+        model_id: Gemini model ID
+        aspect_ratio: Image aspect ratio (1:1, 16:9, etc.)
+        image_size: Output resolution - "1K", "2K", or "4K" (Gemini 3 Pro only)
+        verbose: Print progress messages
+    """
 
     endpoint = f"{BASE_URL}/models/{model_id}:generateContent"
 
@@ -174,36 +205,45 @@ def generate_image_gemini(
         "x-goog-api-key": API_KEY
     }
 
-    # Enhanced prompt for product photography
+    # Enhanced prompt for product photography with Gemini 3 Pro reasoning
     enhanced_prompt = f"""Generate a professional e-commerce product photograph.
 
 {prompt}
 
-Style requirements:
-- Clean white or soft gradient background
-- Professional studio lighting
-- Sharp focus, high detail
+CRITICAL REQUIREMENTS:
+- Photorealistic rendering - must look like a real photograph
+- Clean pure white background (#FFFFFF)
+- Professional studio lighting with soft shadows
+- Sharp focus, extremely high detail
 - Commercial quality suitable for online retail
-- No text, watermarks, or logos
-- Photorealistic rendering"""
+- ABSOLUTELY NO text, watermarks, labels, or logos anywhere in the image
+- Product should be the sole focus
+- Accurate representation of the product's real-world appearance"""
 
-    # Updated payload format for Gemini 2.5+ models
+    # Build imageConfig based on model capabilities
+    image_config = {"aspectRatio": aspect_ratio}
+
+    # Add image size for Gemini 3 Pro (supports 1K, 2K, 4K)
+    if image_size and "gemini-3" in model_id:
+        image_config["imageSize"] = image_size
+
+    # Payload format for Gemini 3 Pro and 2.5+ models
     payload = {
         "contents": [{
             "parts": [{"text": enhanced_prompt}]
         }],
         "generationConfig": {
             "responseModalities": ["TEXT", "IMAGE"],
-            "imageConfig": {
-                "aspectRatio": aspect_ratio
-            }
+            "imageConfig": image_config
         }
     }
 
     if verbose:
-        print(f"[Nano Banana] Using model: {model_id}")
-        print(f"[Nano Banana] Aspect ratio: {aspect_ratio}")
-        print(f"[Nano Banana] Generating image...")
+        print(f"[Nano Banana Pro] Using model: {model_id}")
+        print(f"[Nano Banana Pro] Aspect ratio: {aspect_ratio}")
+        if image_size:
+            print(f"[Nano Banana Pro] Output resolution: {image_size}")
+        print(f"[Nano Banana Pro] Generating image with advanced reasoning...")
 
     try:
         response = requests.post(endpoint, headers=headers, json=payload, timeout=180)
@@ -322,7 +362,7 @@ def generate_image(
 
     Args:
         prompt: Text description of the image to generate
-        model: Model key from MODELS dict
+        model: Model key from MODELS dict (default: gemini = Nano Banana Pro)
         aspect_ratio: Image aspect ratio
         output_path: Path to save the generated image
         verbose: Print progress messages
@@ -338,15 +378,20 @@ def generate_image(
     model_config = MODELS[model]
     model_id = model_config["id"]
     model_type = model_config["type"]
+    image_size = model_config.get("image_size")  # 1K, 2K, 4K for Gemini 3 Pro
 
     if verbose:
-        print(f"[Nano Banana] Model: {model_config['description']}")
-        print(f"[Nano Banana] Aspect Ratio: {aspect_ratio}")
-        print(f"[Nano Banana] Prompt: {prompt[:80]}...")
+        print(f"\n{'='*60}")
+        print(f"[Nano Banana Pro] {model_config['description']}")
+        print(f"[Nano Banana Pro] Aspect Ratio: {aspect_ratio}")
+        if image_size:
+            print(f"[Nano Banana Pro] Output Resolution: {image_size}")
+        print(f"[Nano Banana Pro] Prompt: {prompt[:100]}...")
+        print(f"{'='*60}")
 
     # Generate based on model type
     if model_type == "gemini":
-        result = generate_image_gemini(prompt, model_id, aspect_ratio, verbose)
+        result = generate_image_gemini(prompt, model_id, aspect_ratio, image_size, verbose)
     else:
         result = generate_image_imagen(prompt, model_id, aspect_ratio, 1, verbose)
 
@@ -477,7 +522,8 @@ def print_setup_help():
     """Print setup instructions."""
     print("""
 ╔══════════════════════════════════════════════════════════════╗
-║              NANO BANANA - SETUP INSTRUCTIONS                ║
+║           NANO BANANA PRO - SETUP INSTRUCTIONS               ║
+║        Powered by Google Gemini 3 Pro Image (Flagship)       ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
 ║  Your API key needs the Generative Language API enabled.     ║
@@ -487,18 +533,20 @@ def print_setup_help():
 ║  2. Click "Create API Key" or use existing one               ║
 ║  3. The key should work automatically with Gemini models     ║
 ║                                                              ║
-║  FOR IMAGEN MODELS (higher quality):                         ║
-║  1. Go to: https://console.cloud.google.com                  ║
-║  2. Enable billing on your project                           ║
-║  3. Enable "Vertex AI API"                                   ║
-║  4. Imagen 4 Ultra costs $0.06/image                         ║
-║                                                              ║
 ║  AVAILABLE MODELS (Updated Jan 2026):                        ║
-║  - gemini     : Gemini 2.5 Flash Image (~$0.04/img)          ║
-║  - gemini-pro : Gemini 3 Pro Image Preview (best quality)    ║
-║  - imagen3    : Imagen 3 (requires billing)                  ║
-║  - imagen4    : Imagen 4 Standard (requires billing)         ║
-║  - imagen4-ultra: Imagen 4 Ultra (highest quality)           ║
+║                                                              ║
+║  ★ FLAGSHIP (DEFAULT):                                       ║
+║  - gemini     : Nano Banana Pro (Gemini 3 Pro) 2K output     ║
+║  - gemini-pro : Same as above (alias)                        ║
+║  - gemini-4k  : Nano Banana Pro with 4K output (max quality) ║
+║                                                              ║
+║  BUDGET/FAST:                                                ║
+║  - gemini-flash: Gemini 2.5 Flash (faster, cheaper)          ║
+║                                                              ║
+║  IMAGEN (requires billing):                                  ║
+║  - imagen3      : Imagen 3                                   ║
+║  - imagen4      : Imagen 4 Standard                          ║
+║  - imagen4-ultra: Imagen 4 Ultra                             ║
 ║                                                              ║
 ║  GITHUB SECRETS (for CI/CD):                                 ║
 ║  Store these secrets in your repo Settings > Secrets:        ║
