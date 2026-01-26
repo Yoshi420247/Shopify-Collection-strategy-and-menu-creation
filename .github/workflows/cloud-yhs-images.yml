@@ -1,0 +1,94 @@
+name: Generate Cloud YHS Product Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_product:
+        description: 'Start from product number (1-102)'
+        required: false
+        default: '1'
+        type: string
+      batch_size:
+        description: 'Number of products to process'
+        required: false
+        default: '10'
+        type: string
+      images_per_product:
+        description: 'Images per product'
+        required: false
+        default: '5'
+        type: choice
+        options:
+          - '1'
+          - '3'
+          - '5'
+      model:
+        description: 'Gemini model to use'
+        required: false
+        default: 'gemini'
+        type: choice
+        options:
+          - gemini        # Gemini 3 Pro 2K (FLAGSHIP)
+          - gemini-4k     # Gemini 3 Pro 4K (Max quality)
+          - gemini-flash  # Gemini 2.5 Flash (Fast/budget)
+
+jobs:
+  generate-images:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests pandas openpyxl
+
+      - name: Test API Key
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          python tools/nano_banana_generator.py --test
+
+      - name: Generate Images for Cloud YHS Products
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🚀 Generating images for Cloud YHS products"
+          echo "   Start: ${{ inputs.start_product }}"
+          echo "   Batch: ${{ inputs.batch_size }} products"
+          echo "   Images: ${{ inputs.images_per_product }} per product"
+          echo "   Model: ${{ inputs.model }}"
+          echo ""
+
+          # Run the Cloud YHS importer with image generation enabled
+          python tools/cloud_yhs_importer.py \
+            --start $(( ${{ inputs.start_product }} - 1 )) \
+            --count ${{ inputs.batch_size }}
+
+      - name: Upload generated images as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cloud-yhs-images-batch-${{ inputs.start_product }}
+          path: generated_images/
+          retention-days: 30
+
+      - name: Summary
+        run: |
+          echo "## 🍌 Cloud YHS Image Generation Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Products processed:** ${{ inputs.start_product }} to $(( ${{ inputs.start_product }} + ${{ inputs.batch_size }} - 1 ))" >> $GITHUB_STEP_SUMMARY
+          echo "**Images per product:** ${{ inputs.images_per_product }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Model:** ${{ inputs.model }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "To process more products, run this workflow again with:" >> $GITHUB_STEP_SUMMARY
+          echo "- Start product: $(( ${{ inputs.start_product }} + ${{ inputs.batch_size }} ))" >> $GITHUB_STEP_SUMMARY
