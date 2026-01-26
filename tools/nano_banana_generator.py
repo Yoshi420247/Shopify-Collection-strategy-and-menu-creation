@@ -45,20 +45,29 @@ except ImportError:
 API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
-# Model configurations
+# Model configurations - Updated January 2026
+# Note: gemini-2.0-flash-exp was retired. Using latest models.
 MODELS = {
-    # Gemini models with native image generation
+    # Gemini 2.5 Flash Image - Production-ready (recommended)
     "gemini": {
-        "id": "gemini-2.0-flash-exp",
+        "id": "gemini-2.5-flash-image",
         "endpoint": "generateContent",
         "type": "gemini",
-        "description": "Gemini 2.0 Flash with image generation (recommended)"
+        "description": "Gemini 2.5 Flash Image - Fast, production-ready (recommended)"
     },
+    # Gemini 3 Pro Image Preview - Highest quality
     "gemini-pro": {
-        "id": "gemini-2.0-flash-exp",  # Using stable version
+        "id": "gemini-3-pro-image-preview",
         "endpoint": "generateContent",
         "type": "gemini",
-        "description": "Gemini with advanced reasoning"
+        "description": "Gemini 3 Pro Image Preview - Professional asset production"
+    },
+    # Legacy alias for backwards compatibility
+    "gemini-2.5": {
+        "id": "gemini-2.5-flash-image",
+        "endpoint": "generateContent",
+        "type": "gemini",
+        "description": "Gemini 2.5 Flash Image (alias)"
     },
     # Imagen models (require billing)
     "imagen3": {
@@ -100,8 +109,8 @@ def test_api_key(verbose: bool = True) -> dict:
     if verbose:
         print(f"[Nano Banana] Testing API key: {API_KEY[:20]}...")
 
-    # Test with a simple text generation
-    endpoint = f"{BASE_URL}/models/gemini-2.0-flash-exp:generateContent"
+    # Test with a simple text generation using latest model
+    endpoint = f"{BASE_URL}/models/gemini-2.5-flash-image:generateContent"
     headers = {
         "Content-Type": "application/json",
         "x-goog-api-key": API_KEY
@@ -178,21 +187,26 @@ Style requirements:
 - No text, watermarks, or logos
 - Photorealistic rendering"""
 
+    # Updated payload format for Gemini 2.5+ models
     payload = {
         "contents": [{
             "parts": [{"text": enhanced_prompt}]
         }],
         "generationConfig": {
-            "responseModalities": ["IMAGE", "TEXT"]
+            "responseModalities": ["TEXT", "IMAGE"],
+            "imageConfig": {
+                "aspectRatio": aspect_ratio
+            }
         }
     }
 
     if verbose:
         print(f"[Nano Banana] Using model: {model_id}")
+        print(f"[Nano Banana] Aspect ratio: {aspect_ratio}")
         print(f"[Nano Banana] Generating image...")
 
     try:
-        response = requests.post(endpoint, headers=headers, json=payload, timeout=120)
+        response = requests.post(endpoint, headers=headers, json=payload, timeout=180)
 
         if response.status_code != 200:
             return {"success": False, "error": f"API error {response.status_code}: {response.text[:500]}"}
@@ -209,8 +223,10 @@ Style requirements:
         text_response = None
 
         for part in parts:
-            if "inlineData" in part:
-                image_data = part["inlineData"].get("data")
+            # Handle both camelCase (inlineData) and snake_case (inline_data) formats
+            inline_data = part.get("inlineData") or part.get("inline_data")
+            if inline_data:
+                image_data = inline_data.get("data")
             elif "text" in part:
                 text_response = part["text"]
 
@@ -477,11 +493,18 @@ def print_setup_help():
 ║  3. Enable "Vertex AI API"                                   ║
 ║  4. Imagen 4 Ultra costs $0.06/image                         ║
 ║                                                              ║
-║  AVAILABLE MODELS:                                           ║
-║  - gemini       : Gemini 2.0 Flash (free, recommended)       ║
-║  - imagen3      : Imagen 3 (requires billing)                ║
-║  - imagen4      : Imagen 4 Standard (requires billing)       ║
-║  - imagen4-ultra: Imagen 4 Ultra (highest quality, billing)  ║
+║  AVAILABLE MODELS (Updated Jan 2026):                        ║
+║  - gemini     : Gemini 2.5 Flash Image (~$0.04/img)          ║
+║  - gemini-pro : Gemini 3 Pro Image Preview (best quality)    ║
+║  - imagen3    : Imagen 3 (requires billing)                  ║
+║  - imagen4    : Imagen 4 Standard (requires billing)         ║
+║  - imagen4-ultra: Imagen 4 Ultra (highest quality)           ║
+║                                                              ║
+║  GITHUB SECRETS (for CI/CD):                                 ║
+║  Store these secrets in your repo Settings > Secrets:        ║
+║  - GOOGLE_API_KEY       : Your Google AI API key             ║
+║  - SHOPIFY_STORE        : your-store.myshopify.com           ║
+║  - SHOPIFY_ACCESS_TOKEN : Your Shopify Admin API token       ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 """)
