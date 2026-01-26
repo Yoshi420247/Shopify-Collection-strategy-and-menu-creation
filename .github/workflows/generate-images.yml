@@ -1,4 +1,4 @@
-name: Generate Product Images
+name: Generate Product Images (Nano Banana Pro)
 
 on:
   workflow_dispatch:
@@ -8,16 +8,16 @@ on:
         required: true
         type: string
       model:
-        description: 'Model to use'
+        description: 'Model to use (gemini = Nano Banana Pro flagship)'
         required: false
         default: 'gemini'
         type: choice
         options:
-          - gemini
-          - gemini-pro
-          - imagen3
-          - imagen4
-          - imagen4-ultra
+          - gemini        # Nano Banana Pro (Gemini 3 Pro) 2K - FLAGSHIP
+          - gemini-4k     # Nano Banana Pro 4K - Maximum resolution
+          - gemini-flash  # Gemini 2.5 Flash - Fast/budget
+          - imagen3       # Imagen 3 (requires billing)
+          - imagen4-ultra # Imagen 4 Ultra (requires billing)
       aspect_ratio:
         description: 'Aspect ratio'
         required: false
@@ -36,7 +36,7 @@ on:
       num_images:
         description: 'Number of images to generate'
         required: false
-        default: '1'
+        default: '4'
         type: string
 
 jobs:
