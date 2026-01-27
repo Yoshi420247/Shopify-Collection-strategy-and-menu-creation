@@ -6,12 +6,18 @@ on:
       action:
         description: 'Action to perform'
         required: true
-        default: 'analyze'
+        default: 'execute-publish'
         type: choice
         options:
           - analyze        # Just analyze and report
           - execute        # Update tags only
           - execute-publish # Update tags AND publish draft products
+  push:
+    branches:
+      - 'claude/organize-cloud-yhs-*'
+    paths:
+      - 'src/cloud-yhs-organizer.js'
+      - '.github/workflows/organize-cloud-yhs.yml'
 
 jobs:
   organize-products:
@@ -35,10 +41,15 @@ jobs:
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
         run: |
           echo "🚀 Organizing Cloud YHS products into collections"
-          echo "   Action: ${{ inputs.action }}"
+          # Use input action if triggered manually, otherwise default to execute-publish
+          ACTION="${{ inputs.action }}"
+          if [ -z "$ACTION" ]; then
+            ACTION="execute-publish"
+          fi
+          echo "   Action: $ACTION"
           echo ""
 
-          case "${{ inputs.action }}" in
+          case "$ACTION" in
             "analyze")
               node src/cloud-yhs-organizer.js
               ;;
