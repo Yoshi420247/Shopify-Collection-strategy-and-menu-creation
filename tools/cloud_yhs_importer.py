@@ -169,7 +169,15 @@ def generate_oil_slick_description(product: dict) -> str:
 
 
 def generate_product_tags(product: dict) -> str:
-    """Generate appropriate tags for the product."""
+    """Generate appropriate tags for the product.
+
+    Uses correct tag format that matches collection rules in config.js:
+    - family:glass-bong (not family:bong)
+    - family:spoon-pipe (not family:pipe)
+    - family:flower-bowl (not family:bowl)
+    - family:vape-battery (not family:battery)
+    - family:storage-accessory (not family:ashtray)
+    """
     name = product['name'].lower()
     specs = product['specs'].lower() if product['specs'] else ''
 
@@ -178,26 +186,32 @@ def generate_product_tags(product: dict) -> str:
     # Material tags
     if 'pvc' in specs:
         tags.append("material:pvc")
-    if 'glass' in specs:
+    if 'glass' in specs or 'glass' in name:
         tags.append("material:glass")
-    if 'silicone' in specs:
+    if 'silicone' in specs or 'silicone' in name:
         tags.append("material:silicone")
+    if 'plastic' in specs or 'plastic' in name:
+        tags.append("material:plastic")
 
-    # Product type tags
+    # Product type tags - using CORRECT tags that match collection rules
     if 'water pipe' in name:
-        tags.extend(["pillar:water-pipe", "family:bong"])
-    elif 'hand pipe' in name:
-        tags.extend(["pillar:hand-pipe", "family:pipe"])
+        tags.extend(["pillar:smokeshop-device", "family:glass-bong", "use:flower-smoking"])
+    elif 'hand pipe' in name or 'glass pipe' in name:
+        tags.extend(["pillar:smokeshop-device", "family:spoon-pipe", "use:flower-smoking"])
+    elif 'bubbler' in name:
+        tags.extend(["pillar:smokeshop-device", "family:bubbler", "use:flower-smoking"])
     elif 'nectar collector' in name:
-        tags.extend(["pillar:accessory", "family:nectar-collector"])
+        tags.extend(["pillar:smokeshop-device", "family:nectar-collector", "use:dabbing"])
     elif 'dab tool' in name:
-        tags.extend(["pillar:accessory", "family:dab-tool"])
-    elif 'battery' in name:
-        tags.extend(["pillar:accessory", "family:battery"])
+        tags.extend(["pillar:accessory", "family:dab-tool", "use:dabbing"])
+    elif 'roach clip' in name:
+        tags.extend(["pillar:accessory", "family:dab-tool", "use:flower-smoking"])
+    elif 'battery' in name or 'cbd' in name.lower():
+        tags.extend(["pillar:smokeshop-device", "family:vape-battery", "use:vaping"])
     elif 'bowl' in name:
-        tags.extend(["pillar:accessory", "family:bowl"])
-    elif 'ashtray' in name:
-        tags.extend(["pillar:accessory", "family:ashtray"])
+        tags.extend(["pillar:accessory", "family:flower-bowl", "use:flower-smoking"])
+    elif 'ashtray' in name or 'jar' in name:
+        tags.extend(["pillar:accessory", "family:storage-accessory", "use:storage"])
 
     return ", ".join(tags)
 
