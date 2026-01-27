@@ -27,6 +27,11 @@ on:
         required: false
         default: false
         type: boolean
+      rotate_images:
+        description: 'Rotate all images 180° (for upside-down supplier images)'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   import-products:
@@ -43,7 +48,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pandas xlrd openpyxl requests
+          pip install pandas xlrd openpyxl requests Pillow
 
       - name: Extract product images
         run: |
@@ -100,6 +105,15 @@ jobs:
               ;;
           esac
 
+          # Add rotate flag if enabled (default: true)
+          if [ "${{ inputs.rotate_images }}" == "true" ]; then
+            ARGS="$ARGS --rotate-images"
+            echo "   Image Rotation: ENABLED (180°)"
+          else
+            echo "   Image Rotation: disabled"
+          fi
+
+          echo ""
           echo "Running: python tools/product_listing_importer.py $ARGS"
           echo ""
 
