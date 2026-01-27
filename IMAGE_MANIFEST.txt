@@ -1,0 +1,622 @@
+YHS SUPPLY PRODUCT IMAGES - MANIFEST
+============================================================
+
+Instructions for LLM:
+Each image filename corresponds to the product number.
+Match the image to the spreadsheet row using the product number (column B).
+The 'row_in_spreadsheet' indicates the Excel row number.
+
+============================================================
+
+FILE: CY013.jpeg
+  Product No: CY013
+  Product Name: 9'' Baseball man water pipe
+  Spreadsheet Row: 6
+  Insert image in Column C, Row 6
+
+FILE: CY015.jpeg
+  Product No: CY015
+  Product Name: Mechanical alien water pipe
+  Spreadsheet Row: 7
+  Insert image in Column C, Row 7
+
+FILE: CY019-E.jpeg
+  Product No: CY019-E
+  Product Name: 7.5'' pvc divination hand water pipe with light and voice
+  Spreadsheet Row: 8
+  Insert image in Column C, Row 8
+
+FILE: H622.jpeg
+  Product No: H622
+  Product Name: 8.6'' Mutated eggplant water pipe
+  Spreadsheet Row: 9
+  Insert image in Column C, Row 9
+
+FILE: H621.jpeg
+  Product No: H621
+  Product Name: 8.8'' Cake man water pipe
+  Spreadsheet Row: 10
+  Insert image in Column C, Row 10
+
+FILE: H617.jpeg
+  Product No: H617
+  Product Name: 8.2'' Pink dress female mouse water pipe
+  Spreadsheet Row: 11
+  Insert image in Column C, Row 11
+
+FILE: H609.jpeg
+  Product No: H609
+  Product Name: 9.4'' Shorthair cat water pipe
+  Spreadsheet Row: 12
+  Insert image in Column C, Row 12
+
+FILE: H608.jpeg
+  Product No: H608
+  Product Name: 9.4'' Siamese cat water pipe
+  Spreadsheet Row: 13
+  Insert image in Column C, Row 13
+
+FILE: H602.jpeg
+  Product No: H602
+  Product Name: 9.2'' Husky water pipe
+  Spreadsheet Row: 14
+  Insert image in Column C, Row 14
+
+FILE: H601.jpeg
+  Product No: H601
+  Product Name: 11.2'' Scooby-Doo water pipe
+  Spreadsheet Row: 15
+  Insert image in Column C, Row 15
+
+FILE: H597.jpeg
+  Product No: H597
+  Product Name: 10.4'' Maple leaf soccer water pipe
+  Spreadsheet Row: 16
+  Insert image in Column C, Row 16
+
+FILE: H596.jpeg
+  Product No: H596
+  Product Name: 10.2'' Golden gate water pipe
+  Spreadsheet Row: 17
+  Insert image in Column C, Row 17
+
+FILE: H593.jpeg
+  Product No: H593
+  Product Name: 10.4'' Soccer party water pipe
+  Spreadsheet Row: 18
+  Insert image in Column C, Row 18
+
+FILE: H592.jpeg
+  Product No: H592
+  Product Name: 10.4'' Soccer shoes water pipe
+  Spreadsheet Row: 19
+  Insert image in Column C, Row 19
+
+FILE: H577.jpeg
+  Product No: H577
+  Product Name: 10.6'' Zombie shark water pipe
+  Spreadsheet Row: 20
+  Insert image in Column C, Row 20
+
+FILE: H575.jpeg
+  Product No: H575
+  Product Name: 10.4'' Dolphin water pipe
+  Spreadsheet Row: 21
+  Insert image in Column C, Row 21
+
+FILE: H570.jpeg
+  Product No: H570
+  Product Name: 11.4'' Lionel Messi water pipe
+  Spreadsheet Row: 22
+  Insert image in Column C, Row 22
+
+FILE: H564.jpeg
+  Product No: H564
+  Product Name: 8.8'' Corpse flower water pipe
+  Spreadsheet Row: 23
+  Insert image in Column C, Row 23
+
+FILE: H562.jpeg
+  Product No: H562
+  Product Name: 8'' Sunglasses duck water pipe
+  Spreadsheet Row: 24
+  Insert image in Column C, Row 24
+
+FILE: H559.jpeg
+  Product No: H559
+  Product Name: 6.8'' Penguin Modi water pipe
+  Spreadsheet Row: 25
+  Insert image in Column C, Row 25
+
+FILE: H558.jpeg
+  Product No: H558
+  Product Name: 6.6'' Penguin Rick water pipe
+  Spreadsheet Row: 26
+  Insert image in Column C, Row 26
+
+FILE: H557.jpeg
+  Product No: H557
+  Product Name: 11'' Artistic couple water pipe
+  Spreadsheet Row: 27
+  Insert image in Column C, Row 27
+
+FILE: H560.jpeg
+  Product No: H560
+  Product Name: 11'' Players competing water pipe
+  Spreadsheet Row: 28
+  Insert image in Column C, Row 28
+
+FILE: H553.jpeg
+  Product No: H553
+  Product Name: 11.8'' Penalty referee water pipe
+  Spreadsheet Row: 29
+  Insert image in Column C, Row 29
+
+FILE: H552.jpeg
+  Product No: H552
+  Product Name: 11.8'' Individual foul referee water pipe
+  Spreadsheet Row: 30
+  Insert image in Column C, Row 30
+
+FILE: H543-A.jpeg
+  Product No: H543-A
+  Product Name: 6.1'' Small size Labubu water pipe (Flannel surface)
+  Spreadsheet Row: 31
+  Insert image in Column C, Row 31
+
+FILE: H536.jpeg
+  Product No: H536
+  Product Name: 9.2'' Headless knight water pipe
+  Spreadsheet Row: 32
+  Insert image in Column C, Row 32
+
+FILE: H535.jpeg
+  Product No: H535
+  Product Name: 7.29'' Lollipop mummy water pipe
+  Spreadsheet Row: 33
+  Insert image in Column C, Row 33
+
+FILE: H532.jpeg
+  Product No: H532
+  Product Name: 9.2'' Zombie mario water pipe
+  Spreadsheet Row: 34
+  Insert image in Column C, Row 34
+
+FILE: H528.jpeg
+  Product No: H528
+  Product Name: 8.9'' Zombie witch water pipe
+  Spreadsheet Row: 35
+  Insert image in Column C, Row 35
+
+FILE: H527.jpeg
+  Product No: H527
+  Product Name: 10.4'' Tom cat water pipe
+  Spreadsheet Row: 36
+  Insert image in Column C, Row 36
+
+FILE: H522.jpeg
+  Product No: H522
+  Product Name: 10.5'' The Hand of Fear water pipe
+  Spreadsheet Row: 37
+  Insert image in Column C, Row 37
+
+FILE: H519.jpeg
+  Product No: H519
+  Product Name: 9.6'' Alien Spider-Man water pipe
+  Spreadsheet Row: 38
+  Insert image in Column C, Row 38
+
+FILE: H512.jpeg
+  Product No: H512
+  Product Name: 6.1'' Peter docter water pipe
+  Spreadsheet Row: 39
+  Insert image in Column C, Row 39
+
+FILE: H511.jpeg
+  Product No: H511
+  Product Name: 7.1'' Sadness water pipe
+  Spreadsheet Row: 40
+  Insert image in Column C, Row 40
+
+FILE: H507.jpeg
+  Product No: H507
+  Product Name: 11'' Octopus Marge water pipe
+  Spreadsheet Row: 41
+  Insert image in Column C, Row 41
+
+FILE: H506.jpeg
+  Product No: H506
+  Product Name: 10.9'' Steel Claw Homer water pipe
+  Spreadsheet Row: 42
+  Insert image in Column C, Row 42
+
+FILE: H497.jpeg
+  Product No: H497
+  Product Name: 8.8'' Tabby cat water pipe
+  Spreadsheet Row: 43
+  Insert image in Column C, Row 43
+
+FILE: H497-A.jpeg
+  Product No: H497-A
+  Product Name: 8.8'' Black tabby cat water pipe
+  Spreadsheet Row: 44
+  Insert image in Column C, Row 44
+
+FILE: H497P.jpeg
+  Product No: H497P
+  Product Name: 8.8'' Cat water pipe with printing
+  Spreadsheet Row: 45
+  Insert image in Column C, Row 45
+
+FILE: H496.jpeg
+  Product No: H496
+  Product Name: 10.3'' Gastly water pipe
+  Spreadsheet Row: 46
+  Insert image in Column C, Row 46
+
+FILE: H492-A.jpeg
+  Product No: H492-A
+  Product Name: 10.5'' Minnie mouse water pipe
+  Spreadsheet Row: 47
+  Insert image in Column C, Row 47
+
+FILE: H484.jpeg
+  Product No: H484
+  Product Name: 6.5'' Kenny water pipe
+  Spreadsheet Row: 48
+  Insert image in Column C, Row 48
+
+FILE: H485.jpeg
+  Product No: H485
+  Product Name: 6.6'' Little fox water pipe
+  Spreadsheet Row: 49
+  Insert image in Column C, Row 49
+
+FILE: H475.jpeg
+  Product No: H475
+  Product Name: 8.6'' Bulldog water pipe
+  Spreadsheet Row: 50
+  Insert image in Column C, Row 50
+
+FILE: H475-A.jpeg
+  Product No: H475-A
+  Product Name: 8.6'' Black Bulldog water pipe
+  Spreadsheet Row: 51
+  Insert image in Column C, Row 51
+
+FILE: H473.jpeg
+  Product No: H473
+  Product Name: 9'' Lion water pipe
+  Spreadsheet Row: 52
+  Insert image in Column C, Row 52
+
+FILE: H471.jpeg
+  Product No: H471
+  Product Name: 9.8'' Gorilla water pipe
+  Spreadsheet Row: 53
+  Insert image in Column C, Row 53
+
+FILE: H466.jpeg
+  Product No: H466
+  Product Name: 8.7'' Beaver water pipe
+  Spreadsheet Row: 54
+  Insert image in Column C, Row 54
+
+FILE: H463.jpeg
+  Product No: H463
+  Product Name: 8.9'' Banana water pipe
+  Spreadsheet Row: 55
+  Insert image in Column C, Row 55
+
+FILE: H452.jpeg
+  Product No: H452
+  Product Name: Radio water pipe
+  Spreadsheet Row: 56
+  Insert image in Column C, Row 56
+
+FILE: H451.jpeg
+  Product No: H451
+  Product Name: 4.9'' Tongue-sticking bear water pipe
+  Spreadsheet Row: 57
+  Insert image in Column C, Row 57
+
+FILE: H445.jpeg
+  Product No: H445
+  Product Name: 6.6'' Silicone pumpkin wizard hat water pipe
+  Spreadsheet Row: 58
+  Insert image in Column C, Row 58
+
+FILE: H425.jpeg
+  Product No: H425
+  Product Name: 11.5'' pvc backpack rabbit
+  Spreadsheet Row: 59
+  Insert image in Column C, Row 59
+
+FILE: H353.jpeg
+  Product No: H353
+  Product Name: 12'' Yoda water pipe
+  Spreadsheet Row: 60
+  Insert image in Column C, Row 60
+
+FILE: H388.jpeg
+  Product No: H388
+  Product Name: 5.8'' pvc skull water pipe
+  Spreadsheet Row: 61
+  Insert image in Column C, Row 61
+
+FILE: H381.jpeg
+  Product No: H381
+  Product Name: Zombie pug water pipe
+  Spreadsheet Row: 62
+  Insert image in Column C, Row 62
+
+FILE: H371.jpeg
+  Product No: H371
+  Product Name: Kuromi water pipe
+  Spreadsheet Row: 63
+  Insert image in Column C, Row 63
+
+FILE: H321.jpeg
+  Product No: H321
+  Product Name: Expression cactus water pipe
+  Spreadsheet Row: 64
+  Insert image in Column C, Row 64
+
+FILE: H254.jpeg
+  Product No: H254
+  Product Name: Three eyes guy
+  Spreadsheet Row: 65
+  Insert image in Column C, Row 65
+
+FILE: H248.jpeg
+  Product No: H248
+  Product Name: Turkey water pipe
+  Spreadsheet Row: 66
+  Insert image in Column C, Row 66
+
+FILE: H194.jpeg
+  Product No: H194
+  Product Name: Waterwheel water pipe
+  Spreadsheet Row: 67
+  Insert image in Column C, Row 67
+
+FILE: H154.jpeg
+  Product No: H154
+  Product Name: UFO water pipe
+  Spreadsheet Row: 68
+  Insert image in Column C, Row 68
+
+FILE: H95.jpeg
+  Product No: H95
+  Product Name: Freeze cooling cup bubbler
+  Spreadsheet Row: 69
+  Insert image in Column C, Row 69
+
+FILE: H4.jpeg
+  Product No: H4
+  Product Name: 7.5'' beaker water pipe
+  Spreadsheet Row: 70
+  Insert image in Column C, Row 70
+
+FILE: H4P.jpeg
+  Product No: H4P
+  Product Name: 7.5'' beaker water pipe (printed)
+  Spreadsheet Row: 71
+  Insert image in Column C, Row 71
+
+FILE: H462.jpeg
+  Product No: H462
+  Product Name: Mixed hand pipes 18pcs/display
+  Spreadsheet Row: 72
+  Insert image in Column C, Row 72
+
+FILE: B033.jpeg
+  Product No: B033
+  Product Name: Dab tools mixed 10pcs/jar
+  Spreadsheet Row: 73
+  Insert image in Column C, Row 73
+
+FILE: B002.jpeg
+  Product No: B002
+  Product Name: Roach clips mixed 15pcs/set
+  Spreadsheet Row: 74
+  Insert image in Column C, Row 74
+
+FILE: H538A.jpeg
+  Product No: H538A
+  Product Name: Hot dog straight tube glass pipe
+  Spreadsheet Row: 75
+  Insert image in Column C, Row 75
+
+FILE: H538B.jpeg
+  Product No: H538B
+  Product Name: Purple mushroom straight tube glass pipe
+  Spreadsheet Row: 76
+  Insert image in Column C, Row 76
+
+FILE: H468A.jpeg
+  Product No: H468A
+  Product Name: Sonic glass hand pipe
+  Spreadsheet Row: 77
+  Insert image in Column C, Row 77
+
+FILE: H468B.jpeg
+  Product No: H468B
+  Product Name: Rick glass hand pipe
+  Spreadsheet Row: 78
+  Insert image in Column C, Row 78
+
+FILE: H468C.jpeg
+  Product No: H468C
+  Product Name: Yoda glass hand pipe
+  Spreadsheet Row: 79
+  Insert image in Column C, Row 79
+
+FILE: H435-2.jpeg
+  Product No: H435-2
+  Product Name: 6.5'' Plastic nectar collector (steel nail)
+  Spreadsheet Row: 80
+  Insert image in Column C, Row 80
+
+FILE: H378.jpeg
+  Product No: H378
+  Product Name: Kuromi hand pipe
+  Spreadsheet Row: 81
+  Insert image in Column C, Row 81
+
+FILE: H377.jpeg
+  Product No: H377
+  Product Name: Kitty big hand pipe
+  Spreadsheet Row: 82
+  Insert image in Column C, Row 82
+
+FILE: H363.jpeg
+  Product No: H363
+  Product Name: Mario glass hand pipes
+  Spreadsheet Row: 83
+  Insert image in Column C, Row 83
+
+FILE: H455.jpeg
+  Product No: H455
+  Product Name: Puppet bear hand pipe
+  Spreadsheet Row: 84
+  Insert image in Column C, Row 84
+
+FILE: H454.jpeg
+  Product No: H454
+  Product Name: The boy hand pipe
+  Spreadsheet Row: 85
+  Insert image in Column C, Row 85
+
+FILE: H453.jpeg
+  Product No: H453
+  Product Name: Spotted monster hand pipe
+  Spreadsheet Row: 86
+  Insert image in Column C, Row 86
+
+FILE: H440.jpeg
+  Product No: H440
+  Product Name: Barbarian hand pipe
+  Spreadsheet Row: 87
+  Insert image in Column C, Row 87
+
+FILE: H439.jpeg
+  Product No: H439
+  Product Name: Skull hand pipe
+  Spreadsheet Row: 88
+  Insert image in Column C, Row 88
+
+FILE: H438.jpeg
+  Product No: H438
+  Product Name: The Gingerbread Man hand pipe
+  Spreadsheet Row: 89
+  Insert image in Column C, Row 89
+
+FILE: H436.jpeg
+  Product No: H436
+  Product Name: Smiley Ghost hand pipe
+  Spreadsheet Row: 90
+  Insert image in Column C, Row 90
+
+FILE: H434.jpeg
+  Product No: H434
+  Product Name: Eye hand pipe
+  Spreadsheet Row: 91
+  Insert image in Column C, Row 91
+
+FILE: H401.jpeg
+  Product No: H401
+  Product Name: Shark hand pipe
+  Spreadsheet Row: 92
+  Insert image in Column C, Row 92
+
+FILE: H400.jpeg
+  Product No: H400
+  Product Name: Cat paw hand pipe
+  Spreadsheet Row: 93
+  Insert image in Column C, Row 93
+
+FILE: H308.jpeg
+  Product No: H308
+  Product Name: Naked lady hand pipe
+  Spreadsheet Row: 94
+  Insert image in Column C, Row 94
+
+FILE: H240.jpeg
+  Product No: H240
+  Product Name: Screaming chicken pipe
+  Spreadsheet Row: 95
+  Insert image in Column C, Row 95
+
+FILE: H129.jpeg
+  Product No: H129
+  Product Name: 6.6'' nectar collector
+  Spreadsheet Row: 96
+  Insert image in Column C, Row 96
+
+FILE: J1P.jpeg
+  Product No: J1P
+  Product Name: 180ml flower jar
+  Spreadsheet Row: 97
+  Insert image in Column C, Row 97
+
+FILE: WS158.jpeg
+  Product No: WS158
+  Product Name: Cucumber glass pipe
+  Spreadsheet Row: 98
+  Insert image in Column C, Row 98
+
+FILE: WS155.jpeg
+  Product No: WS155
+  Product Name: Mushroom glass pipe
+  Spreadsheet Row: 99
+  Insert image in Column C, Row 99
+
+FILE: WS156.jpeg
+  Product No: WS156
+  Product Name: Pea glass pipe
+  Spreadsheet Row: 100
+  Insert image in Column C, Row 100
+
+FILE: A3.jpeg
+  Product No: A3
+  Product Name: Geometric Ashtray
+  Spreadsheet Row: 101
+  Insert image in Column C, Row 101
+
+FILE: P001.jpeg
+  Product No: P001
+  Product Name: Big 9 holes glass bowl
+  Spreadsheet Row: 102
+  Insert image in Column C, Row 102
+
+FILE: P002.jpeg
+  Product No: P002
+  Product Name: Small 9 holes glass bowl
+  Spreadsheet Row: 103
+  Insert image in Column C, Row 103
+
+FILE: E23.jpeg
+  Product No: E23
+  Product Name: Santa clus internal CBD battery device
+  Spreadsheet Row: 104
+  Insert image in Column C, Row 104
+
+FILE: E9.jpeg
+  Product No: E9
+  Product Name: Monster internal CBD battery device
+  Spreadsheet Row: 105
+  Insert image in Column C, Row 105
+
+FILE: E8.jpeg
+  Product No: E8
+  Product Name: Alien internal CBD battery device
+  Spreadsheet Row: 106
+  Insert image in Column C, Row 106
+
+FILE: E7.jpeg
+  Product No: E7
+  Product Name: Yoda internal CBD battery device
+  Spreadsheet Row: 107
+  Insert image in Column C, Row 107
+
