@@ -3,6 +3,12 @@ name: Fix Cloud YHS Product Images
 on:
   workflow_dispatch:
     inputs:
+  push:
+    branches:
+      - 'claude/organize-cloud-yhs-*'
+    paths:
+      - '.github/workflows/fix-cloud-yhs-images.yml'
+      - 'tools/fix_cloud_yhs_images.py'
       action:
         description: 'Action to perform'
         required: true
@@ -59,7 +65,13 @@ jobs:
             LIMIT_ARG="--limit ${{ inputs.limit }}"
           fi
 
-          case "${{ inputs.action }}" in
+          # Default to fix-all when triggered by push (no inputs)
+          ACTION="${{ inputs.action }}"
+          if [ -z "$ACTION" ]; then
+            ACTION="fix-all"
+          fi
+
+          case "$ACTION" in
             "fix-all")
               echo "Action: Delete old images and upload corrected ones"
               python tools/fix_cloud_yhs_images.py $LIMIT_ARG
@@ -82,7 +94,7 @@ jobs:
         run: |
           echo "## 🔧 Cloud YHS Image Fix Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Action:** ${{ inputs.action }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** ${{ inputs.action || 'fix-all' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### What was done:" >> $GITHUB_STEP_SUMMARY
           echo "- Fetched all Cloud YHS products from Shopify" >> $GITHUB_STEP_SUMMARY
