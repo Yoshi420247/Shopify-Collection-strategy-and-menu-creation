@@ -18,5 +18,6 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Extracted product images (extracted from product_images.zip at runtime)
+# Extracted product images (extracted at runtime)
 product_images_described/
+pdf_extracted_images/
