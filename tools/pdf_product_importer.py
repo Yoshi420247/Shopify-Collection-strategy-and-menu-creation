@@ -215,64 +215,104 @@ def parse_pdf_with_layout(pdf_path: str) -> List[Dict]:
 
 def extract_images_from_pdf(pdf_path: str, output_folder: str, rotate: bool = True) -> List[str]:
     """
-    Extract images from PDF and save to folder.
+    Extract images from PDF and save to folder in visual order (top-to-bottom).
 
     Args:
         pdf_path: Path to PDF file
         output_folder: Folder to save extracted images
-        rotate: If True, rotate images 180 degrees (PDF stores them inverted)
+        rotate: If True, auto-detect and fix inverted images based on PDF transform
 
-    Returns list of image file paths.
+    Returns list of image file paths (excluding logo).
     """
     output_path = Path(output_folder)
     output_path.mkdir(parents=True, exist_ok=True)
 
     pdf = fitz.open(pdf_path)
-    image_paths = []
-    image_counter = 0
+
+    # Collect all images with their visual positions
+    all_images = []
 
     for page_num in range(len(pdf)):
         page = pdf[page_num]
-        images = page.get_images()
+        # Get image info with xrefs and positions
+        info_list = page.get_image_info(xrefs=True)
 
-        for img_index, img in enumerate(images):
-            xref = img[0]
-            try:
-                base_image = pdf.extract_image(xref)
-                image_bytes = base_image["image"]
-                image_ext = base_image["ext"]
+        for info in info_list:
+            xref = info.get('xref')
+            if not xref:
+                continue
 
-                # Skip very small images (likely icons/logos)
-                if len(image_bytes) < 1000:
-                    continue
+            bbox = info['bbox']
+            y_pos = bbox[1]
+            x_pos = bbox[0]
+            width = bbox[2] - bbox[0]
 
-                image_filename = f"product_{image_counter:03d}.jpeg"
-                image_path = output_path / image_filename
+            # Get transform matrix to detect if image is flipped
+            # Transform: (a, b, c, d, e, f) - if d is negative, image is vertically flipped
+            transform = info.get('transform', (1, 0, 0, 1, 0, 0))
+            is_flipped = transform[3] < 0 if len(transform) >= 4 else False
 
-                # Rotate image 180 degrees if needed (PDF stores images inverted)
-                if rotate and PIL_AVAILABLE:
-                    try:
-                        img_pil = Image.open(BytesIO(image_bytes))
-                        img_pil = img_pil.rotate(180, expand=True)
+            all_images.append({
+                'page': page_num,
+                'y': y_pos,
+                'x': x_pos,
+                'width': width,
+                'xref': xref,
+                'is_flipped': is_flipped
+            })
 
-                        # Convert to RGB if needed
-                        if img_pil.mode in ('RGBA', 'P'):
-                            img_pil = img_pil.convert('RGB')
+    # Sort by visual order: page first, then y position (top to bottom)
+    all_images.sort(key=lambda img: (img['page'], img['y'], img['x']))
 
-                        img_pil.save(str(image_path), 'JPEG', quality=95)
-                    except Exception as e:
-                        # Fall back to saving without rotation
-                        with open(image_path, 'wb') as f:
-                            f.write(image_bytes)
-                else:
+    # Extract images in visual order
+    image_paths = []
+    image_counter = 0
+
+    for img_info in all_images:
+        xref = img_info['xref']
+        width = img_info['width']
+        is_flipped = img_info['is_flipped']
+
+        # Skip logo (wide image at top of page 1, width > 60px on page)
+        if img_info['page'] == 0 and img_info['y'] < 100 and width > 60:
+            continue
+
+        try:
+            base_image = pdf.extract_image(xref)
+            image_bytes = base_image["image"]
+
+            # Skip very small images
+            if len(image_bytes) < 1000:
+                continue
+
+            image_filename = f"product_{image_counter:03d}.jpeg"
+            image_path = output_path / image_filename
+
+            # Rotate image 180 degrees if PDF transform indicates it's flipped
+            if rotate and PIL_AVAILABLE and is_flipped:
+                try:
+                    img_pil = Image.open(BytesIO(image_bytes))
+                    img_pil = img_pil.rotate(180, expand=True)
+
+                    # Convert to RGB if needed
+                    if img_pil.mode in ('RGBA', 'P'):
+                        img_pil = img_pil.convert('RGB')
+
+                    img_pil.save(str(image_path), 'JPEG', quality=95)
+                except Exception as e:
+                    # Fall back to saving without rotation
                     with open(image_path, 'wb') as f:
                         f.write(image_bytes)
+            else:
+                # Save without rotation
+                with open(image_path, 'wb') as f:
+                    f.write(image_bytes)
 
-                image_paths.append(str(image_path))
-                image_counter += 1
+            image_paths.append(str(image_path))
+            image_counter += 1
 
-            except Exception as e:
-                pass  # Skip problematic images
+        except Exception as e:
+            pass  # Skip problematic images
 
     pdf.close()
     return image_paths
@@ -493,17 +533,16 @@ def main():
     products = parse_pdf_with_layout(args.file)
     print(f"Found {len(products)} products")
 
-    # Extract images
+    # Extract images (sorted by visual position, logo excluded)
     img_folder = "pdf_extracted_images"
-    rotate_msg = "(with 180° rotation)" if args.rotate else "(no rotation)"
+    rotate_msg = "(with auto-rotation)" if args.rotate else "(no rotation)"
     print(f"Extracting images {rotate_msg}...")
     images = extract_images_from_pdf(args.file, img_folder, rotate=args.rotate)
-    print(f"Extracted {len(images)} images")
+    print(f"Extracted {len(images)} product images")
 
-    # Match images to products (skip first image = logo)
+    # Match images to products (1:1 since logo is already excluded)
     for i, p in enumerate(products):
-        img_idx = i + 1  # Skip logo
-        p['image_path'] = images[img_idx] if img_idx < len(images) else None
+        p['image_path'] = images[i] if i < len(images) else None
 
     if args.list:
         print(f"\n{'='*60}\nPRODUCTS\n{'='*60}")
