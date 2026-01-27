@@ -13,7 +13,13 @@
     "menu:analyze": "node src/menu-fixer.js",
     "menu:fix": "node src/menu-fixer.js --execute",
     "menu:auto": "node src/auto-menu-setup.js",
-    "menu:auto:execute": "node src/auto-menu-setup.js --execute"
+    "menu:auto:execute": "node src/auto-menu-setup.js --execute",
+    "cleanup": "node src/collection-cleanup.js",
+    "cleanup:report": "node src/collection-cleanup.js --report",
+    "cleanup:fix": "node src/collection-cleanup.js --execute --fix-collections",
+    "cleanup:delete": "node src/collection-cleanup.js --execute --delete-collections",
+    "cleanup:tags": "node src/collection-cleanup.js --execute --fix-tags",
+    "cleanup:all": "node src/collection-cleanup.js --execute --fix-collections --delete-collections --fix-tags"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
