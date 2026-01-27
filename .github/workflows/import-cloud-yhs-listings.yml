@@ -22,15 +22,10 @@ on:
         required: false
         default: ''
         type: string
-      show_titles:
-        description: 'Show title transformations only (ignores other options)'
+      show_list:
+        description: 'List all products only (ignores other options)'
         required: false
         default: false
-        type: boolean
-      rotate_images:
-        description: 'Rotate all images 180° (for upside-down supplier images)'
-        required: false
-        default: true
         type: boolean
 
 jobs:
@@ -48,42 +43,28 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pandas xlrd openpyxl requests Pillow
+          pip install PyMuPDF requests
 
-      - name: Extract product images
+      - name: List Products Only
+        if: ${{ inputs.show_list == true }}
         run: |
-          if [ -f "product_images.zip" ]; then
-            unzip -o product_images.zip -d .
-            echo "Extracted product images"
-            ls -la product_images_described/ | head -20
-          else
-            echo "No product_images.zip found - will proceed without images"
-          fi
-
-      - name: Show Title Transformations
-        if: ${{ inputs.show_titles == true }}
-        env:
-          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
-          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-        run: |
-          echo "📝 Showing title transformations..."
-          python tools/product_listing_importer.py --show-titles
+          echo "📋 Listing all products from PDF..."
+          python tools/pdf_product_importer.py --list
 
       - name: Import Products
-        if: ${{ inputs.show_titles != true }}
+        if: ${{ inputs.show_list != true }}
         env:
           SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
         run: |
-          echo "🚀 Cloud YHS Product Listing Import"
+          echo "🚀 Cloud YHS Product Listing Import (PDF)"
           echo "   Action: ${{ inputs.action }}"
           echo "   Start Index: ${{ inputs.start_index }}"
           echo "   Batch Size: ${{ inputs.batch_size || 'all' }}"
           echo ""
 
           # Build command arguments
-          ARGS="--file 'products conv 1.xls'"
-          ARGS="$ARGS --images product_images_described"
+          ARGS="--file products.pdf"
 
           if [ -n "${{ inputs.start_index }}" ] && [ "${{ inputs.start_index }}" != "0" ]; then
             ARGS="$ARGS --start ${{ inputs.start_index }}"
@@ -105,75 +86,39 @@ jobs:
               ;;
           esac
 
-          # Add rotate flag if enabled (default: true)
-          if [ "${{ inputs.rotate_images }}" == "true" ]; then
-            ARGS="$ARGS --rotate-images"
-            echo "   Image Rotation: ENABLED (180°)"
-          else
-            echo "   Image Rotation: disabled"
-          fi
-
-          echo ""
-          echo "Running: python tools/product_listing_importer.py $ARGS"
+          echo "Running: python tools/pdf_product_importer.py $ARGS"
           echo ""
 
-          eval "python tools/product_listing_importer.py $ARGS"
+          eval "python tools/pdf_product_importer.py $ARGS"
 
       - name: Generate Summary
         if: always()
         run: |
           echo "## 📦 Cloud YHS Product Listing Import" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Action performed:** ${{ inputs.action }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Source:** products.pdf" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** ${{ inputs.action }}" >> $GITHUB_STEP_SUMMARY
           echo "**Start index:** ${{ inputs.start_index }}" >> $GITHUB_STEP_SUMMARY
           echo "**Batch size:** ${{ inputs.batch_size || 'all' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          echo "### Features Applied" >> $GITHUB_STEP_SUMMARY
+          echo "### Features" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Feature | Description |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| PDF Parsing | Extracts data and images directly from PDF |" >> $GITHUB_STEP_SUMMARY
           echo "| Creative Titles | Trademark-safe, SEO-optimized naming |" >> $GITHUB_STEP_SUMMARY
           echo "| Unit Cost | Stored in Shopify inventory system |" >> $GITHUB_STEP_SUMMARY
           echo "| Retail Price | Automatically set to 2x unit cost |" >> $GITHUB_STEP_SUMMARY
-          echo "| Structured PDP | Research brief with specs, materials, themes |" >> $GITHUB_STEP_SUMMARY
-          echo "| Product Images | Uploaded from product_images_described folder |" >> $GITHUB_STEP_SUMMARY
-          echo "| Taxonomy Tags | Proper family/pillar/use tags for collections |" >> $GITHUB_STEP_SUMMARY
+          echo "| Images | Extracted from PDF (correctly oriented) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Taxonomy Tags | Proper family/pillar/use tags |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          echo "### Title Transformation Examples" >> $GITHUB_STEP_SUMMARY
+          echo "### Title Transformations" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Original | Creative |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|----------|" >> $GITHUB_STEP_SUMMARY
           echo "| Scooby-Doo water pipe | Mystery Hound Water Pipe |" >> $GITHUB_STEP_SUMMARY
           echo "| Lionel Messi water pipe | Soccer Legend Water Pipe |" >> $GITHUB_STEP_SUMMARY
-          echo "| Rick glass hand pipe | Mad Scientist Hand Pipe |" >> $GITHUB_STEP_SUMMARY
-          echo "| Zombie mario water pipe | Zombie Plumber Hero Water Pipe |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### PDP Structure" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Each product includes a structured research brief with:" >> $GITHUB_STEP_SUMMARY
-          echo "- Product identification (SKU, vendor, category)" >> $GITHUB_STEP_SUMMARY
-          echo "- Pricing structure (unit cost, retail price, margin)" >> $GITHUB_STEP_SUMMARY
-          echo "- Physical specifications (materials, dimensions, weight)" >> $GITHUB_STEP_SUMMARY
-          echo "- Design & theme analysis" >> $GITHUB_STEP_SUMMARY
-          echo "- Functional details (use case, filtration type)" >> $GITHUB_STEP_SUMMARY
-          echo "- Copywriting notes for description writers" >> $GITHUB_STEP_SUMMARY
-          echo "- Inventory status" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ inputs.action }}" == "dry-run" ]; then
-            echo "- Review the dry-run output above" >> $GITHUB_STEP_SUMMARY
-            echo "- Run with \`execute\` action to create products as drafts" >> $GITHUB_STEP_SUMMARY
-            echo "- Run with \`execute-publish\` to create and publish products" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ inputs.action }}" == "execute" ]; then
-            echo "- Products created as drafts in Shopify" >> $GITHUB_STEP_SUMMARY
-            echo "- Hand off to description writers to finalize PDP copy" >> $GITHUB_STEP_SUMMARY
-            echo "- Publish products when descriptions are complete" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- Products created and published to storefront" >> $GITHUB_STEP_SUMMARY
-            echo "- Run the 'Organize Cloud YHS Products' workflow to add collection tags" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "| Rick water pipe | Mad Scientist Water Pipe |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mario hand pipe | Plumber Hero Hand Pipe |" >> $GITHUB_STEP_SUMMARY
