@@ -538,13 +538,17 @@ def generate_pdp(product: Dict, title: str) -> str:
 
 <p><strong>Tone:</strong> Enthusiastic but informative. Balance fun character descriptions with practical product details. Avoid being overly formal or using stiff corporate language.</p>
 
-<p><strong>Content Structure (Recommended):</strong></p>
+<p><strong>Content Structure (Recommended for ~800 words):</strong></p>
 <ol style="margin:10px 0;padding-left:25px">
-<li><strong>Hook</strong> - Attention-grabbing opening about the character/theme (1-2 sentences)</li>
-<li><strong>Character Story</strong> - Brief creative description of the themed design (2-3 sentences)</li>
-<li><strong>Product Features</strong> - Key benefits and quality points (bullet points or short paragraph)</li>
-<li><strong>Specifications</strong> - Size, materials, practical details (can use specs table above)</li>
-<li><strong>Call to Action</strong> - Encourage purchase, mention collectibility or limited availability</li>
+<li><strong>Hook</strong> - Attention-grabbing opening about the character/theme (2-3 sentences)</li>
+<li><strong>Character Story</strong> - Rich creative narrative about the themed design, its personality, and visual appeal (100-150 words)</li>
+<li><strong>Design Details</strong> - Describe the artistic elements, colors, textures, and craftsmanship (75-100 words)</li>
+<li><strong>Product Features</strong> - Key benefits, functionality, and quality points with detail (100-150 words)</li>
+<li><strong>Materials Deep-Dive</strong> - Explain material benefits, durability, and why they matter (75-100 words)</li>
+<li><strong>User Experience</strong> - How it feels to use, the experience it provides (50-75 words)</li>
+<li><strong>Specifications</strong> - Size, dimensions, weight with context (50-75 words)</li>
+<li><strong>Collector Appeal</strong> - Why this piece stands out, limited nature, display-worthy qualities (50-75 words)</li>
+<li><strong>Call to Action</strong> - Strong close encouraging purchase, gift potential, collection addition (25-50 words)</li>
 </ol>
 
 <p><strong>DO Include:</strong></p>
@@ -566,7 +570,7 @@ def generate_pdp(product: Dict, title: str) -> str:
 <li>❌ Claims about legality in specific regions</li>
 </ul>
 
-<p><strong>Target Length:</strong> 150-250 words for main description</p>
+<p><strong>Target Length:</strong> 750-850 words for main description. Create rich, detailed content that thoroughly covers the product's character story, features, materials, and appeal to collectors.</p>
 
 <p><strong>Meta Description (generate separately):</strong> 150-160 characters, include product type + key feature + character theme</p>
 </div>
