@@ -39,7 +39,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests Pillow
+        run: pip install requests Pillow xlrd
 
       - name: Extract product images
         run: |

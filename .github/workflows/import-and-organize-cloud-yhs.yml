@@ -51,7 +51,7 @@ jobs:
           node-version: '20'
 
       - name: Install Python dependencies
-        run: pip install requests pandas openpyxl Pillow
+        run: pip install requests pandas openpyxl xlrd Pillow
 
       - name: Install Node.js dependencies
         run: npm install

@@ -42,12 +42,24 @@ GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_M
 
 
 def load_products_from_excel(filepath: str) -> list:
-    """Load products from the Cloud YHS Excel file."""
-    df = pd.read_excel(filepath, engine='openpyxl', skiprows=3)
-    df.columns = ['Product', 'SKU', 'Picture', 'Weight', 'Specs', 'Cost', 'Stock']
+    """Load products from the Cloud YHS Excel file.
 
-    # Filter out empty rows
+    Supports both old .xlsx format and new .xls format (products conv 1.xls).
+    """
+    # Determine file type and use appropriate engine
+    if filepath.endswith('.xls'):
+        # New format: products conv 1.xls (header at row 6)
+        df = pd.read_excel(filepath, engine='xlrd', header=6)
+        # Clean column names (remove newlines, standardize)
+        df.columns = ['Product', 'SKU', 'Picture', 'Weight', 'Specs', 'Cost', 'Stock', 'Extra']
+    else:
+        # Old format: yhs_supply_products.xlsx
+        df = pd.read_excel(filepath, engine='openpyxl', skiprows=3)
+        df.columns = ['Product', 'SKU', 'Picture', 'Weight', 'Specs', 'Cost', 'Stock']
+
+    # Filter out empty rows and header rows that got mixed in
     df = df[df['Product'].notna() & (df['Product'] != 'Product')]
+    df = df[df['SKU'].notna() & (df['SKU'] != 'No.')]  # Filter spurious header rows
 
     # Clean up cost column
     df['Cost_Clean'] = df['Cost'].astype(str).str.replace('$', '').str.replace(',', '')
@@ -60,11 +72,19 @@ def load_products_from_excel(filepath: str) -> list:
     products = []
     for _, row in df.iterrows():
         if pd.notna(row['Product']) and pd.notna(row['SKU']):
+            # Clean product name (remove newlines)
+            name = str(row['Product']).replace('\n', ' ').replace('  ', ' ').strip()
+            sku = str(row['SKU']).strip()
+
+            # Skip if SKU looks like a header
+            if sku.lower() in ['no.', 'sku', 'product']:
+                continue
+
             products.append({
-                'name': str(row['Product']).strip(),
-                'sku': str(row['SKU']).strip(),
-                'weight': str(row['Weight']) if pd.notna(row['Weight']) else '',
-                'specs': str(row['Specs']) if pd.notna(row['Specs']) else '',
+                'name': name,
+                'sku': sku,
+                'weight': str(row['Weight']).replace('\n', ' ').strip() if pd.notna(row['Weight']) else '',
+                'specs': str(row['Specs']).replace('\n', ' ').strip() if pd.notna(row['Specs']) else '',
                 'cost': float(row['Cost_Clean']) if pd.notna(row['Cost_Clean']) else 0,
                 'retail_price': float(row['Retail_Price']) if pd.notna(row['Retail_Price']) else 0,
                 'stock': int(row['Stock_Clean'])
@@ -713,7 +733,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Import Cloud YHS products to Shopify")
-    parser.add_argument("--file", "-f", default="yhs_supply_products.xlsx", help="Excel file path")
+    parser.add_argument("--file", "-f", default="products conv 1.xls", help="Excel file path")
     parser.add_argument("--start", "-s", type=int, default=0, help="Start from product index")
     parser.add_argument("--count", "-c", type=int, default=None, help="Number of products to process")
     parser.add_argument("--no-images", action="store_true", help="Skip all image handling")
