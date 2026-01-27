@@ -40,8 +40,61 @@ GEMINI_MODEL = "gemini-3-pro-image-preview"
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
 
-def load_products_from_excel(filepath: str) -> list:
-    """Load products from the Cloud YHS Excel file."""
+def extract_images_from_excel(filepath: str) -> dict:
+    """Extract embedded images from Excel file, mapped by row number.
+
+    Returns a dict: {row_number: image_bytes}
+    """
+    import openpyxl
+    from openpyxl.drawing.image import Image as OpenpyxlImage
+    from io import BytesIO
+
+    images_by_row = {}
+
+    try:
+        wb = openpyxl.load_workbook(filepath)
+        ws = wb.active
+
+        # Extract all embedded images
+        for image in ws._images:
+            # Get the anchor position (row where image is located)
+            if hasattr(image.anchor, '_from'):
+                row = image.anchor._from.row + 1  # 0-indexed to 1-indexed
+            elif hasattr(image.anchor, 'row'):
+                row = image.anchor.row + 1
+            else:
+                continue
+
+            # Read image data
+            if hasattr(image, '_data'):
+                img_data = image._data()
+            elif hasattr(image, 'ref'):
+                img_data = image.ref
+            else:
+                continue
+
+            if img_data:
+                images_by_row[row] = img_data
+
+        print(f"  Extracted {len(images_by_row)} embedded images from Excel")
+
+    except Exception as e:
+        print(f"  Warning: Could not extract images from Excel: {e}")
+
+    return images_by_row
+
+
+def load_products_from_excel(filepath: str) -> tuple:
+    """Load products from the Cloud YHS Excel file.
+
+    Returns: (products_list, images_dict)
+    - products_list: List of product dicts
+    - images_dict: Dict mapping SKU to image bytes (from embedded images)
+    """
+    # First extract embedded images
+    images_by_row = extract_images_from_excel(filepath)
+
+    # Load product data
     df = pd.read_excel(filepath, engine='openpyxl', skiprows=3)
     df.columns = ['Product', 'SKU', 'Picture', 'Weight', 'Specs', 'Cost', 'Stock']
 
@@ -57,11 +110,17 @@ def load_products_from_excel(filepath: str) -> list:
     df['Stock_Clean'] = df['Stock'].astype(str).str.extract(r'(\d+)')[0].astype(float).fillna(0).astype(int)
 
     products = []
-    for _, row in df.iterrows():
+    images_by_sku = {}
+
+    # Data starts at row 5 (after 3 skipped rows + header)
+    data_start_row = 5
+
+    for idx, (_, row) in enumerate(df.iterrows()):
         if pd.notna(row['Product']) and pd.notna(row['SKU']):
+            sku = str(row['SKU']).strip()
             products.append({
                 'name': str(row['Product']).strip(),
-                'sku': str(row['SKU']).strip(),
+                'sku': sku,
                 'weight': str(row['Weight']) if pd.notna(row['Weight']) else '',
                 'specs': str(row['Specs']) if pd.notna(row['Specs']) else '',
                 'cost': float(row['Cost_Clean']) if pd.notna(row['Cost_Clean']) else 0,
@@ -69,7 +128,12 @@ def load_products_from_excel(filepath: str) -> list:
                 'stock': int(row['Stock_Clean'])
             })
 
-    return products
+            # Map image to SKU if available
+            excel_row = data_start_row + idx
+            if excel_row in images_by_row:
+                images_by_sku[sku] = images_by_row[excel_row]
+
+    return products, images_by_sku
 
 
 def generate_oil_slick_description(product: dict) -> str:
@@ -486,13 +550,19 @@ def publish_product(product_id: int) -> dict:
     return {"success": response.status_code in [200, 201]}
 
 
-def process_single_product(product: dict, generate_images: bool = True, image_folder: str = None) -> dict:
+def process_single_product(product: dict, generate_images: bool = True, image_folder: str = None, spreadsheet_image: bytes = None) -> dict:
     """Process a single product: create in Shopify, generate images, upload.
 
     Image workflow (when generate_images=True):
-    1. Find source image (from folder by SKU, or search online)
+    1. Find source image (from spreadsheet, folder by SKU, or search online)
     2. Generate high-fidelity copy with Gemini → becomes Image #1
     3. Upload original source image → becomes Image #2
+
+    Args:
+        product: Product dict with name, sku, etc.
+        generate_images: Whether to generate/upload images
+        image_folder: Optional folder with images named by SKU
+        spreadsheet_image: Optional image bytes extracted from spreadsheet
     """
 
     print(f"\n{'='*60}")
@@ -521,10 +591,14 @@ def process_single_product(product: dict, generate_images: bool = True, image_fo
     # Step 2: Find source image
     print("  [2/4] Finding source image...")
     source_image = None
-    source_url = None
 
-    # First, check if there's a local image file matching SKU
-    if image_folder:
+    # Priority 1: Image from spreadsheet (embedded)
+    if spreadsheet_image:
+        source_image = spreadsheet_image
+        print("  ✓ Using image from spreadsheet")
+
+    # Priority 2: Local image file matching SKU
+    if not source_image and image_folder:
         sku = product['sku']
         for ext in ['.jpg', '.jpeg', '.png', '.webp', '.JPG', '.JPEG', '.PNG']:
             img_path = Path(image_folder) / f"{sku}{ext}"
@@ -534,13 +608,12 @@ def process_single_product(product: dict, generate_images: bool = True, image_fo
                 print(f"  ✓ Found local image: {img_path.name}")
                 break
 
-    # If no local image, search online
+    # Priority 3: Search online as fallback
     if not source_image:
         print("    Searching online for source image...")
         ref_urls = search_reference_images(product['name'])
         if ref_urls:
-            source_url = ref_urls[0]
-            source_image = download_image(source_url)
+            source_image = download_image(ref_urls[0])
             if source_image:
                 print(f"  ✓ Downloaded source image")
             else:
@@ -621,14 +694,17 @@ def main():
 
     args = parser.parse_args()
 
-    # Load products
+    # Load products and extract embedded images from spreadsheet
     print(f"\nLoading products from {args.file}...")
-    products = load_products_from_excel(args.file)
+    products, images_by_sku = load_products_from_excel(args.file)
     print(f"Found {len(products)} products")
+    if images_by_sku:
+        print(f"Found {len(images_by_sku)} embedded images in spreadsheet")
 
     if args.list:
         for i, p in enumerate(products):
-            print(f"{i+1:3}. {p['sku']:10} | ${p['retail_price']:6.2f} | {p['name'][:50]}")
+            has_img = "✓" if p['sku'] in images_by_sku else " "
+            print(f"{i+1:3}. [{has_img}] {p['sku']:10} | ${p['retail_price']:6.2f} | {p['name'][:50]}")
         return
 
     # Select range
@@ -640,7 +716,8 @@ def main():
     if args.dry_run:
         print("\n[DRY RUN MODE - No changes will be made]")
         for p in selected:
-            print(f"  Would create: {p['name']} (SKU: {p['sku']}) @ ${p['retail_price']:.2f}")
+            has_img = "✓" if p['sku'] in images_by_sku else "✗"
+            print(f"  [{has_img}] Would create: {p['name']} (SKU: {p['sku']}) @ ${p['retail_price']:.2f}")
         return
 
     # Check credentials
@@ -657,10 +734,15 @@ def main():
 
     for i, product in enumerate(selected):
         print(f"\n[{i+1}/{len(selected)}]", end="")
+
+        # Get embedded image for this product if available
+        spreadsheet_image = images_by_sku.get(product['sku'])
+
         result = process_single_product(
             product,
             generate_images=not args.no_images,
-            image_folder=args.images
+            image_folder=args.images,
+            spreadsheet_image=spreadsheet_image
         )
 
         if result['success']:
