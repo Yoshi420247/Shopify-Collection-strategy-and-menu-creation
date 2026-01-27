@@ -29,6 +29,16 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 import requests
+from io import BytesIO
+
+# Try to import PIL for image orientation correction
+try:
+    from PIL import Image, ExifTags
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    print("Warning: Pillow not installed. Image orientation correction disabled.")
+    print("Install with: pip install Pillow")
 
 # Configuration
 SHOPIFY_STORE = os.environ.get("SHOPIFY_STORE", "oil-slick-pad.myshopify.com")
@@ -608,10 +618,85 @@ def find_product_image(sku: str, image_folder: str) -> Optional[str]:
     return None
 
 
-def upload_image_to_shopify(product_id: int, image_path: str, position: int = 1, alt_text: str = "") -> Dict:
-    """Upload an image to a Shopify product."""
-    with open(image_path, 'rb') as f:
-        image_data = base64.b64encode(f.read()).decode('utf-8')
+def fix_image_orientation(image_path: str, rotate_180: bool = False) -> bytes:
+    """
+    Fix image orientation and return corrected image bytes.
+
+    Many images from suppliers are physically rotated incorrectly (upside down).
+    This function:
+    1. Applies EXIF orientation correction if present
+    2. Optionally rotates image 180 degrees (for upside-down supplier images)
+    3. Returns the corrected image as bytes
+
+    Args:
+        image_path: Path to the image file
+        rotate_180: If True, rotate the image 180 degrees (for upside-down images)
+    """
+    if not PIL_AVAILABLE:
+        # Fall back to reading raw bytes if PIL not available
+        with open(image_path, 'rb') as f:
+            return f.read()
+
+    try:
+        img = Image.open(image_path)
+
+        # Get EXIF data
+        exif = None
+        if hasattr(img, '_getexif') and img._getexif():
+            exif = img._getexif()
+
+        # Find orientation tag
+        orientation = None
+        if exif:
+            for tag_id, value in exif.items():
+                tag = ExifTags.TAGS.get(tag_id, tag_id)
+                if tag == 'Orientation':
+                    orientation = value
+                    break
+
+        # Apply EXIF orientation correction
+        if orientation:
+            if orientation == 2:
+                img = img.transpose(Image.FLIP_LEFT_RIGHT)
+            elif orientation == 3:
+                img = img.rotate(180, expand=True)
+            elif orientation == 4:
+                img = img.transpose(Image.FLIP_TOP_BOTTOM)
+            elif orientation == 5:
+                img = img.transpose(Image.FLIP_LEFT_RIGHT).rotate(270, expand=True)
+            elif orientation == 6:
+                img = img.rotate(270, expand=True)
+            elif orientation == 7:
+                img = img.transpose(Image.FLIP_LEFT_RIGHT).rotate(90, expand=True)
+            elif orientation == 8:
+                img = img.rotate(90, expand=True)
+
+        # Apply 180 degree rotation if requested (for upside-down supplier images)
+        if rotate_180:
+            img = img.rotate(180, expand=True)
+
+        # Convert to RGB if necessary (for PNG with transparency)
+        if img.mode in ('RGBA', 'P'):
+            img = img.convert('RGB')
+
+        # Save to bytes
+        buffer = BytesIO()
+        img.save(buffer, format='JPEG', quality=95)
+        buffer.seek(0)
+        return buffer.read()
+
+    except Exception as e:
+        print(f"    Warning: Could not process image orientation: {e}")
+        # Fall back to reading raw bytes
+        with open(image_path, 'rb') as f:
+            return f.read()
+
+
+def upload_image_to_shopify(product_id: int, image_path: str, position: int = 1, alt_text: str = "", rotate_180: bool = False) -> Dict:
+    """Upload an image to a Shopify product with orientation correction."""
+    # Fix orientation and get corrected image bytes
+    image_bytes = fix_image_orientation(image_path, rotate_180=rotate_180)
+    image_data = base64.b64encode(image_bytes).decode('utf-8')
 
     payload = {
         "image": {
@@ -771,7 +856,7 @@ def publish_product(product_id: int) -> bool:
     return response.status_code in [200, 201]
 
 
-def process_single_product(product: Dict, image_folder: str, publish: bool = False) -> Dict:
+def process_single_product(product: Dict, image_folder: str, publish: bool = False, rotate_images: bool = False) -> Dict:
     """Process a single product: create in Shopify, upload image."""
 
     print(f"\n{'='*70}")
@@ -811,10 +896,11 @@ def process_single_product(product: Dict, image_folder: str, publish: bool = Fal
             product_id,
             image_path,
             position=1,
-            alt_text=f"{creative_title} - Product Image"
+            alt_text=f"{creative_title} - Product Image",
+            rotate_180=rotate_images
         )
         if upload_result['success']:
-            print(f"        Image uploaded successfully")
+            print(f"        Image uploaded successfully" + (" (rotated 180°)" if rotate_images else ""))
         else:
             print(f"        Image upload failed: {upload_result.get('error', 'Unknown')}")
     else:
@@ -860,6 +946,7 @@ Examples:
     parser.add_argument("--dry-run", action="store_true", help="Preview without making changes")
     parser.add_argument("--execute", action="store_true", help="Actually create products in Shopify")
     parser.add_argument("--publish", action="store_true", help="Publish products after creation")
+    parser.add_argument("--rotate-images", action="store_true", help="Rotate all images 180 degrees (for upside-down supplier images)")
     parser.add_argument("--list", action="store_true", help="List all products and exit")
     parser.add_argument("--show-titles", action="store_true", help="Show original vs creative titles")
 
@@ -941,6 +1028,8 @@ Examples:
 
     print(f"\n{'='*70}")
     print("EXECUTING - Creating Products in Shopify")
+    if args.rotate_images:
+        print("  ** Image rotation enabled (180°) **")
     print(f"{'='*70}")
 
     results = {"success": 0, "failed": 0, "created_ids": []}
@@ -950,7 +1039,8 @@ Examples:
         result = process_single_product(
             product,
             str(image_folder) if image_folder else None,
-            publish=args.publish
+            publish=args.publish,
+            rotate_images=args.rotate_images
         )
 
         if result['success']:
