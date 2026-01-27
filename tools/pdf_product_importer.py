@@ -264,12 +264,6 @@ def extract_images_from_pdf(pdf_path: str, output_folder: str, rotate: bool = Tr
     # Sort by visual order: page first, then y position (top to bottom)
     all_images.sort(key=lambda img: (img['page'], img['y'], img['x']))
 
-    # Debug: Show first 10 images in extraction order
-    print(f"\n--- DEBUG: Image Extraction Order (first 10) ---")
-    for i, img in enumerate(all_images[:10]):
-        print(f"  {i}: page={img['page']} y={img['y']:.1f} xref={img['xref']}")
-    print(f"--- END DEBUG ---\n")
-
     # Extract images in visual order
     image_paths = []
     image_counter = 0
@@ -404,49 +398,464 @@ def determine_product_type(name: str) -> str:
 
 
 def generate_pdp(product: Dict, title: str) -> str:
-    """Generate structured PDP HTML."""
+    """
+    Generate comprehensive PDP content optimized for LLM description writers.
+
+    This PDP provides all necessary details for an AI/LLM to write an excellent
+    product description following e-commerce best practices and SEO optimization.
+
+    Note: Cost/pricing info is stored in Shopify's inventory system, NOT in the PDP.
+    """
+    name = product['name']
+    sku = product['sku']
     specs = product.get('specs', '')
-    materials = []
-    if specs:
-        if 'glass' in specs.lower(): materials.append("Borosilicate Glass")
-        if 'silicone' in specs.lower(): materials.append("Food-Grade Silicone")
-        if 'pvc' in specs.lower(): materials.append("Premium PVC")
-    mat_str = ", ".join(materials) if materials else "Quality Materials"
+    weight = product.get('weight', '')
 
-    dims = ""
-    m = re.search(r'(\d+)\s*\*\s*(\d+)(?:\s*\*\s*(\d+))?', specs or '')
-    if m:
-        dims = f"{m.group(1)} x {m.group(2)}"
-        if m.group(3): dims += f" x {m.group(3)}"
-        dims += " mm"
+    # === PRODUCT CLASSIFICATION ===
+    product_type = determine_product_type(name)
+    product_category = _classify_product_category(name)
 
+    # === CHARACTER/THEME ANALYSIS ===
+    character_info = _extract_character_info(name)
+
+    # === MATERIALS ANALYSIS ===
+    materials_detail = _analyze_materials(specs, name)
+
+    # === DIMENSIONS ===
+    dims_mm, dims_inches = _parse_dimensions(specs)
+    height_info = _extract_height(name)
+
+    # === COLORS ===
+    colors = _extract_colors(name, specs)
+
+    # === KEY FEATURES ===
+    features = _generate_features(name, specs, product_type)
+
+    # === USAGE & CARE ===
+    usage_info = _get_usage_info(product_type)
+
+    # === SEO KEYWORDS ===
+    seo_keywords = _generate_seo_keywords(name, product_type, materials_detail, character_info)
+
+    # === BUILD THE PDP HTML ===
     return f"""
-<div class="product-brief">
-<table style="width:100%;border-collapse:collapse;margin-bottom:15px">
-<tr style="background:#343a40;color:white"><th colspan="2" style="padding:10px;text-align:left">Product Info</th></tr>
-<tr style="border-bottom:1px solid #dee2e6"><td style="padding:8px;font-weight:bold">Title</td><td style="padding:8px">{title}</td></tr>
-<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:8px;font-weight:bold">Original</td><td style="padding:8px">{product['name']}</td></tr>
-<tr style="border-bottom:1px solid #dee2e6"><td style="padding:8px;font-weight:bold">SKU</td><td style="padding:8px"><code>{product['sku']}</code></td></tr>
+<div class="pdp-content" data-sku="{sku}">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 1: PRODUCT IDENTIFICATION
+     Core product details for the description writer
+═══════════════════════════════════════════════════════════════════════════ -->
+<table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+<tr style="background:#1a1a2e;color:#eee"><th colspan="2" style="padding:12px;text-align:left;font-size:14px">📦 PRODUCT IDENTIFICATION</th></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold;width:35%">Creative Title</td><td style="padding:10px">{title}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Original Vendor Name</td><td style="padding:10px">{name}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold">SKU</td><td style="padding:10px"><code style="background:#e9ecef;padding:2px 6px;border-radius:3px">{sku}</code></td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Product Type</td><td style="padding:10px">{product_type}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold">Category</td><td style="padding:10px">{product_category}</td></tr>
 </table>
 
-<table style="width:100%;border-collapse:collapse;margin-bottom:15px">
-<tr style="background:#17a2b8;color:white"><th colspan="2" style="padding:10px;text-align:left">Pricing</th></tr>
-<tr style="border-bottom:1px solid #dee2e6"><td style="padding:8px;font-weight:bold">Cost</td><td style="padding:8px">${product['cost']:.2f}</td></tr>
-<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:8px;font-weight:bold">Retail</td><td style="padding:8px;font-size:18px;color:#28a745"><strong>${product['retail_price']:.2f}</strong></td></tr>
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 2: CHARACTER/THEME DETAILS
+     For themed/character pieces - essential for creative descriptions
+═══════════════════════════════════════════════════════════════════════════ -->
+<table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+<tr style="background:#16213e;color:#eee"><th colspan="2" style="padding:12px;text-align:left;font-size:14px">🎭 CHARACTER & THEME</th></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold;width:35%">Theme Type</td><td style="padding:10px">{character_info['theme_type']}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Character Description</td><td style="padding:10px">{character_info['description']}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold">Visual Elements</td><td style="padding:10px">{character_info['visual_elements']}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Mood/Vibe</td><td style="padding:10px">{character_info['mood']}</td></tr>
 </table>
 
-<table style="width:100%;border-collapse:collapse;margin-bottom:15px">
-<tr style="background:#6c757d;color:white"><th colspan="2" style="padding:10px;text-align:left">Specs</th></tr>
-<tr style="border-bottom:1px solid #dee2e6"><td style="padding:8px;font-weight:bold">Materials</td><td style="padding:8px">{mat_str}</td></tr>
-<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:8px;font-weight:bold">Dimensions</td><td style="padding:8px">{dims if dims else 'See specs'}</td></tr>
-<tr style="border-bottom:1px solid #dee2e6"><td style="padding:8px;font-weight:bold">Weight</td><td style="padding:8px">{product.get('weight') or 'N/A'}</td></tr>
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 3: PHYSICAL SPECIFICATIONS
+     Detailed specs for accurate product descriptions
+═══════════════════════════════════════════════════════════════════════════ -->
+<table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+<tr style="background:#0f3460;color:#eee"><th colspan="2" style="padding:12px;text-align:left;font-size:14px">📐 PHYSICAL SPECIFICATIONS</th></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold;width:35%">Height</td><td style="padding:10px">{height_info}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Dimensions (mm)</td><td style="padding:10px">{dims_mm}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold">Dimensions (inches)</td><td style="padding:10px">{dims_inches}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Weight</td><td style="padding:10px">{weight if weight else 'Not specified'}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold">Colors</td><td style="padding:10px">{', '.join(colors) if colors else 'See product image'}</td></tr>
 </table>
 
-<div style="background:#d4edda;padding:15px;border-radius:5px">
-<strong>Stock:</strong> {product.get('stock', 'N/A')} units | <strong>Vendor:</strong> {VENDOR_NAME}
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 4: MATERIALS & CONSTRUCTION
+     Quality indicators and material details
+═══════════════════════════════════════════════════════════════════════════ -->
+<table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+<tr style="background:#1a1a2e;color:#eee"><th colspan="2" style="padding:12px;text-align:left;font-size:14px">🔧 MATERIALS & CONSTRUCTION</th></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold;width:35%">Primary Materials</td><td style="padding:10px">{materials_detail['primary']}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Material Benefits</td><td style="padding:10px">{materials_detail['benefits']}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold">Construction Quality</td><td style="padding:10px">{materials_detail['quality']}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Raw Specs</td><td style="padding:10px"><code style="background:#e9ecef;padding:2px 6px;border-radius:3px;font-size:12px">{specs if specs else 'N/A'}</code></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 5: KEY FEATURES
+     Selling points and unique attributes
+═══════════════════════════════════════════════════════════════════════════ -->
+<table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+<tr style="background:#16213e;color:#eee"><th colspan="2" style="padding:12px;text-align:left;font-size:14px">⭐ KEY FEATURES & SELLING POINTS</th></tr>
+<tr><td colspan="2" style="padding:15px">
+<ul style="margin:0;padding-left:20px;line-height:1.8">
+{''.join(f'<li>{f}</li>' for f in features)}
+</ul>
+</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 6: USAGE & CARE
+     Practical information for customers
+═══════════════════════════════════════════════════════════════════════════ -->
+<table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+<tr style="background:#0f3460;color:#eee"><th colspan="2" style="padding:12px;text-align:left;font-size:14px">💡 USAGE & CARE</th></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold;width:35%">Intended Use</td><td style="padding:10px">{usage_info['use']}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Experience Level</td><td style="padding:10px">{usage_info['level']}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold">Cleaning</td><td style="padding:10px">{usage_info['cleaning']}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Care Tips</td><td style="padding:10px">{usage_info['care']}</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 7: SEO & CONTENT OPTIMIZATION
+     Keywords and phrases for search optimization
+═══════════════════════════════════════════════════════════════════════════ -->
+<table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+<tr style="background:#1a1a2e;color:#eee"><th colspan="2" style="padding:12px;text-align:left;font-size:14px">🔍 SEO KEYWORDS & PHRASES</th></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold;width:35%">Primary Keywords</td><td style="padding:10px">{', '.join(seo_keywords['primary'])}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:10px;font-weight:bold">Long-tail Keywords</td><td style="padding:10px">{', '.join(seo_keywords['longtail'])}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:10px;font-weight:bold">Related Terms</td><td style="padding:10px">{', '.join(seo_keywords['related'])}</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 8: LLM DESCRIPTION WRITER INSTRUCTIONS
+     Guidelines for AI-generated product descriptions
+═══════════════════════════════════════════════════════════════════════════ -->
+<div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:20px;border-radius:8px;margin-bottom:20px">
+<h3 style="margin-top:0;border-bottom:2px solid rgba(255,255,255,0.3);padding-bottom:10px">📝 DESCRIPTION WRITER INSTRUCTIONS</h3>
+
+<p><strong>Brand Voice:</strong> Oil Slick is a premium cannabis accessories retailer. Write with confidence, creativity, and a touch of playfulness. Appeal to collectors and enthusiasts who appreciate unique, artistic pieces.</p>
+
+<p><strong>Tone:</strong> Enthusiastic but informative. Balance fun character descriptions with practical product details. Avoid being overly formal or using stiff corporate language.</p>
+
+<p><strong>Content Structure (Recommended):</strong></p>
+<ol style="margin:10px 0;padding-left:25px">
+<li><strong>Hook</strong> - Attention-grabbing opening about the character/theme (1-2 sentences)</li>
+<li><strong>Character Story</strong> - Brief creative description of the themed design (2-3 sentences)</li>
+<li><strong>Product Features</strong> - Key benefits and quality points (bullet points or short paragraph)</li>
+<li><strong>Specifications</strong> - Size, materials, practical details (can use specs table above)</li>
+<li><strong>Call to Action</strong> - Encourage purchase, mention collectibility or limited availability</li>
+</ol>
+
+<p><strong>DO Include:</strong></p>
+<ul style="margin:5px 0;padding-left:25px">
+<li>Creative character descriptions using the trademark-safe names</li>
+<li>Material quality benefits (durability, heat resistance, etc.)</li>
+<li>Size context ("perfect for..." or "impressive tabletop presence")</li>
+<li>Collector/enthusiast appeal</li>
+<li>Sensory details (colors, textures, visual impact)</li>
+</ul>
+
+<p><strong>DO NOT Include:</strong></p>
+<ul style="margin:5px 0;padding-left:25px">
+<li>❌ Original trademarked character names (use creative titles only)</li>
+<li>❌ Pricing or cost information</li>
+<li>❌ Health claims or medical benefits</li>
+<li>❌ Comparisons to competitor products</li>
+<li>❌ Shipping or delivery promises</li>
+<li>❌ Claims about legality in specific regions</li>
+</ul>
+
+<p><strong>Target Length:</strong> 150-250 words for main description</p>
+
+<p><strong>Meta Description (generate separately):</strong> 150-160 characters, include product type + key feature + character theme</p>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 9: INVENTORY & VENDOR INFO (Internal Reference)
+═══════════════════════════════════════════════════════════════════════════ -->
+<table style="width:100%;border-collapse:collapse;margin-bottom:10px;opacity:0.7">
+<tr style="background:#6c757d;color:white"><th colspan="2" style="padding:10px;text-align:left;font-size:12px">📋 INTERNAL REFERENCE</th></tr>
+<tr style="border-bottom:1px solid #dee2e6"><td style="padding:8px;font-weight:bold;width:35%;font-size:12px">Vendor</td><td style="padding:8px;font-size:12px">{VENDOR_NAME}</td></tr>
+<tr style="border-bottom:1px solid #dee2e6;background:#f8f9fa"><td style="padding:8px;font-weight:bold;font-size:12px">Stock Level</td><td style="padding:8px;font-size:12px">{product.get('stock', 'N/A')} units</td></tr>
+</table>
+
 </div>
 """
+
+
+# === HELPER FUNCTIONS FOR PDP GENERATION ===
+
+def _classify_product_category(name: str) -> str:
+    """Classify product into broader categories."""
+    nl = name.lower()
+    if any(x in nl for x in ['water pipe', 'bong']):
+        return "Water Pipes & Bongs"
+    elif 'hand pipe' in nl:
+        return "Hand Pipes & Spoons"
+    elif 'nectar collector' in nl:
+        return "Nectar Collectors & Dab Straws"
+    elif any(x in nl for x in ['dab rig', 'rig']):
+        return "Dab Rigs & Concentrates"
+    elif 'bowl' in nl:
+        return "Bowls & Slides"
+    elif 'battery' in nl:
+        return "Vape Batteries & Devices"
+    return "Smoking Accessories"
+
+
+def _extract_character_info(name: str) -> Dict[str, str]:
+    """Extract and describe character/theme information."""
+    nl = name.lower()
+
+    # Character mappings with descriptions
+    characters = {
+        'baseball': {'theme': 'Sports/Baseball', 'desc': 'Athletic baseball player character with team uniform and cap', 'visual': 'Sports jersey, baseball cap, athletic pose', 'mood': 'Energetic, competitive, sporty'},
+        'alien': {'theme': 'Sci-Fi/Space', 'desc': 'Extraterrestrial creature with otherworldly features', 'visual': 'Futuristic design, unusual proportions, space-age aesthetic', 'mood': 'Mysterious, intriguing, out-of-this-world'},
+        'mechanical': {'theme': 'Sci-Fi/Robot', 'desc': 'Robotic mechanical being with industrial elements', 'visual': 'Metal textures, mechanical parts, industrial design', 'mood': 'Futuristic, industrial, tech-forward'},
+        'eggplant': {'theme': 'Food/Vegetable', 'desc': 'Anthropomorphic eggplant character with playful personality', 'visual': 'Purple coloring, vegetable-inspired shape, expressive features', 'mood': 'Playful, quirky, conversation-starter'},
+        'cake': {'theme': 'Food/Dessert', 'desc': 'Sweet dessert-themed character with confectionery details', 'visual': 'Pastel colors, frosting textures, sweet decorations', 'mood': 'Sweet, whimsical, delightful'},
+        'mouse': {'theme': 'Animal/Cute', 'desc': 'Adorable mouse character with charming details', 'visual': 'Big ears, cute expression, detailed outfit', 'mood': 'Cute, endearing, collectible'},
+        'cat': {'theme': 'Animal/Feline', 'desc': 'Feline character with distinctive cat features', 'visual': 'Cat ears, whiskers, elegant feline pose', 'mood': 'Sleek, mysterious, independent'},
+        'dog': {'theme': 'Animal/Canine', 'desc': 'Loyal canine companion character', 'visual': 'Dog features, friendly expression, loyal stance', 'mood': 'Friendly, loyal, approachable'},
+        'husky': {'theme': 'Animal/Dog Breed', 'desc': 'Majestic husky dog with striking features', 'visual': 'Blue eyes, thick fur texture, wolf-like appearance', 'mood': 'Majestic, wild, adventurous'},
+        'zombie': {'theme': 'Horror/Undead', 'desc': 'Undead creature with spooky zombie aesthetics', 'visual': 'Decayed textures, horror elements, undead features', 'mood': 'Spooky, edgy, Halloween-ready'},
+        'shark': {'theme': 'Ocean/Predator', 'desc': 'Fearsome shark character with oceanic theme', 'visual': 'Sharp teeth, fin details, ocean blue accents', 'mood': 'Fierce, powerful, bold'},
+        'dolphin': {'theme': 'Ocean/Marine', 'desc': 'Playful dolphin with aquatic charm', 'visual': 'Smooth curves, ocean colors, friendly appearance', 'mood': 'Playful, intelligent, aquatic'},
+        'soccer': {'theme': 'Sports/Soccer', 'desc': 'Soccer/football themed character or design', 'visual': 'Soccer ball elements, athletic wear, goal-scoring pose', 'mood': 'Competitive, global appeal, sporty'},
+        'flower': {'theme': 'Nature/Botanical', 'desc': 'Floral or plant-inspired design', 'visual': 'Petal details, natural colors, organic shapes', 'mood': 'Natural, peaceful, botanical'},
+        'skull': {'theme': 'Edgy/Gothic', 'desc': 'Skull or skeleton themed design', 'visual': 'Bone textures, dark aesthetic, detailed cranium', 'mood': 'Edgy, bold, statement piece'},
+        'octopus': {'theme': 'Ocean/Cephalopod', 'desc': 'Eight-armed sea creature with intricate details', 'visual': 'Tentacles, suction cups, deep sea colors', 'mood': 'Mysterious, intelligent, unique'},
+        'knight': {'theme': 'Fantasy/Medieval', 'desc': 'Armored warrior from medieval times', 'visual': 'Armor details, sword/shield, heroic pose', 'mood': 'Noble, brave, legendary'},
+        'witch': {'theme': 'Fantasy/Magic', 'desc': 'Magical witch character with mystical elements', 'visual': 'Pointed hat, magical accessories, mystical aura', 'mood': 'Magical, mysterious, enchanting'},
+        'mummy': {'theme': 'Horror/Egyptian', 'desc': 'Ancient wrapped figure with Egyptian mystique', 'visual': 'Bandage wrappings, ancient symbols, tomb aesthetic', 'mood': 'Ancient, mysterious, archaeological'},
+        'referee': {'theme': 'Sports/Official', 'desc': 'Sports official with authoritative presence', 'visual': 'Striped uniform, whistle, official stance', 'mood': 'Authoritative, fair, sports-themed'},
+        'penguin': {'theme': 'Animal/Arctic', 'desc': 'Adorable tuxedo-wearing arctic bird', 'visual': 'Black and white coloring, waddling pose, cute features', 'mood': 'Adorable, cool, charming'},
+        'couple': {'theme': 'Romantic/Artistic', 'desc': 'Romantic pair or artistic duo design', 'visual': 'Two figures, romantic pose, artistic styling', 'mood': 'Romantic, artistic, meaningful'},
+        'hand': {'theme': 'Mystical/Fortune', 'desc': 'Mystical hand design with fortune-telling vibes', 'visual': 'Ornate hand, mystical symbols, crystal ball elements', 'mood': 'Mystical, fortune-telling, spiritual'},
+        'light': {'theme': 'LED/Illuminated', 'desc': 'Features LED lighting for visual effect', 'visual': 'Glowing elements, color-changing lights, illuminated design', 'mood': 'Modern, eye-catching, party-ready'},
+    }
+
+    # Find matching character
+    for key, info in characters.items():
+        if key in nl:
+            return {
+                'theme_type': info['theme'],
+                'description': info['desc'],
+                'visual_elements': info['visual'],
+                'mood': info['mood']
+            }
+
+    # Default for unrecognized themes
+    return {
+        'theme_type': 'Artistic/Novelty',
+        'description': 'Unique artistic design with creative character elements',
+        'visual_elements': 'Distinctive styling, artistic details, conversation piece',
+        'mood': 'Creative, unique, collectible'
+    }
+
+
+def _analyze_materials(specs: str, name: str) -> Dict[str, str]:
+    """Analyze and describe materials in detail."""
+    sl = (specs + ' ' + name).lower()
+    materials = []
+    benefits = []
+    quality_notes = []
+
+    if 'glass' in sl:
+        materials.append("Borosilicate Glass")
+        benefits.append("Heat-resistant, durable, easy to clean")
+        quality_notes.append("Laboratory-grade glass construction")
+
+    if 'silicone' in sl:
+        materials.append("Food-Grade Silicone")
+        benefits.append("Flexible, virtually unbreakable, travel-friendly")
+        quality_notes.append("FDA-approved silicone material")
+
+    if 'pvc' in sl:
+        materials.append("Premium PVC")
+        benefits.append("Lightweight, durable, detailed molding capability")
+        quality_notes.append("High-quality PVC for intricate designs")
+
+    if 'ceramic' in sl:
+        materials.append("Ceramic")
+        benefits.append("Excellent heat distribution, artistic finish")
+        quality_notes.append("Handcrafted ceramic construction")
+
+    if 'metal' in sl or 'steel' in sl:
+        materials.append("Stainless Steel")
+        benefits.append("Corrosion-resistant, long-lasting, premium feel")
+        quality_notes.append("High-grade metal components")
+
+    if not materials:
+        materials = ["Quality Mixed Materials"]
+        benefits = ["Durable construction, designed for regular use"]
+        quality_notes = ["Carefully selected materials for optimal performance"]
+
+    return {
+        'primary': ', '.join(materials),
+        'benefits': '; '.join(benefits),
+        'quality': ' | '.join(quality_notes)
+    }
+
+
+def _parse_dimensions(specs: str) -> tuple:
+    """Parse dimensions and convert to both mm and inches."""
+    if not specs:
+        return 'Not specified', 'Not specified'
+
+    m = re.search(r'(\d+)\s*\*\s*(\d+)(?:\s*\*\s*(\d+))?', specs)
+    if m:
+        dims = [int(m.group(1)), int(m.group(2))]
+        if m.group(3):
+            dims.append(int(m.group(3)))
+
+        mm_str = ' × '.join(f'{d}mm' for d in dims)
+        inches = [round(d / 25.4, 1) for d in dims]
+        inch_str = ' × '.join(f'{i}"' for i in inches)
+
+        return mm_str, inch_str
+
+    return 'See specifications', 'See specifications'
+
+
+def _extract_height(name: str) -> str:
+    """Extract height from product name."""
+    m = re.search(r"(\d+(?:\.\d+)?)[''\"]\s*", name)
+    if m:
+        inches = float(m.group(1))
+        cm = round(inches * 2.54, 1)
+        return f'{inches}" ({cm} cm) tall'
+    return 'See dimensions'
+
+
+def _extract_colors(name: str, specs: str) -> List[str]:
+    """Extract color information from name and specs."""
+    text = (name + ' ' + specs).lower()
+    colors = []
+
+    color_map = {
+        'pink': 'Pink', 'blue': 'Blue', 'green': 'Green', 'red': 'Red',
+        'purple': 'Purple', 'yellow': 'Yellow', 'orange': 'Orange',
+        'black': 'Black', 'white': 'White', 'gold': 'Gold', 'silver': 'Silver',
+        'gray': 'Gray', 'grey': 'Gray', 'brown': 'Brown', 'clear': 'Clear/Transparent'
+    }
+
+    for key, value in color_map.items():
+        if key in text and value not in colors:
+            colors.append(value)
+
+    return colors if colors else []
+
+
+def _generate_features(name: str, specs: str, product_type: str) -> List[str]:
+    """Generate key features list based on product info."""
+    features = []
+    nl = name.lower()
+    sl = specs.lower() if specs else ''
+
+    # Character/theme feature
+    features.append("Unique artistic character design - perfect conversation starter")
+
+    # Size feature
+    m = re.search(r"(\d+(?:\.\d+)?)[''\"]\s*", name)
+    if m:
+        size = float(m.group(1))
+        if size >= 10:
+            features.append(f"Impressive {size}-inch height - commanding tabletop presence")
+        elif size >= 7:
+            features.append(f"Classic {size}-inch size - perfect balance of portability and performance")
+        else:
+            features.append(f"Compact {size}-inch design - travel-friendly and discreet")
+
+    # Material features
+    if 'glass' in sl:
+        features.append("Borosilicate glass construction - heat-resistant and easy to clean")
+    if 'silicone' in sl:
+        features.append("Silicone components - virtually unbreakable for worry-free use")
+    if 'pvc' in sl:
+        features.append("Detailed PVC character work - intricate artistic detailing")
+
+    # Special features
+    if 'light' in nl or 'led' in nl:
+        features.append("Built-in LED lighting - stunning visual effects")
+
+    # Product type specific features
+    if 'water pipe' in nl or product_type == 'Water Pipes':
+        features.append("Smooth water filtration for comfortable draws")
+        features.append("Removable bowl for easy packing and cleaning")
+
+    features.append("Collectible quality - limited artistic piece for enthusiasts")
+
+    return features
+
+
+def _get_usage_info(product_type: str) -> Dict[str, str]:
+    """Get usage and care information based on product type."""
+    base_info = {
+        'Water Pipes': {
+            'use': 'Dry herb consumption with water filtration',
+            'level': 'All experience levels - smooth, filtered draws',
+            'cleaning': 'Rinse with warm water after each use. Deep clean weekly with isopropyl alcohol and salt',
+            'care': 'Handle with care, store upright, change water regularly for best taste'
+        },
+        'Hand Pipes': {
+            'use': 'Dry herb consumption - portable option',
+            'level': 'Beginner-friendly, great for on-the-go',
+            'cleaning': 'Regular cleaning with isopropyl alcohol and pipe cleaners',
+            'care': 'Store in padded case, avoid drops on hard surfaces'
+        },
+        'Nectar Collectors': {
+            'use': 'Concentrate consumption with precision heating',
+            'level': 'Intermediate to advanced - requires torch or e-nail',
+            'cleaning': 'Clean tip after each use, soak in isopropyl for deep clean',
+            'care': 'Allow tip to cool completely before storage'
+        }
+    }
+
+    return base_info.get(product_type, {
+        'use': 'Smoking accessory for adult consumers',
+        'level': 'Suitable for all experience levels',
+        'cleaning': 'Clean regularly with appropriate cleaning solutions',
+        'care': 'Handle with care, store in safe location'
+    })
+
+
+def _generate_seo_keywords(name: str, product_type: str, materials: Dict, character_info: Dict) -> Dict[str, List[str]]:
+    """Generate SEO keywords for the product."""
+    nl = name.lower()
+
+    primary = [product_type.lower()]
+    if 'water pipe' in nl:
+        primary.extend(['water pipe', 'bong', 'glass bong'])
+    elif 'hand pipe' in nl:
+        primary.extend(['hand pipe', 'spoon pipe', 'glass pipe'])
+
+    # Add material keywords
+    if 'glass' in materials['primary'].lower():
+        primary.append('glass')
+    if 'silicone' in materials['primary'].lower():
+        primary.append('silicone')
+
+    # Long-tail keywords
+    longtail = []
+    theme = character_info['theme_type'].lower()
+    if 'character' in theme or 'animal' in theme or 'food' in theme:
+        longtail.append(f"novelty {product_type.lower()}")
+        longtail.append(f"character {product_type.lower()}")
+        longtail.append(f"unique {product_type.lower()}")
+    longtail.append(f"artistic {product_type.lower()}")
+    longtail.append(f"collectible {product_type.lower()}")
+
+    # Related terms
+    related = ['smoking accessories', 'head shop', 'smoke shop', '420 accessories',
+               'cannabis accessories', 'novelty pipe', 'gift for smoker']
+
+    return {
+        'primary': primary[:5],
+        'longtail': longtail[:4],
+        'related': related[:6]
+    }
 
 
 def upload_image(product_id: int, image_path: str, alt: str) -> Dict:
@@ -547,16 +956,8 @@ def main():
     print(f"Extracted {len(images)} product images")
 
     # Match images to products (1:1 since logo is already excluded)
-    print(f"\n--- DEBUG: Image Assignment ---")
-    for i, p in enumerate(products[:10]):  # Debug first 10
-        img_path = images[i] if i < len(images) else None
-        p['image_path'] = img_path
-        print(f"  Product {i}: {p['sku']:10} -> {os.path.basename(img_path) if img_path else 'NONE'}")
-
-    # Assign rest without debug
-    for i in range(10, len(products)):
-        products[i]['image_path'] = images[i] if i < len(images) else None
-    print(f"--- END DEBUG ---\n")
+    for i, p in enumerate(products):
+        p['image_path'] = images[i] if i < len(images) else None
 
     if args.list:
         print(f"\n{'='*60}\nPRODUCTS\n{'='*60}")
