@@ -1,0 +1,91 @@
+name: Fix Cloud YHS Product Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'fix-all'
+        type: choice
+        options:
+          - fix-all        # Delete old images and upload correct ones
+          - delete-only    # Only delete images
+          - upload-only    # Only upload images (no deletion)
+          - dry-run        # Preview changes without making them
+      limit:
+        description: 'Limit number of products (leave empty for all)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  fix-images:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests Pillow
+
+      - name: Extract product images
+        run: |
+          if [ -f "product_images.zip" ]; then
+            echo "📸 Extracting product images..."
+            unzip -o product_images.zip -d product_images/
+            echo "✓ Extracted $(ls product_images/product_images_described/*.jpeg 2>/dev/null | wc -l) images"
+          else
+            echo "❌ No product_images.zip found!"
+            exit 1
+          fi
+
+      - name: Fix Cloud YHS Images
+        env:
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🔧 Fixing Cloud YHS product images"
+          echo ""
+
+          LIMIT_ARG=""
+          if [ -n "${{ inputs.limit }}" ]; then
+            LIMIT_ARG="--limit ${{ inputs.limit }}"
+          fi
+
+          case "${{ inputs.action }}" in
+            "fix-all")
+              echo "Action: Delete old images and upload corrected ones"
+              python tools/fix_cloud_yhs_images.py $LIMIT_ARG
+              ;;
+            "delete-only")
+              echo "Action: Delete all images only"
+              python tools/fix_cloud_yhs_images.py --delete-only $LIMIT_ARG
+              ;;
+            "upload-only")
+              echo "Action: Upload images only (no deletion)"
+              python tools/fix_cloud_yhs_images.py --upload-only $LIMIT_ARG
+              ;;
+            "dry-run")
+              echo "Action: Preview (no changes)"
+              python tools/fix_cloud_yhs_images.py --dry-run $LIMIT_ARG
+              ;;
+          esac
+
+      - name: Summary
+        run: |
+          echo "## 🔧 Cloud YHS Image Fix Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** ${{ inputs.action }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### What was done:" >> $GITHUB_STEP_SUMMARY
+          echo "- Fetched all Cloud YHS products from Shopify" >> $GITHUB_STEP_SUMMARY
+          echo "- Matched products to images by SKU" >> $GITHUB_STEP_SUMMARY
+          echo "- Applied EXIF orientation correction" >> $GITHUB_STEP_SUMMARY
+          echo "- Re-uploaded images with correct orientation" >> $GITHUB_STEP_SUMMARY
