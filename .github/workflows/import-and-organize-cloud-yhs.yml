@@ -8,6 +8,15 @@ on:
         required: false
         default: ''
         type: string
+      image_mode:
+        description: 'Image mode'
+        required: false
+        default: 'local'
+        type: choice
+        options:
+          - local      # Use real supplier images (recommended)
+          - ai         # Generate AI images with Gemini
+          - none       # No images (draft products)
       publish_products:
         description: 'Publish products after organizing'
         required: false
@@ -21,6 +30,7 @@ on:
       - 'claude/organize-cloud-yhs-*'
     paths:
       - '.github/workflows/import-and-organize-cloud-yhs.yml'
+      - 'tools/cloud_yhs_importer.py'
 
 jobs:
   import-and-organize:
@@ -46,10 +56,21 @@ jobs:
       - name: Install Node.js dependencies
         run: npm install
 
+      - name: Extract product images
+        run: |
+          if [ -f "product_images.zip" ]; then
+            echo "📸 Extracting supplier product images..."
+            unzip -o product_images.zip -d product_images/
+            echo "✓ Extracted $(ls product_images/product_images_described/*.jpeg 2>/dev/null | wc -l) images"
+          else
+            echo "⚠️ No product_images.zip found - will import without images"
+          fi
+
       - name: Import Cloud YHS Products from Excel
         env:
           SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
           echo "📦 Importing Cloud YHS products from Excel to Shopify"
           echo ""
@@ -59,7 +80,26 @@ jobs:
             BATCH_ARG="--count ${{ inputs.batch_size }}"
           fi
 
-          python tools/cloud_yhs_importer.py --no-images $BATCH_ARG
+          # Determine image mode
+          IMAGE_MODE="${{ inputs.image_mode }}"
+          if [ -z "$IMAGE_MODE" ]; then
+            IMAGE_MODE="local"
+          fi
+
+          case "$IMAGE_MODE" in
+            "local")
+              echo "📸 Using LOCAL SUPPLIER IMAGES"
+              python tools/cloud_yhs_importer.py --local-images $BATCH_ARG
+              ;;
+            "ai")
+              echo "🤖 Using AI-GENERATED IMAGES (Gemini)"
+              python tools/cloud_yhs_importer.py --ai-images $BATCH_ARG
+              ;;
+            "none")
+              echo "📝 No images - products will be drafts"
+              python tools/cloud_yhs_importer.py --no-images $BATCH_ARG
+              ;;
+          esac
 
       - name: Organize Products into Collections
         env:
@@ -80,18 +120,24 @@ jobs:
         run: |
           echo "## 📦 Cloud YHS Import & Organization Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Products have been imported from Excel and organized into collections:" >> $GITHUB_STEP_SUMMARY
+          echo "### Import Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Mode:** ${{ inputs.image_mode || 'local' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Products Published:** ${{ inputs.publish_products || 'true' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Product Type | Collection |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------------|------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Water Pipes (~69) | Bongs & Water Pipes |" >> $GITHUB_STEP_SUMMARY
-          echo "| Hand Pipes (~20) | Hand Pipes |" >> $GITHUB_STEP_SUMMARY
-          echo "| Bubblers (~1) | Bubblers |" >> $GITHUB_STEP_SUMMARY
-          echo "| Nectar Collectors (~2) | Nectar Collectors |" >> $GITHUB_STEP_SUMMARY
-          echo "| Dab Tools (~2) | Dab Tools |" >> $GITHUB_STEP_SUMMARY
-          echo "| Glass Bowls (~2) | Flower Bowls |" >> $GITHUB_STEP_SUMMARY
-          echo "| CBD Devices (~4) | Vapes & Electronics |" >> $GITHUB_STEP_SUMMARY
-          echo "| Jars/Ashtrays (~2) | Storage & Containers |" >> $GITHUB_STEP_SUMMARY
+          echo "### Collection Organization" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note:** Products imported without images will show as 'draft' until images are added." >> $GITHUB_STEP_SUMMARY
-          echo "Run the 'Generate Cloud YHS Product Images' workflow to add AI-generated images." >> $GITHUB_STEP_SUMMARY
+          echo "| Product Type | Collection | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------------|------------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Water Pipes | Bongs & Water Pipes | ~69 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Hand Pipes | Hand Pipes | ~20 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Bubblers | Bubblers | ~1 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Nectar Collectors | Nectar Collectors | ~2 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dab Tools | Dab Tools | ~2 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Glass Bowls | Flower Bowls | ~2 |" >> $GITHUB_STEP_SUMMARY
+          echo "| CBD Devices | Vapes & Electronics | ~4 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Jars/Ashtrays | Storage & Containers | ~2 |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Image Sources" >> $GITHUB_STEP_SUMMARY
+          echo "- **Local:** Real supplier images from product_images.zip (102 images)" >> $GITHUB_STEP_SUMMARY
+          echo "- **AI:** Gemini 3 Pro generated images (requires GOOGLE_API_KEY)" >> $GITHUB_STEP_SUMMARY
+          echo "- **None:** Products imported as drafts without images" >> $GITHUB_STEP_SUMMARY

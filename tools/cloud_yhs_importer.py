@@ -27,6 +27,9 @@ SHOPIFY_ACCESS_TOKEN = os.environ.get("SHOPIFY_ACCESS_TOKEN", "")
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 VENDOR_NAME = "Cloud YHS"
 
+# Local product images directory (real supplier images)
+PRODUCT_IMAGES_DIR = Path(__file__).parent.parent / "product_images" / "product_images_described"
+
 # Shopify API
 SHOPIFY_API_VERSION = "2024-01"
 SHOPIFY_BASE_URL = f"https://{SHOPIFY_STORE}/admin/api/{SHOPIFY_API_VERSION}"
@@ -298,6 +301,42 @@ def create_shopify_product(product: dict) -> dict:
         }
 
 
+def find_local_product_image(sku: str) -> dict:
+    """Find a local product image for the given SKU.
+
+    Looks in the product_images_described directory for images matching the SKU.
+    Returns the base64-encoded image data if found.
+    """
+    # Try different possible filenames
+    possible_names = [
+        f"{sku}.jpeg",
+        f"{sku}.jpg",
+        f"{sku}.png",
+        f"{sku.upper()}.jpeg",
+        f"{sku.upper()}.jpg",
+        f"{sku.lower()}.jpeg",
+        f"{sku.lower()}.jpg",
+    ]
+
+    for filename in possible_names:
+        image_path = PRODUCT_IMAGES_DIR / filename
+        if image_path.exists():
+            try:
+                with open(image_path, 'rb') as f:
+                    image_data = f.read()
+                    encoded = base64.b64encode(image_data).decode('utf-8')
+                    return {
+                        "success": True,
+                        "image_data": encoded,
+                        "filename": filename,
+                        "path": str(image_path)
+                    }
+            except Exception as e:
+                return {"success": False, "error": f"Failed to read image: {e}"}
+
+    return {"success": False, "error": f"No local image found for SKU: {sku}"}
+
+
 def search_reference_images(product_name: str, max_images: int = 3) -> list:
     """Search for reference images using DuckDuckGo."""
     import urllib.parse
@@ -507,8 +546,14 @@ def publish_product(product_id: int) -> dict:
     return {"success": response.status_code in [200, 201]}
 
 
-def process_single_product(product: dict, generate_images: bool = True) -> dict:
-    """Process a single product: create in Shopify, generate images, upload."""
+def process_single_product(product: dict, generate_images: bool = True, use_local_images: bool = True) -> dict:
+    """Process a single product: create in Shopify, upload images, publish.
+
+    Args:
+        product: Product data dictionary
+        generate_images: If True, generate AI images when no local image found
+        use_local_images: If True, look for local supplier images first (recommended)
+    """
 
     print(f"\n{'='*60}")
     print(f"Processing: {product['name']}")
@@ -526,47 +571,67 @@ def process_single_product(product: dict, generate_images: bool = True) -> dict:
     product_id = create_result['product_id']
     print(f"  ✓ Created product ID: {product_id}")
 
-    if not generate_images:
-        print("  [2/4] Skipping image generation (disabled)")
-        print("  [3/4] Skipping image upload")
-        print("  [4/4] Publishing product...")
-        publish_product(product_id)
-        return {"success": True, "product_id": product_id, "images": 0}
-
-    # Step 2: Search for reference images
-    print("  [2/4] Searching for reference images...")
-    ref_urls = search_reference_images(product['name'])
-    ref_images = []
-    for url in ref_urls:
-        img_data = download_image(url)
-        if img_data:
-            ref_images.append(img_data)
-    print(f"  ✓ Found {len(ref_images)} reference images")
-
-    # Step 3: Generate and upload 5 images
-    print("  [3/4] Generating 5 product images with Gemini 3 Pro...")
     images_uploaded = 0
 
-    for i in range(1, 6):
-        print(f"    Generating image {i}/5...", end=" ")
-        gen_result = generate_product_image_gemini(product, ref_images, i)
+    # Step 2: Check for local supplier image FIRST (preferred)
+    if use_local_images:
+        print(f"  [2/4] Looking for local supplier image ({product['sku']}.jpeg)...")
+        local_result = find_local_product_image(product['sku'])
 
-        if gen_result['success']:
+        if local_result['success']:
+            print(f"  ✓ Found local image: {local_result['filename']}")
+            print("  [3/4] Uploading supplier image to Shopify...")
+
             upload_result = upload_image_to_shopify(
                 product_id,
-                gen_result['image_data'],
-                position=i,
-                alt_text=f"{product['name']} - View {i}"
+                local_result['image_data'],
+                position=1,
+                alt_text=f"{product['name']} - Supplier Image"
             )
-            if upload_result['success']:
-                print("✓ Generated & uploaded")
-                images_uploaded += 1
-            else:
-                print(f"✗ Upload failed: {upload_result['error'][:50]}")
-        else:
-            print(f"✗ Generation failed: {gen_result['error'][:50]}")
 
-        time.sleep(2)  # Rate limiting
+            if upload_result['success']:
+                print("  ✓ Supplier image uploaded successfully!")
+                images_uploaded = 1
+            else:
+                print(f"  ✗ Upload failed: {upload_result['error'][:50]}")
+        else:
+            print(f"  ⚠ No local image found for SKU: {product['sku']}")
+
+    # Step 3: Fall back to AI generation if no local image and AI enabled
+    if images_uploaded == 0 and generate_images and not use_local_images:
+        print("  [2/4] Searching for reference images...")
+        ref_urls = search_reference_images(product['name'])
+        ref_images = []
+        for url in ref_urls:
+            img_data = download_image(url)
+            if img_data:
+                ref_images.append(img_data)
+        print(f"  ✓ Found {len(ref_images)} reference images")
+
+        print("  [3/4] Generating product images with Gemini 3 Pro...")
+        for i in range(1, 6):
+            print(f"    Generating image {i}/5...", end=" ")
+            gen_result = generate_product_image_gemini(product, ref_images, i)
+
+            if gen_result['success']:
+                upload_result = upload_image_to_shopify(
+                    product_id,
+                    gen_result['image_data'],
+                    position=i,
+                    alt_text=f"{product['name']} - View {i}"
+                )
+                if upload_result['success']:
+                    print("✓ Generated & uploaded")
+                    images_uploaded += 1
+                else:
+                    print(f"✗ Upload failed: {upload_result['error'][:50]}")
+            else:
+                print(f"✗ Generation failed: {gen_result['error'][:50]}")
+
+            time.sleep(2)  # Rate limiting
+    elif images_uploaded == 0 and not generate_images:
+        print("  [2/4] Skipping image search (disabled)")
+        print("  [3/4] Skipping image upload")
 
     # Step 4: Publish product
     print(f"  [4/4] Publishing product ({images_uploaded} images)...")
@@ -591,9 +656,15 @@ def main():
     parser.add_argument("--file", "-f", default="yhs_supply_products.xlsx", help="Excel file path")
     parser.add_argument("--start", "-s", type=int, default=0, help="Start from product index")
     parser.add_argument("--count", "-c", type=int, default=None, help="Number of products to process")
-    parser.add_argument("--no-images", action="store_true", help="Skip image generation")
+    parser.add_argument("--no-images", action="store_true", help="Skip all image handling")
+    parser.add_argument("--local-images", action="store_true", default=True,
+                        help="Use local supplier images (default: True)")
+    parser.add_argument("--ai-images", action="store_true",
+                        help="Use AI-generated images instead of local images")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be done without making changes")
     parser.add_argument("--list", action="store_true", help="List all products and exit")
+    parser.add_argument("--check-images", action="store_true",
+                        help="Check which products have local images available")
 
     args = parser.parse_args()
 
@@ -607,16 +678,45 @@ def main():
             print(f"{i+1:3}. {p['sku']:10} | ${p['retail_price']:6.2f} | {p['name'][:50]}")
         return
 
+    # Check which products have local images
+    if args.check_images:
+        print(f"\nChecking local images in: {PRODUCT_IMAGES_DIR}")
+        found = 0
+        missing = 0
+        for p in products:
+            result = find_local_product_image(p['sku'])
+            if result['success']:
+                print(f"  ✓ {p['sku']:10} -> {result['filename']}")
+                found += 1
+            else:
+                print(f"  ✗ {p['sku']:10} -> MISSING")
+                missing += 1
+        print(f"\nSummary: {found} found, {missing} missing")
+        return
+
     # Select range
     end_idx = args.start + args.count if args.count else len(products)
     selected = products[args.start:end_idx]
 
     print(f"\nProcessing products {args.start+1} to {min(end_idx, len(products))} ({len(selected)} total)")
 
+    # Determine image mode
+    use_local = not args.ai_images and not args.no_images
+    use_ai = args.ai_images and not args.no_images
+
+    if use_local:
+        print(f"Image mode: LOCAL SUPPLIER IMAGES from {PRODUCT_IMAGES_DIR}")
+    elif use_ai:
+        print("Image mode: AI GENERATION (Gemini)")
+    else:
+        print("Image mode: NO IMAGES")
+
     if args.dry_run:
         print("\n[DRY RUN MODE - No changes will be made]")
         for p in selected:
-            print(f"  Would create: {p['name']} (SKU: {p['sku']}) @ ${p['retail_price']:.2f}")
+            has_image = find_local_product_image(p['sku'])['success'] if use_local else False
+            img_status = "✓ has image" if has_image else "✗ no image"
+            print(f"  Would create: {p['name']} (SKU: {p['sku']}) @ ${p['retail_price']:.2f} [{img_status}]")
         return
 
     # Check credentials
@@ -624,16 +724,21 @@ def main():
         print("\nERROR: SHOPIFY_ACCESS_TOKEN environment variable not set")
         sys.exit(1)
 
-    if not args.no_images and not GOOGLE_API_KEY:
-        print("\nWARNING: GOOGLE_API_KEY not set - will skip image generation")
-        args.no_images = True
+    if use_ai and not GOOGLE_API_KEY:
+        print("\nWARNING: GOOGLE_API_KEY not set - will use local images only")
+        use_ai = False
+        use_local = True
 
     # Process products
     results = {"success": 0, "failed": 0, "total_images": 0}
 
     for i, product in enumerate(selected):
         print(f"\n[{i+1}/{len(selected)}]", end="")
-        result = process_single_product(product, generate_images=not args.no_images)
+        result = process_single_product(
+            product,
+            generate_images=use_ai,
+            use_local_images=use_local
+        )
 
         if result['success']:
             results['success'] += 1
@@ -649,7 +754,7 @@ def main():
     print(f"{'='*60}")
     print(f"Products created: {results['success']}")
     print(f"Products failed: {results['failed']}")
-    print(f"Total images generated: {results['total_images']}")
+    print(f"Total images uploaded: {results['total_images']}")
 
 
 if __name__ == "__main__":
