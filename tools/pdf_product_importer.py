@@ -264,6 +264,12 @@ def extract_images_from_pdf(pdf_path: str, output_folder: str, rotate: bool = Tr
     # Sort by visual order: page first, then y position (top to bottom)
     all_images.sort(key=lambda img: (img['page'], img['y'], img['x']))
 
+    # Debug: Show first 10 images in extraction order
+    print(f"\n--- DEBUG: Image Extraction Order (first 10) ---")
+    for i, img in enumerate(all_images[:10]):
+        print(f"  {i}: page={img['page']} y={img['y']:.1f} xref={img['xref']}")
+    print(f"--- END DEBUG ---\n")
+
     # Extract images in visual order
     image_paths = []
     image_counter = 0
@@ -541,8 +547,16 @@ def main():
     print(f"Extracted {len(images)} product images")
 
     # Match images to products (1:1 since logo is already excluded)
-    for i, p in enumerate(products):
-        p['image_path'] = images[i] if i < len(images) else None
+    print(f"\n--- DEBUG: Image Assignment ---")
+    for i, p in enumerate(products[:10]):  # Debug first 10
+        img_path = images[i] if i < len(images) else None
+        p['image_path'] = img_path
+        print(f"  Product {i}: {p['sku']:10} -> {os.path.basename(img_path) if img_path else 'NONE'}")
+
+    # Assign rest without debug
+    for i in range(10, len(products)):
+        products[i]['image_path'] = images[i] if i < len(images) else None
+    print(f"--- END DEBUG ---\n")
 
     if args.list:
         print(f"\n{'='*60}\nPRODUCTS\n{'='*60}")
