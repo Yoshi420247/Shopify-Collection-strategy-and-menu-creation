@@ -43,7 +43,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install PyMuPDF requests
+          pip install PyMuPDF requests Pillow
 
       - name: List Products Only
         if: ${{ inputs.show_list == true }}

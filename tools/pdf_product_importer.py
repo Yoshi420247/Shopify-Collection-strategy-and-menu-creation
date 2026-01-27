@@ -32,6 +32,14 @@ except ImportError:
     print("Error: PyMuPDF required. Install: pip install PyMuPDF")
     sys.exit(1)
 
+try:
+    from PIL import Image
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    print("Warning: Pillow not installed. Image rotation disabled.")
+    print("Install with: pip install Pillow")
+
 # Configuration
 SHOPIFY_STORE = os.environ.get("SHOPIFY_STORE", "oil-slick-pad.myshopify.com")
 SHOPIFY_ACCESS_TOKEN = os.environ.get("SHOPIFY_ACCESS_TOKEN", "")
@@ -205,8 +213,17 @@ def parse_pdf_with_layout(pdf_path: str) -> List[Dict]:
     return products
 
 
-def extract_images_from_pdf(pdf_path: str, output_folder: str) -> List[str]:
-    """Extract images from PDF and save to folder. Returns list of paths."""
+def extract_images_from_pdf(pdf_path: str, output_folder: str, rotate: bool = True) -> List[str]:
+    """
+    Extract images from PDF and save to folder.
+
+    Args:
+        pdf_path: Path to PDF file
+        output_folder: Folder to save extracted images
+        rotate: If True, rotate images 180 degrees (PDF stores them inverted)
+
+    Returns list of image file paths.
+    """
     output_path = Path(output_folder)
     output_path.mkdir(parents=True, exist_ok=True)
 
@@ -229,11 +246,27 @@ def extract_images_from_pdf(pdf_path: str, output_folder: str) -> List[str]:
                 if len(image_bytes) < 1000:
                     continue
 
-                image_filename = f"product_{image_counter:03d}.{image_ext}"
+                image_filename = f"product_{image_counter:03d}.jpeg"
                 image_path = output_path / image_filename
 
-                with open(image_path, 'wb') as f:
-                    f.write(image_bytes)
+                # Rotate image 180 degrees if needed (PDF stores images inverted)
+                if rotate and PIL_AVAILABLE:
+                    try:
+                        img_pil = Image.open(BytesIO(image_bytes))
+                        img_pil = img_pil.rotate(180, expand=True)
+
+                        # Convert to RGB if needed
+                        if img_pil.mode in ('RGBA', 'P'):
+                            img_pil = img_pil.convert('RGB')
+
+                        img_pil.save(str(image_path), 'JPEG', quality=95)
+                    except Exception as e:
+                        # Fall back to saving without rotation
+                        with open(image_path, 'wb') as f:
+                            f.write(image_bytes)
+                else:
+                    with open(image_path, 'wb') as f:
+                        f.write(image_bytes)
 
                 image_paths.append(str(image_path))
                 image_counter += 1
@@ -447,6 +480,10 @@ def main():
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--publish", action="store_true")
     parser.add_argument("--list", action="store_true")
+    parser.add_argument("--rotate", dest="rotate", action="store_true", default=True,
+                        help="Rotate images 180° (default: enabled)")
+    parser.add_argument("--no-rotate", dest="rotate", action="store_false",
+                        help="Disable image rotation")
     args = parser.parse_args()
 
     print(f"\n{'='*60}\nPDF PRODUCT IMPORTER\n{'='*60}")
@@ -458,8 +495,9 @@ def main():
 
     # Extract images
     img_folder = "pdf_extracted_images"
-    print(f"Extracting images...")
-    images = extract_images_from_pdf(args.file, img_folder)
+    rotate_msg = "(with 180° rotation)" if args.rotate else "(no rotation)"
+    print(f"Extracting images {rotate_msg}...")
+    images = extract_images_from_pdf(args.file, img_folder, rotate=args.rotate)
     print(f"Extracted {len(images)} images")
 
     # Match images to products (skip first image = logo)
