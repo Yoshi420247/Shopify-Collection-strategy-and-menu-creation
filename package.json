@@ -21,7 +21,12 @@
     "cleanup:tags": "node src/collection-cleanup.js --execute --fix-tags",
     "cleanup:all": "node src/collection-cleanup.js --execute --fix-collections --delete-collections --fix-tags",
     "costs": "node src/update-product-costs.js",
-    "costs:execute": "node src/update-product-costs.js --execute"
+    "costs:execute": "node src/update-product-costs.js --execute",
+    "import": "python3 tools/product_listing_importer.py --dry-run",
+    "import:execute": "python3 tools/product_listing_importer.py --execute",
+    "import:publish": "python3 tools/product_listing_importer.py --execute --publish",
+    "import:titles": "python3 tools/product_listing_importer.py --show-titles",
+    "import:list": "python3 tools/product_listing_importer.py --list"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",

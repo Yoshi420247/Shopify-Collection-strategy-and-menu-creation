@@ -1,0 +1,165 @@
+name: Import Cloud YHS Product Listings
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run           # Preview products that will be created
+          - execute           # Create products as drafts
+          - execute-publish   # Create products and publish to storefront
+      start_index:
+        description: 'Start from product index (0-based, default: 0)'
+        required: false
+        default: '0'
+        type: string
+      batch_size:
+        description: 'Number of products to process (default: all)'
+        required: false
+        default: ''
+        type: string
+      show_titles:
+        description: 'Show title transformations only (ignores other options)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  import-products:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install pandas xlrd openpyxl requests
+
+      - name: Extract product images
+        run: |
+          if [ -f "product_images.zip" ]; then
+            unzip -o product_images.zip -d .
+            echo "Extracted product images"
+            ls -la product_images_described/ | head -20
+          else
+            echo "No product_images.zip found - will proceed without images"
+          fi
+
+      - name: Show Title Transformations
+        if: ${{ inputs.show_titles == true }}
+        env:
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "📝 Showing title transformations..."
+          python tools/product_listing_importer.py --show-titles
+
+      - name: Import Products
+        if: ${{ inputs.show_titles != true }}
+        env:
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🚀 Cloud YHS Product Listing Import"
+          echo "   Action: ${{ inputs.action }}"
+          echo "   Start Index: ${{ inputs.start_index }}"
+          echo "   Batch Size: ${{ inputs.batch_size || 'all' }}"
+          echo ""
+
+          # Build command arguments
+          ARGS="--file 'products conv 1.xls'"
+          ARGS="$ARGS --images product_images_described"
+
+          if [ -n "${{ inputs.start_index }}" ] && [ "${{ inputs.start_index }}" != "0" ]; then
+            ARGS="$ARGS --start ${{ inputs.start_index }}"
+          fi
+
+          if [ -n "${{ inputs.batch_size }}" ]; then
+            ARGS="$ARGS --count ${{ inputs.batch_size }}"
+          fi
+
+          case "${{ inputs.action }}" in
+            "dry-run")
+              ARGS="$ARGS --dry-run"
+              ;;
+            "execute")
+              ARGS="$ARGS --execute"
+              ;;
+            "execute-publish")
+              ARGS="$ARGS --execute --publish"
+              ;;
+          esac
+
+          echo "Running: python tools/product_listing_importer.py $ARGS"
+          echo ""
+
+          eval "python tools/product_listing_importer.py $ARGS"
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## 📦 Cloud YHS Product Listing Import" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action performed:** ${{ inputs.action }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Start index:** ${{ inputs.start_index }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Batch size:** ${{ inputs.batch_size || 'all' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Features Applied" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Feature | Description |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Creative Titles | Trademark-safe, SEO-optimized naming |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Cost | Stored in Shopify inventory system |" >> $GITHUB_STEP_SUMMARY
+          echo "| Retail Price | Automatically set to 2x unit cost |" >> $GITHUB_STEP_SUMMARY
+          echo "| Structured PDP | Research brief with specs, materials, themes |" >> $GITHUB_STEP_SUMMARY
+          echo "| Product Images | Uploaded from product_images_described folder |" >> $GITHUB_STEP_SUMMARY
+          echo "| Taxonomy Tags | Proper family/pillar/use tags for collections |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Title Transformation Examples" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Original | Creative |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Scooby-Doo water pipe | Mystery Hound Water Pipe |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lionel Messi water pipe | Soccer Legend Water Pipe |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rick glass hand pipe | Mad Scientist Hand Pipe |" >> $GITHUB_STEP_SUMMARY
+          echo "| Zombie mario water pipe | Zombie Plumber Hero Water Pipe |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### PDP Structure" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Each product includes a structured research brief with:" >> $GITHUB_STEP_SUMMARY
+          echo "- Product identification (SKU, vendor, category)" >> $GITHUB_STEP_SUMMARY
+          echo "- Pricing structure (unit cost, retail price, margin)" >> $GITHUB_STEP_SUMMARY
+          echo "- Physical specifications (materials, dimensions, weight)" >> $GITHUB_STEP_SUMMARY
+          echo "- Design & theme analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- Functional details (use case, filtration type)" >> $GITHUB_STEP_SUMMARY
+          echo "- Copywriting notes for description writers" >> $GITHUB_STEP_SUMMARY
+          echo "- Inventory status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.action }}" == "dry-run" ]; then
+            echo "- Review the dry-run output above" >> $GITHUB_STEP_SUMMARY
+            echo "- Run with \`execute\` action to create products as drafts" >> $GITHUB_STEP_SUMMARY
+            echo "- Run with \`execute-publish\` to create and publish products" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "execute" ]; then
+            echo "- Products created as drafts in Shopify" >> $GITHUB_STEP_SUMMARY
+            echo "- Hand off to description writers to finalize PDP copy" >> $GITHUB_STEP_SUMMARY
+            echo "- Publish products when descriptions are complete" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Products created and published to storefront" >> $GITHUB_STEP_SUMMARY
+            echo "- Run the 'Organize Cloud YHS Products' workflow to add collection tags" >> $GITHUB_STEP_SUMMARY
+          fi
