@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pandas as pd
 import requests
-from PIL import Image, ExifTags
+from PIL import Image
 
 # Configuration
 SHOPIFY_STORE = os.environ.get("SHOPIFY_STORE", "oil-slick-pad.myshopify.com")
@@ -323,57 +323,11 @@ def create_shopify_product(product: dict) -> dict:
         }
 
 
-def fix_image_orientation(image: Image.Image) -> Image.Image:
-    """Fix image orientation based on EXIF data.
-
-    Many camera images have EXIF orientation tags that indicate how the image
-    should be rotated for correct display. This function applies the rotation.
-    """
-    try:
-        # Get EXIF data
-        exif = image._getexif()
-        if exif is None:
-            return image
-
-        # Find the orientation tag
-        orientation_key = None
-        for key, val in ExifTags.TAGS.items():
-            if val == 'Orientation':
-                orientation_key = key
-                break
-
-        if orientation_key is None or orientation_key not in exif:
-            return image
-
-        orientation = exif[orientation_key]
-
-        # Apply rotation based on EXIF orientation value
-        if orientation == 2:
-            image = image.transpose(Image.FLIP_LEFT_RIGHT)
-        elif orientation == 3:
-            image = image.rotate(180, expand=True)
-        elif orientation == 4:
-            image = image.transpose(Image.FLIP_TOP_BOTTOM)
-        elif orientation == 5:
-            image = image.transpose(Image.FLIP_LEFT_RIGHT).rotate(270, expand=True)
-        elif orientation == 6:
-            image = image.rotate(270, expand=True)
-        elif orientation == 7:
-            image = image.transpose(Image.FLIP_LEFT_RIGHT).rotate(90, expand=True)
-        elif orientation == 8:
-            image = image.rotate(90, expand=True)
-
-        return image
-    except Exception as e:
-        print(f"    Warning: Could not fix orientation: {e}")
-        return image
-
-
 def find_local_product_image(sku: str) -> dict:
     """Find a local product image for the given SKU.
 
     Looks in the product_images_described directory for images matching the SKU.
-    Fixes EXIF orientation before returning base64-encoded image data.
+    Returns base64-encoded image data ready for Shopify upload.
     """
     # Try different possible filenames
     possible_names = [
@@ -390,11 +344,7 @@ def find_local_product_image(sku: str) -> dict:
         image_path = PRODUCT_IMAGES_DIR / filename
         if image_path.exists():
             try:
-                # Open image with PIL to handle EXIF orientation
                 with Image.open(image_path) as img:
-                    # Fix orientation based on EXIF data
-                    img = fix_image_orientation(img)
-
                     # Convert to RGB if necessary (for PNG with alpha)
                     if img.mode in ('RGBA', 'P'):
                         img = img.convert('RGB')

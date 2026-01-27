@@ -3,7 +3,7 @@
 Cloud YHS Image Fixer
 =====================
 Removes all images from Cloud YHS products and re-uploads them
-with correct SKU matching and EXIF orientation handling.
+with correct SKU matching.
 """
 
 import os
@@ -14,7 +14,7 @@ import io
 from pathlib import Path
 
 import requests
-from PIL import Image, ExifTags
+from PIL import Image
 
 # Configuration
 SHOPIFY_STORE = os.environ.get("SHOPIFY_STORE", "oil-slick-pad.myshopify.com")
@@ -95,45 +95,6 @@ def delete_all_product_images(product: dict) -> int:
     return deleted
 
 
-def fix_image_orientation(image: Image.Image) -> Image.Image:
-    """Fix image orientation based on EXIF data."""
-    try:
-        exif = image._getexif()
-        if exif is None:
-            return image
-
-        orientation_key = None
-        for key, val in ExifTags.TAGS.items():
-            if val == 'Orientation':
-                orientation_key = key
-                break
-
-        if orientation_key is None or orientation_key not in exif:
-            return image
-
-        orientation = exif[orientation_key]
-
-        if orientation == 2:
-            image = image.transpose(Image.FLIP_LEFT_RIGHT)
-        elif orientation == 3:
-            image = image.rotate(180, expand=True)
-        elif orientation == 4:
-            image = image.transpose(Image.FLIP_TOP_BOTTOM)
-        elif orientation == 5:
-            image = image.transpose(Image.FLIP_LEFT_RIGHT).rotate(270, expand=True)
-        elif orientation == 6:
-            image = image.rotate(270, expand=True)
-        elif orientation == 7:
-            image = image.transpose(Image.FLIP_LEFT_RIGHT).rotate(90, expand=True)
-        elif orientation == 8:
-            image = image.rotate(90, expand=True)
-
-        return image
-    except Exception as e:
-        print(f"    Warning: Could not fix orientation: {e}")
-        return image
-
-
 def find_local_image(sku: str) -> dict:
     """Find and load a local image for the given SKU."""
     possible_names = [
@@ -149,9 +110,6 @@ def find_local_image(sku: str) -> dict:
         if image_path.exists():
             try:
                 with Image.open(image_path) as img:
-                    # Fix orientation
-                    img = fix_image_orientation(img)
-
                     # Convert to RGB if needed
                     if img.mode in ('RGBA', 'P'):
                         img = img.convert('RGB')
