@@ -929,6 +929,143 @@ def publish_product(pid: int):
                  json={"product": {"id": pid, "status": "active"}}, timeout=30)
 
 
+def get_product_positions(pdf_path: str) -> List[Dict]:
+    """Get products with their page and y-position for matching."""
+    pdf = fitz.open(pdf_path)
+    products_with_pos = []
+
+    for page_num in range(len(pdf)):
+        page = pdf[page_num]
+        blocks = page.get_text("dict")["blocks"]
+
+        text_items = []
+        for b in blocks:
+            if "lines" in b:
+                for line in b["lines"]:
+                    for span in line["spans"]:
+                        text = span["text"].strip()
+                        if text:
+                            bbox = span["bbox"]
+                            text_items.append({
+                                "text": text,
+                                "x": bbox[0],
+                                "y": bbox[1],
+                            })
+
+        # Find SKUs with positions
+        for item in text_items:
+            if 130 < item["x"] < 200:
+                if re.match(r'^(CY\d+[A-Z\-]*|H\d+[A-Z\-]*|B\d+|E\d+|WS\d+|A\d+|P\d+|J\d+[A-Z]*)$', item["text"]):
+                    products_with_pos.append({
+                        'sku': item["text"],
+                        'page': page_num,
+                        'y': item["y"]
+                    })
+
+    pdf.close()
+
+    # Remove duplicate SKUs (keep first occurrence)
+    seen = set()
+    unique = []
+    for p in products_with_pos:
+        if p['sku'] not in seen:
+            seen.add(p['sku'])
+            unique.append(p)
+
+    return unique
+
+
+def match_images_to_products(pdf_path: str, products: List[Dict], image_paths: List[str], rotate: bool = True) -> None:
+    """
+    Match images to products based on page and y-position proximity.
+
+    This handles cases where there are extra images without corresponding products
+    by matching each product to the closest image on the same page.
+    """
+    pdf = fitz.open(pdf_path)
+
+    # Collect all images with their page and position info
+    all_images = []
+    for page_num in range(len(pdf)):
+        page = pdf[page_num]
+        info_list = page.get_image_info(xrefs=True)
+
+        for info in info_list:
+            xref = info.get('xref')
+            if not xref:
+                continue
+
+            bbox = info['bbox']
+            y_pos = bbox[1]
+            width = bbox[2] - bbox[0]
+
+            # Skip logo
+            if page_num == 0 and y_pos < 100 and width > 60:
+                continue
+
+            # Check image size
+            try:
+                base_image = pdf.extract_image(xref)
+                if len(base_image["image"]) < 1000:
+                    continue
+            except:
+                continue
+
+            all_images.append({
+                'page': page_num,
+                'y': y_pos,
+                'xref': xref
+            })
+
+    pdf.close()
+
+    # Sort images by page then y position
+    all_images.sort(key=lambda img: (img['page'], img['y']))
+
+    # Get product positions
+    product_positions = get_product_positions(pdf_path)
+
+    # Create a mapping from SKU to product index
+    sku_to_idx = {p['sku']: i for i, p in enumerate(products)}
+
+    # Match each product to the closest image on the same page
+    used_image_indices = set()
+
+    for prod_pos in product_positions:
+        sku = prod_pos['sku']
+        prod_page = prod_pos['page']
+        prod_y = prod_pos['y']
+
+        if sku not in sku_to_idx:
+            continue
+
+        prod_idx = sku_to_idx[sku]
+
+        # Find the closest unused image on the same page
+        best_img_idx = None
+        best_distance = float('inf')
+
+        for img_idx, img in enumerate(all_images):
+            if img_idx in used_image_indices:
+                continue
+            if img['page'] != prod_page:
+                continue
+
+            distance = abs(img['y'] - prod_y)
+            if distance < best_distance:
+                best_distance = distance
+                best_img_idx = img_idx
+
+        # Assign image if found (within reasonable distance)
+        if best_img_idx is not None and best_distance < 200:
+            used_image_indices.add(best_img_idx)
+            # Map the image index to the image path
+            if best_img_idx < len(image_paths):
+                products[prod_idx]['image_path'] = image_paths[best_img_idx]
+        else:
+            products[prod_idx]['image_path'] = None
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Import products from PDF")
@@ -959,9 +1096,10 @@ def main():
     images = extract_images_from_pdf(args.file, img_folder, rotate=args.rotate)
     print(f"Extracted {len(images)} product images")
 
-    # Match images to products (1:1 since logo is already excluded)
-    for i, p in enumerate(products):
-        p['image_path'] = images[i] if i < len(images) else None
+    # Match images to products using position-based matching
+    # This handles extra images that don't correspond to any product
+    print("Matching images to products by position...")
+    match_images_to_products(args.file, products, images, rotate=args.rotate)
 
     if args.list:
         print(f"\n{'='*60}\nPRODUCTS\n{'='*60}")
