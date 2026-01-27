@@ -13,15 +13,11 @@ on:
         required: false
         default: '10'
         type: string
-      images_per_product:
-        description: 'Images per product'
+      image_folder:
+        description: 'Folder with source images (named by SKU)'
         required: false
-        default: '5'
-        type: choice
-        options:
-          - '1'
-          - '3'
-          - '5'
+        default: 'source_images'
+        type: string
       model:
         description: 'Gemini model to use'
         required: false
@@ -64,14 +60,19 @@ jobs:
           echo "🚀 Generating images for Cloud YHS products"
           echo "   Start: ${{ inputs.start_product }}"
           echo "   Batch: ${{ inputs.batch_size }} products"
-          echo "   Images: ${{ inputs.images_per_product }} per product"
           echo "   Model: ${{ inputs.model }}"
+          echo "   Source images: ${{ inputs.image_folder }}"
+          echo ""
+          echo "Image workflow:"
+          echo "   1. High-fidelity AI copy → Image #1"
+          echo "   2. Original source → Image #2"
           echo ""
 
           # Run the Cloud YHS importer with image generation enabled
           python tools/cloud_yhs_importer.py \
             --start $(( ${{ inputs.start_product }} - 1 )) \
-            --count ${{ inputs.batch_size }}
+            --count ${{ inputs.batch_size }} \
+            --images "${{ inputs.image_folder }}"
 
       - name: Upload generated images as artifact
         uses: actions/upload-artifact@v4
@@ -86,8 +87,11 @@ jobs:
           echo "## 🍌 Cloud YHS Image Generation Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Products processed:** ${{ inputs.start_product }} to $(( ${{ inputs.start_product }} + ${{ inputs.batch_size }} - 1 ))" >> $GITHUB_STEP_SUMMARY
-          echo "**Images per product:** ${{ inputs.images_per_product }}" >> $GITHUB_STEP_SUMMARY
           echo "**Model:** ${{ inputs.model }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Image Workflow" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image #1:** High-fidelity AI copy (clean, no watermarks)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image #2:** Original source image" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
           echo "To process more products, run this workflow again with:" >> $GITHUB_STEP_SUMMARY

@@ -5,9 +5,13 @@ Cloud YHS Product Importer
 Imports products from Cloud YHS spreadsheet to Shopify with:
 - Cloud YHS as vendor
 - Reference SKU included in listing
-- 5 AI-generated images per product (via Gemini 3 Pro)
 - Long-form descriptions in Oil Slick style
 - Retail price = 2x cost
+
+Image Generation (2-image workflow):
+1. Source image found from --images folder (by SKU) or searched online
+2. High-fidelity copy generated via Gemini 3 Pro → Image #1
+3. Original source image uploaded → Image #2
 """
 
 import os
@@ -334,58 +338,47 @@ def download_image(url: str) -> bytes:
     return None
 
 
-def generate_product_image_gemini(product: dict, reference_images: list = None, image_number: int = 1) -> dict:
-    """Generate a product image using Gemini 3 Pro."""
+def generate_high_fidelity_copy(source_image: bytes, product_name: str) -> dict:
+    """Generate a high-fidelity copy of the source image using Gemini 3 Pro.
+
+    This creates a clean, professional version of the source image:
+    - Removes watermarks, logos, text
+    - Improves lighting and background
+    - Maintains exact product appearance
+    """
 
     if not GOOGLE_API_KEY:
         return {"success": False, "error": "GOOGLE_API_KEY not set"}
 
-    # Build prompt based on product
-    name = product['name']
-    specs = product['specs']
+    if not source_image:
+        return {"success": False, "error": "No source image provided"}
 
-    # Determine angle based on image number
-    angles = [
-        "front view, straight on",
-        "45-degree angle view",
-        "side profile view",
-        "detail shot of the main feature",
-        "lifestyle shot with subtle smoke"
-    ]
-    angle = angles[min(image_number - 1, len(angles) - 1)]
+    prompt = f"""Create a HIGH-FIDELITY copy of this product image for e-commerce use.
 
-    prompt = f"""Generate a professional e-commerce product photograph of: {name}
-
-Product Details:
-- This is a smoking accessory / water pipe
-- Materials: {specs}
-- Shot angle: {angle}
+Product: {product_name}
 
 CRITICAL REQUIREMENTS:
-- Photorealistic rendering - must look like a real product photograph
-- Clean pure white background (#FFFFFF)
-- Professional studio lighting with soft shadows
-- Sharp focus, extremely high detail
-- Commercial e-commerce quality
-- ABSOLUTELY NO text, watermarks, labels, or logos
-- Product should be the sole focus
-- Show the product exactly as described"""
+1. EXACT COPY - The product must look IDENTICAL to the source image
+2. Same angle, same pose, same features - do not change the product
+3. Clean pure white background (#FFFFFF)
+4. Remove ALL text, watermarks, logos, labels from the image
+5. Professional studio lighting with soft shadows
+6. Sharp focus, maximum detail and clarity
+7. 2K resolution, commercial photography quality
+8. The product should be the ONLY element in the image
 
-    # Build parts
-    parts = []
+This is for an e-commerce listing. The generated image must be a clean, professional version of the exact same product shown in the reference."""
 
-    # Add reference images if available
-    if reference_images:
-        for ref_data in reference_images[:3]:
-            if ref_data:
-                parts.append({
-                    "inline_data": {
-                        "mime_type": "image/jpeg",
-                        "data": base64.b64encode(ref_data).decode("utf-8")
-                    }
-                })
-
-    parts.append({"text": prompt})
+    # Build request with source image
+    parts = [
+        {
+            "inline_data": {
+                "mime_type": "image/jpeg",
+                "data": base64.b64encode(source_image).decode("utf-8")
+            }
+        },
+        {"text": prompt}
+    ]
 
     payload = {
         "contents": [{"parts": parts}],
@@ -493,8 +486,14 @@ def publish_product(product_id: int) -> dict:
     return {"success": response.status_code in [200, 201]}
 
 
-def process_single_product(product: dict, generate_images: bool = True) -> dict:
-    """Process a single product: create in Shopify, generate images, upload."""
+def process_single_product(product: dict, generate_images: bool = True, image_folder: str = None) -> dict:
+    """Process a single product: create in Shopify, generate images, upload.
+
+    Image workflow (when generate_images=True):
+    1. Find source image (from folder by SKU, or search online)
+    2. Generate high-fidelity copy with Gemini → becomes Image #1
+    3. Upload original source image → becomes Image #2
+    """
 
     print(f"\n{'='*60}")
     print(f"Processing: {product['name']}")
@@ -519,40 +518,78 @@ def process_single_product(product: dict, generate_images: bool = True) -> dict:
         publish_product(product_id)
         return {"success": True, "product_id": product_id, "images": 0}
 
-    # Step 2: Search for reference images
-    print("  [2/4] Searching for reference images...")
-    ref_urls = search_reference_images(product['name'])
-    ref_images = []
-    for url in ref_urls:
-        img_data = download_image(url)
-        if img_data:
-            ref_images.append(img_data)
-    print(f"  ✓ Found {len(ref_images)} reference images")
+    # Step 2: Find source image
+    print("  [2/4] Finding source image...")
+    source_image = None
+    source_url = None
 
-    # Step 3: Generate and upload 5 images
-    print("  [3/4] Generating 5 product images with Gemini 3 Pro...")
+    # First, check if there's a local image file matching SKU
+    if image_folder:
+        sku = product['sku']
+        for ext in ['.jpg', '.jpeg', '.png', '.webp', '.JPG', '.JPEG', '.PNG']:
+            img_path = Path(image_folder) / f"{sku}{ext}"
+            if img_path.exists():
+                with open(img_path, 'rb') as f:
+                    source_image = f.read()
+                print(f"  ✓ Found local image: {img_path.name}")
+                break
+
+    # If no local image, search online
+    if not source_image:
+        print("    Searching online for source image...")
+        ref_urls = search_reference_images(product['name'])
+        if ref_urls:
+            source_url = ref_urls[0]
+            source_image = download_image(source_url)
+            if source_image:
+                print(f"  ✓ Downloaded source image")
+            else:
+                print("  ✗ Failed to download source image")
+
+    if not source_image:
+        print("  ✗ No source image found - skipping image generation")
+        print("  [4/4] Publishing product as draft...")
+        return {"success": True, "product_id": product_id, "images": 0}
+
+    # Step 3: Generate high-fidelity copy and upload both images
+    print("  [3/4] Generating high-fidelity copy with Gemini 3 Pro...")
     images_uploaded = 0
 
-    for i in range(1, 6):
-        print(f"    Generating image {i}/5...", end=" ")
-        gen_result = generate_product_image_gemini(product, ref_images, i)
+    # Generate high-fidelity copy → Image #1
+    print("    Creating high-fidelity copy...", end=" ")
+    gen_result = generate_high_fidelity_copy(source_image, product['name'])
 
-        if gen_result['success']:
-            upload_result = upload_image_to_shopify(
-                product_id,
-                gen_result['image_data'],
-                position=i,
-                alt_text=f"{product['name']} - View {i}"
-            )
-            if upload_result['success']:
-                print("✓ Generated & uploaded")
-                images_uploaded += 1
-            else:
-                print(f"✗ Upload failed: {upload_result['error'][:50]}")
+    if gen_result['success']:
+        upload_result = upload_image_to_shopify(
+            product_id,
+            gen_result['image_data'],
+            position=1,
+            alt_text=f"{product['name']} - Main Image"
+        )
+        if upload_result['success']:
+            print("✓ Uploaded as Image #1")
+            images_uploaded += 1
         else:
-            print(f"✗ Generation failed: {gen_result['error'][:50]}")
+            print(f"✗ Upload failed")
+    else:
+        print(f"✗ Generation failed: {gen_result.get('error', 'Unknown error')[:50]}")
 
-        time.sleep(2)  # Rate limiting
+    time.sleep(1)
+
+    # Upload original source → Image #2
+    print("    Uploading original source...", end=" ")
+    source_b64 = base64.b64encode(source_image).decode('utf-8')
+    upload_result = upload_image_to_shopify(
+        product_id,
+        source_b64,
+        position=2,
+        alt_text=f"{product['name']} - Original"
+    )
+    if upload_result['success']:
+        print("✓ Uploaded as Image #2")
+        images_uploaded += 1
+    else:
+        print("✗ Upload failed")
 
     # Step 4: Publish product
     print(f"  [4/4] Publishing product ({images_uploaded} images)...")
@@ -575,6 +612,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Import Cloud YHS products to Shopify")
     parser.add_argument("--file", "-f", default="yhs_supply_products.xlsx", help="Excel file path")
+    parser.add_argument("--images", "-i", help="Folder containing source images (named by SKU, e.g., CY013.jpg)")
     parser.add_argument("--start", "-s", type=int, default=0, help="Start from product index")
     parser.add_argument("--count", "-c", type=int, default=None, help="Number of products to process")
     parser.add_argument("--no-images", action="store_true", help="Skip image generation")
@@ -619,7 +657,11 @@ def main():
 
     for i, product in enumerate(selected):
         print(f"\n[{i+1}/{len(selected)}]", end="")
-        result = process_single_product(product, generate_images=not args.no_images)
+        result = process_single_product(
+            product,
+            generate_images=not args.no_images,
+            image_folder=args.images
+        )
 
         if result['success']:
             results['success'] += 1
