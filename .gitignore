@@ -21,3 +21,8 @@ Thumbs.db
 # Extracted product images (extracted at runtime)
 product_images_described/
 pdf_extracted_images/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
