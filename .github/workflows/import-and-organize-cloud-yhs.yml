@@ -1,0 +1,97 @@
+name: Import and Organize Cloud YHS Products
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: 'Number of products to import (leave empty for all)'
+        required: false
+        default: ''
+        type: string
+      publish_products:
+        description: 'Publish products after organizing'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+  push:
+    branches:
+      - 'claude/organize-cloud-yhs-*'
+    paths:
+      - '.github/workflows/import-and-organize-cloud-yhs.yml'
+
+jobs:
+  import-and-organize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Python dependencies
+        run: pip install requests pandas openpyxl
+
+      - name: Install Node.js dependencies
+        run: npm install
+
+      - name: Import Cloud YHS Products from Excel
+        env:
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "📦 Importing Cloud YHS products from Excel to Shopify"
+          echo ""
+
+          BATCH_ARG=""
+          if [ -n "${{ inputs.batch_size }}" ]; then
+            BATCH_ARG="--count ${{ inputs.batch_size }}"
+          fi
+
+          python tools/cloud_yhs_importer.py --no-images $BATCH_ARG
+
+      - name: Organize Products into Collections
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo ""
+          echo "🏷️ Organizing products into collections..."
+          echo ""
+
+          if [ "${{ inputs.publish_products }}" = "true" ] || [ -z "${{ inputs.publish_products }}" ]; then
+            node src/cloud-yhs-organizer.js --execute --publish
+          else
+            node src/cloud-yhs-organizer.js --execute
+          fi
+
+      - name: Summary
+        run: |
+          echo "## 📦 Cloud YHS Import & Organization Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Products have been imported from Excel and organized into collections:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Product Type | Collection |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------------|------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Water Pipes (~69) | Bongs & Water Pipes |" >> $GITHUB_STEP_SUMMARY
+          echo "| Hand Pipes (~20) | Hand Pipes |" >> $GITHUB_STEP_SUMMARY
+          echo "| Bubblers (~1) | Bubblers |" >> $GITHUB_STEP_SUMMARY
+          echo "| Nectar Collectors (~2) | Nectar Collectors |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dab Tools (~2) | Dab Tools |" >> $GITHUB_STEP_SUMMARY
+          echo "| Glass Bowls (~2) | Flower Bowls |" >> $GITHUB_STEP_SUMMARY
+          echo "| CBD Devices (~4) | Vapes & Electronics |" >> $GITHUB_STEP_SUMMARY
+          echo "| Jars/Ashtrays (~2) | Storage & Containers |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Products imported without images will show as 'draft' until images are added." >> $GITHUB_STEP_SUMMARY
+          echo "Run the 'Generate Cloud YHS Product Images' workflow to add AI-generated images." >> $GITHUB_STEP_SUMMARY
