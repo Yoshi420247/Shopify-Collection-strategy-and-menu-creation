@@ -1,14 +1,14 @@
 name: Fix Cloud YHS Product Images
 
 on:
-  workflow_dispatch:
-    inputs:
   push:
     branches:
       - 'claude/organize-cloud-yhs-*'
     paths:
       - '.github/workflows/fix-cloud-yhs-images.yml'
       - 'tools/fix_cloud_yhs_images.py'
+  workflow_dispatch:
+    inputs:
       action:
         description: 'Action to perform'
         required: true
