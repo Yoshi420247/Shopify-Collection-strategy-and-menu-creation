@@ -210,6 +210,32 @@ export async function createMenu(handle, title, items) {
   return graphqlQuery(mutation, { handle, title, items });
 }
 
+// Generic REST API methods
+export async function get(endpoint) {
+  return rateLimitedRequest(`${BASE_URL}/${endpoint}`);
+}
+
+export async function put(endpoint, data) {
+  return rateLimitedRequest(`${BASE_URL}/${endpoint}`, 'PUT', data);
+}
+
+export async function post(endpoint, data) {
+  return rateLimitedRequest(`${BASE_URL}/${endpoint}`, 'POST', data);
+}
+
+// Inventory item methods
+export async function getInventoryItem(inventoryItemId) {
+  return rateLimitedRequest(`${BASE_URL}/inventory_items/${inventoryItemId}.json`);
+}
+
+export async function updateInventoryItem(inventoryItemId, data) {
+  return rateLimitedRequest(
+    `${BASE_URL}/inventory_items/${inventoryItemId}.json`,
+    'PUT',
+    { inventory_item: data }
+  );
+}
+
 export default {
   getProducts,
   getProduct,
@@ -222,4 +248,9 @@ export default {
   graphqlQuery,
   getMenus,
   createMenu,
+  get,
+  put,
+  post,
+  getInventoryItem,
+  updateInventoryItem,
 };
