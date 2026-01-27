@@ -13,13 +13,27 @@
     "menu:analyze": "node src/menu-fixer.js",
     "menu:fix": "node src/menu-fixer.js --execute",
     "menu:auto": "node src/auto-menu-setup.js",
-    "menu:auto:execute": "node src/auto-menu-setup.js --execute"
+    "menu:auto:execute": "node src/auto-menu-setup.js --execute",
+    "cleanup": "node src/collection-cleanup.js",
+    "cleanup:report": "node src/collection-cleanup.js --report",
+    "cleanup:fix": "node src/collection-cleanup.js --execute --fix-collections",
+    "cleanup:delete": "node src/collection-cleanup.js --execute --delete-collections",
+    "cleanup:tags": "node src/collection-cleanup.js --execute --fix-tags",
+    "cleanup:all": "node src/collection-cleanup.js --execute --fix-collections --delete-collections --fix-tags",
+    "costs": "node src/update-product-costs.js",
+    "costs:execute": "node src/update-product-costs.js --execute"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "xlsx": "^0.18.5"
   },
-  "keywords": ["shopify", "collections", "menu", "navigation"],
+  "keywords": [
+    "shopify",
+    "collections",
+    "menu",
+    "navigation"
+  ],
   "author": "",
   "license": "MIT"
 }

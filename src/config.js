@@ -120,6 +120,15 @@ export const config = {
         disjunctive: false,
       },
       {
+        handle: 'bongs',
+        title: 'Bongs',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:glass-bong' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
         handle: 'dab-rigs',
         title: 'Dab Rigs',
         rules: [
@@ -164,10 +173,58 @@ export const config = {
         ],
         disjunctive: false,
       },
+      // SILICONE COLLECTIONS - Fixed to require material:silicone tag
+      {
+        handle: 'silicone-rigs-bongs',
+        title: 'Silicone Rigs & Bongs',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'silicone-pipes',
+        title: 'Silicone Pipes',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'tag', relation: 'equals', condition: 'family:spoon-pipe' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'silicone-water-pipes',
+        title: 'Silicone Water Pipes',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'tag', relation: 'equals', condition: 'family:glass-bong' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'silicone-smoking-devices',
+        title: 'Silicone Smoking Devices',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
     ],
 
     // Accessory collections
     accessories: [
+      {
+        handle: 'accessories',
+        title: 'Accessories',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
       {
         handle: 'quartz-bangers',
         title: 'Quartz Bangers',
@@ -244,7 +301,7 @@ export const config = {
         handle: 'vapes-electronics',
         title: 'Vapes & Electronics',
         rules: [
-          { column: 'tag', relation: 'equals', condition: 'family:vape-battery' },
+          { column: 'tag', relation: 'equals', condition: 'use:vaping' },
           { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
@@ -253,7 +310,7 @@ export const config = {
         handle: 'storage-containers',
         title: 'Storage & Containers',
         rules: [
-          { column: 'tag', relation: 'equals', condition: 'family:storage-accessory' },
+          { column: 'tag', relation: 'equals', condition: 'use:storage' },
           { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
@@ -262,7 +319,16 @@ export const config = {
         handle: 'pendants-merch',
         title: 'Pendants & Merch',
         rules: [
-          { column: 'tag', relation: 'equals', condition: 'family:merch-pendant' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:merch' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'trays-work-surfaces',
+        title: 'Trays & Work Surfaces',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:rolling-tray' },
           { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
@@ -277,6 +343,12 @@ export const config = {
       { handle: 'maven', title: 'Maven', tag: 'brand:maven' },
       { handle: 'vibes', title: 'Vibes', tag: 'brand:vibes' },
       { handle: 'raw', title: 'RAW', tag: 'brand:raw' },
+      { handle: 'elements', title: 'Elements', tag: 'brand:elements' },
+      { handle: 'puffco', title: 'Puffco', tag: 'brand:puffco' },
+      { handle: 'lookah', title: 'Lookah', tag: 'brand:lookah' },
+      { handle: 'g-pen', title: 'G Pen', tag: 'brand:g-pen' },
+      { handle: '710-sci', title: '710 SCI', tag: 'brand:710-sci' },
+      { handle: 'scorch', title: 'Scorch', tag: 'brand:scorch' },
     ],
 
     // Style/feature collections
@@ -285,22 +357,117 @@ export const config = {
       { handle: 'heady-glass', title: 'Heady Glass', tag: 'style:heady' },
       { handle: 'travel-friendly', title: 'Travel Friendly', tag: 'style:travel-friendly' },
     ],
+
+    // Collections to DELETE (duplicates and broken)
+    toDelete: [
+      'dab_rig', 'hand_pipe', 'quartz_banger', 'torch_tool', 'water_pipe', 'grinder',
+      'hand-pipes-collection', 'flower-bowls-collection', 'grinders-collection',
+      'torches-collection', 'heady-glass-collection', 'pendants-collection',
+      'one-hitter-and-chillums-collection', 'nectar-collectors-collection',
+      'carb-caps-collection', 'dabbers-collection', 'essentials-accessories-collection',
+      'clearance-1', 'clearance-2', 'nectar-collectors-1', 'mylar-bags-1',
+      'dab-rigs-and-oil-rigs', 'glass-bongs-and-water-pipes',
+      'smoke-vape', 'smoke-shop-products', 'all-headshop', 'shop-all-what-you-need',
+      'smoking', 'smoking-devices',
+    ],
   },
 
-  // Menu structure for Smoke & Vape section
+  // Menu structure - Cleaned up and organized
   menuStructure: {
+    // Main navigation menu
     main: {
-      title: 'Smoke & Vape',
-      handle: 'smoke-vape-menu',
+      title: 'Main menu',
+      handle: 'main-menu',
       items: [
         {
           title: 'Shop All',
-          url: '/collections/smoke-and-vape',
+          url: '/collections/all',
         },
         {
-          title: 'Smoking Devices',
-          url: '/collections/bongs-water-pipes',
+          title: 'Extraction & Packaging',
+          url: '/collections/extraction-packaging',
           children: [
+            { title: 'Silicone Pads & Mats', url: '/collections/silicone-pads' },
+            { title: 'FEP Sheets & Rolls', url: '/collections/fep-sheets' },
+            { title: 'PTFE Sheets & Rolls', url: '/collections/ptfe-sheets' },
+            { title: 'Parchment Paper', url: '/collections/parchment-paper' },
+            { title: 'Glass Jars', url: '/collections/glass-jars' },
+            { title: 'Concentrate Containers', url: '/collections/concentrate-containers' },
+            { title: 'Mylar Bags', url: '/collections/mylar-bags' },
+            { title: 'Joint Tubes', url: '/collections/joint-tubes' },
+            { title: 'Shop All Extraction', url: '/collections/extraction-packaging' },
+          ],
+        },
+        {
+          title: 'Smoke & Vape',
+          url: '/collections/smoke-and-vape',
+          children: [
+            { title: 'Bongs & Water Pipes', url: '/collections/bongs-water-pipes' },
+            { title: 'Dab Rigs', url: '/collections/dab-rigs' },
+            { title: 'Hand Pipes', url: '/collections/hand-pipes' },
+            { title: 'Bubblers', url: '/collections/bubblers' },
+            { title: 'Nectar Collectors', url: '/collections/nectar-collectors' },
+            { title: 'One Hitters & Chillums', url: '/collections/one-hitters-chillums' },
+            { title: 'Silicone Pieces', url: '/collections/silicone-rigs-bongs' },
+            { title: 'Shop All Smoke & Vape', url: '/collections/smoke-and-vape' },
+          ],
+        },
+        {
+          title: 'Accessories',
+          url: '/collections/accessories',
+          children: [
+            { title: 'Quartz Bangers', url: '/collections/quartz-bangers' },
+            { title: 'Carb Caps', url: '/collections/carb-caps' },
+            { title: 'Dab Tools', url: '/collections/dab-tools' },
+            { title: 'Flower Bowls', url: '/collections/flower-bowls' },
+            { title: 'Ash Catchers', url: '/collections/ash-catchers' },
+            { title: 'Torches', url: '/collections/torches' },
+            { title: 'Grinders', url: '/collections/grinders' },
+            { title: 'Rolling Papers & Cones', url: '/collections/rolling-papers' },
+            { title: 'Vapes & Electronics', url: '/collections/vapes-electronics' },
+            { title: 'Storage & Containers', url: '/collections/storage-containers' },
+            { title: 'Trays & Work Surfaces', url: '/collections/trays-work-surfaces' },
+          ],
+        },
+        {
+          title: 'Brands',
+          url: '#',
+          children: [
+            { title: 'RAW', url: '/collections/raw' },
+            { title: 'Zig Zag', url: '/collections/zig-zag' },
+            { title: 'Vibes', url: '/collections/vibes' },
+            { title: 'Elements', url: '/collections/elements' },
+            { title: 'Cookies', url: '/collections/cookies' },
+            { title: 'Monark', url: '/collections/monark' },
+            { title: 'Maven', url: '/collections/maven' },
+            { title: 'Puffco', url: '/collections/puffco' },
+            { title: 'Lookah', url: '/collections/lookah' },
+            { title: 'G Pen', url: '/collections/g-pen' },
+          ],
+        },
+        {
+          title: 'Featured',
+          url: '#',
+          children: [
+            { title: 'Heady Glass', url: '/collections/heady-glass' },
+            { title: 'Made In USA', url: '/collections/made-in-usa' },
+            { title: 'Travel Friendly', url: '/collections/travel-friendly' },
+            { title: 'Clearance', url: '/collections/clearance' },
+          ],
+        },
+      ],
+    },
+    // Sidebar menu for mobile/navigation
+    sidebar: {
+      title: 'Sidebar Menu',
+      handle: 'sidebar-menu',
+      items: [
+        { title: 'Extraction & Packaging', url: '/collections/extraction-packaging' },
+        {
+          title: 'Smoke & Vape',
+          url: '/collections/smoke-and-vape',
+          children: [
+            { title: 'Shop All Smoke & Vape', url: '/collections/smoke-and-vape' },
             { title: 'Bongs & Water Pipes', url: '/collections/bongs-water-pipes' },
             { title: 'Dab Rigs', url: '/collections/dab-rigs' },
             { title: 'Hand Pipes', url: '/collections/hand-pipes' },
@@ -324,11 +491,7 @@ export const config = {
           ],
         },
         {
-          title: 'Vapes & Electronics',
-          url: '/collections/vapes-electronics',
-        },
-        {
-          title: 'By Brand',
+          title: 'Brands',
           url: '#',
           children: [
             { title: 'Monark', url: '/collections/monark' },
@@ -339,15 +502,7 @@ export const config = {
             { title: 'RAW', url: '/collections/raw' },
           ],
         },
-        {
-          title: 'Featured',
-          url: '#',
-          children: [
-            { title: 'Made in USA', url: '/collections/made-in-usa' },
-            { title: 'Heady Glass', url: '/collections/heady-glass' },
-            { title: 'Travel Friendly', url: '/collections/travel-friendly' },
-          ],
-        },
+        { title: 'Clearance', url: '/collections/clearance' },
       ],
     },
   },
