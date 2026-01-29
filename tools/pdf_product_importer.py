@@ -45,7 +45,11 @@ SHOPIFY_STORE = os.environ.get("SHOPIFY_STORE", "oil-slick-pad.myshopify.com")
 SHOPIFY_ACCESS_TOKEN = os.environ.get("SHOPIFY_ACCESS_TOKEN", "")
 SHOPIFY_API_VERSION = "2024-01"
 SHOPIFY_BASE_URL = f"https://{SHOPIFY_STORE}/admin/api/{SHOPIFY_API_VERSION}"
-VENDOR_NAME = "Cloud YHS"
+# IMPORTANT: Vendor name MUST match the collection rules in config.js
+# Collections are configured with: vendor = 'What You Need'
+# Using a different vendor name will cause products to NOT appear in collections
+VENDOR_NAME = "What You Need"
+SUPPLIER_NAME = "Cloud YHS"  # Original supplier name for reference
 
 # Trademark replacements
 TRADEMARK_REPLACEMENTS = {
@@ -358,29 +362,280 @@ def generate_creative_title(name: str, sku: str, specs: str) -> str:
 
 
 def generate_tags(product: Dict) -> str:
-    """Generate taxonomy tags."""
+    """
+    Generate comprehensive taxonomy tags for accurate collection assignment.
+
+    This function ensures products are tagged correctly so they appear in the right
+    collections. Missing or incorrect tags cause products to be invisible in collections.
+
+    Tag namespaces:
+    - pillar: Main category (smokeshop-device, accessory, merch, packaging)
+    - family: Product type (glass-bong, spoon-pipe, banger, etc.)
+    - use: Use case (flower-smoking, dabbing, rolling, vaping, storage)
+    - material: Material type (glass, silicone, quartz, metal, etc.)
+    - brand: Brand name (zig-zag, raw, cookies, etc.)
+    - joint_size: Joint size (10mm, 14mm, 18mm)
+    - style: Special features (made-in-usa, heady, travel-friendly, animal)
+    """
     name = product['name'].lower()
     specs = (product.get('specs') or '').lower()
+    combined = name + ' ' + specs
     tags = [f"vendor:{VENDOR_NAME}", f"sku:{product['sku']}"]
 
-    if 'pvc' in specs: tags.append("material:pvc")
-    if 'glass' in specs or 'glass' in name: tags.append("material:glass")
-    if 'silicone' in specs or 'silicone' in name: tags.append("material:silicone")
+    # ========================================================================
+    # MATERIAL DETECTION
+    # ========================================================================
+    if 'pvc' in combined:
+        tags.append("material:pvc")
+    if 'glass' in combined:
+        tags.append("material:glass")
+    if 'silicone' in combined:
+        tags.append("material:silicone")
+    if 'quartz' in combined:
+        tags.append("material:quartz")
+    if 'titanium' in combined:
+        tags.append("material:titanium")
+    if 'ceramic' in combined:
+        tags.append("material:ceramic")
+    if any(x in combined for x in ['metal', 'steel', 'stainless', 'aluminum']):
+        tags.append("material:metal")
+    if 'borosilicate' in combined:
+        tags.append("material:borosilicate")
+    if 'wood' in combined:
+        tags.append("material:wood")
 
-    if 'water pipe' in name or 'bong' in name:
-        tags.extend(["pillar:smokeshop-device", "family:glass-bong", "use:flower-smoking"])
-    elif 'hand pipe' in name:
-        tags.extend(["pillar:smokeshop-device", "family:spoon-pipe", "use:flower-smoking"])
-    elif 'nectar collector' in name:
-        tags.extend(["pillar:smokeshop-device", "family:nectar-collector", "use:dabbing"])
-    elif 'battery' in name or 'cbd' in name:
-        tags.extend(["pillar:smokeshop-device", "family:vape-battery", "use:vaping"])
-    elif 'bowl' in name:
-        tags.extend(["pillar:accessory", "family:flower-bowl", "use:flower-smoking"])
-    elif 'dab tool' in name:
-        tags.extend(["pillar:accessory", "family:dab-tool", "use:dabbing"])
+    # ========================================================================
+    # PRODUCT TYPE DETECTION (ORDER MATTERS - more specific first)
+    # ========================================================================
+    product_identified = False
 
-    return ", ".join(tags)
+    # SILICONE DEVICES (check silicone + type combinations first)
+    if 'silicone' in name:
+        if any(x in name for x in ['nectar collector', 'nectar straw', 'dab straw']):
+            tags.extend(["pillar:smokeshop-device", "family:nectar-collector", "use:dabbing"])
+            product_identified = True
+        elif 'bubbler' in name:
+            tags.extend(["pillar:smokeshop-device", "family:bubbler", "use:flower-smoking"])
+            product_identified = True
+        elif any(x in name for x in ['rig', 'dab']):
+            tags.extend(["pillar:smokeshop-device", "family:silicone-rig", "use:dabbing"])
+            product_identified = True
+        elif any(x in name for x in ['pipe', 'spoon']):
+            tags.extend(["pillar:smokeshop-device", "family:spoon-pipe", "use:flower-smoking"])
+            product_identified = True
+        elif any(x in name for x in ['water pipe', 'bong', 'beaker']):
+            tags.extend(["pillar:smokeshop-device", "family:glass-bong", "use:flower-smoking"])
+            product_identified = True
+
+    if not product_identified:
+        # NECTAR COLLECTORS (before other types)
+        if any(x in name for x in ['nectar collector', 'nectar straw', 'dab straw', 'honey straw']):
+            tags.extend(["pillar:smokeshop-device", "family:nectar-collector", "use:dabbing"])
+            product_identified = True
+
+        # DAB RIGS (before water pipes)
+        elif any(x in name for x in ['dab rig', 'oil rig', 'concentrate rig', 'mini rig']):
+            tags.extend(["pillar:smokeshop-device", "family:glass-rig", "use:dabbing"])
+            product_identified = True
+        elif 'rig' in name and any(x in name for x in ['recycler', 'incycler', 'fab egg', 'klein']):
+            tags.extend(["pillar:smokeshop-device", "family:glass-rig", "use:dabbing"])
+            product_identified = True
+
+        # BUBBLERS
+        elif 'bubbler' in name:
+            tags.extend(["pillar:smokeshop-device", "family:bubbler", "use:flower-smoking"])
+            product_identified = True
+
+        # WATER PIPES / BONGS
+        elif any(x in name for x in ['water pipe', 'bong', 'beaker', 'straight tube']):
+            tags.extend(["pillar:smokeshop-device", "family:glass-bong", "use:flower-smoking"])
+            product_identified = True
+
+        # HAND PIPES / SPOONS
+        elif any(x in name for x in ['hand pipe', 'spoon pipe', 'spoon', 'sherlock']):
+            tags.extend(["pillar:smokeshop-device", "family:spoon-pipe", "use:flower-smoking"])
+            product_identified = True
+
+        # ONE HITTERS / CHILLUMS
+        elif any(x in name for x in ['one hitter', 'onehitter', 'chillum', 'bat', 'taster']):
+            tags.extend(["pillar:smokeshop-device", "family:chillum-onehitter", "use:flower-smoking"])
+            product_identified = True
+
+        # STEAMROLLERS
+        elif 'steamroller' in name:
+            tags.extend(["pillar:smokeshop-device", "family:steamroller", "use:flower-smoking"])
+            product_identified = True
+
+        # E-RIGS / ELECTRONIC DEVICES
+        elif any(x in name for x in ['e-rig', 'e rig', 'erig', 'electric rig', 'puffco', 'peak']):
+            tags.extend(["pillar:smokeshop-device", "family:e-rig", "use:dabbing"])
+            product_identified = True
+
+        # VAPE BATTERIES / DEVICES
+        elif any(x in name for x in ['battery', '510', 'vape pen', 'cbd']):
+            tags.extend(["pillar:smokeshop-device", "family:vape-battery", "use:vaping"])
+            product_identified = True
+
+        # QUARTZ BANGERS
+        elif any(x in name for x in ['banger', 'quartz nail', 'bucket']):
+            tags.extend(["pillar:accessory", "family:banger", "use:dabbing"])
+            product_identified = True
+
+        # CARB CAPS
+        elif any(x in name for x in ['carb cap', 'carbcap', 'spinner cap', 'directional cap']):
+            tags.extend(["pillar:accessory", "family:carb-cap", "use:dabbing"])
+            product_identified = True
+
+        # DAB TOOLS / DABBERS
+        elif any(x in name for x in ['dab tool', 'dabber', 'dab stick', 'wax tool']):
+            tags.extend(["pillar:accessory", "family:dab-tool", "use:dabbing"])
+            product_identified = True
+
+        # FLOWER BOWLS / SLIDES
+        elif any(x in name for x in ['bowl', 'slide', 'flower bowl']):
+            tags.extend(["pillar:accessory", "family:flower-bowl", "use:flower-smoking"])
+            product_identified = True
+
+        # ASH CATCHERS
+        elif any(x in name for x in ['ash catcher', 'ashcatcher', 'precooler']):
+            tags.extend(["pillar:accessory", "family:ash-catcher", "use:flower-smoking"])
+            product_identified = True
+
+        # DOWNSTEMS / ADAPTERS
+        elif any(x in name for x in ['downstem', 'down stem', 'adapter', 'drop down']):
+            tags.extend(["pillar:accessory", "family:downstem", "use:flower-smoking"])
+            product_identified = True
+
+        # TORCHES
+        elif any(x in name for x in ['torch', 'lighter', 'butane']):
+            tags.extend(["pillar:accessory", "family:torch", "use:dabbing"])
+            product_identified = True
+
+        # GRINDERS
+        elif 'grinder' in name:
+            tags.extend(["pillar:accessory", "family:grinder", "use:preparation"])
+            product_identified = True
+
+        # ROLLING PAPERS / CONES
+        elif any(x in name for x in ['rolling paper', 'papers', 'cone', 'pre-roll', 'preroll', 'wrap', 'blunt']):
+            tags.extend(["pillar:accessory", "family:rolling-paper", "use:rolling"])
+            product_identified = True
+
+        # ROLLING TRAYS
+        elif any(x in name for x in ['rolling tray', 'tray']):
+            tags.extend(["pillar:accessory", "family:rolling-tray", "use:rolling"])
+            product_identified = True
+
+        # ROLLING MACHINES
+        elif any(x in name for x in ['rolling machine', 'roller']):
+            tags.extend(["pillar:accessory", "family:rolling-machine", "use:rolling"])
+            product_identified = True
+
+        # VAPE CARTRIDGES
+        elif any(x in name for x in ['cartridge', 'cart', 'pod']):
+            tags.extend(["pillar:accessory", "family:vape-cartridge", "use:vaping"])
+            product_identified = True
+
+        # STORAGE / CONTAINERS
+        elif any(x in name for x in ['jar', 'container', 'stash', 'storage', 'case']):
+            tags.extend(["pillar:accessory", "family:container", "use:storage"])
+            product_identified = True
+
+        # SCALES
+        elif 'scale' in name:
+            tags.extend(["pillar:accessory", "family:scale", "use:preparation"])
+            product_identified = True
+
+        # CLEANING SUPPLIES
+        elif any(x in name for x in ['cleaner', 'cleaning', 'brush', 'pipe cleaner']):
+            tags.extend(["pillar:accessory", "family:cleaning-supply"])
+            product_identified = True
+
+        # PENDANTS / MERCH
+        elif any(x in name for x in ['pendant', 'necklace', 'jewelry']):
+            tags.extend(["pillar:merch", "family:merch-pendant"])
+            product_identified = True
+
+        # APPAREL
+        elif any(x in name for x in ['shirt', 'hat', 'hoodie', 'apparel', 'clothing']):
+            tags.extend(["pillar:merch", "family:merch-apparel"])
+            product_identified = True
+
+    # If still not identified, default to general smokeshop device for water pipes
+    if not product_identified:
+        if 'pipe' in name:
+            tags.extend(["pillar:smokeshop-device", "family:glass-bong", "use:flower-smoking"])
+
+    # ========================================================================
+    # BRAND DETECTION
+    # ========================================================================
+    brands = {
+        'zig-zag': ['zig-zag', 'zig zag', 'zigzag'],
+        'raw': ['raw '],  # space to avoid matching "straw" etc.
+        'cookies': ['cookies'],
+        'maven': ['maven'],
+        'vibes': ['vibes'],
+        'monark': ['monark'],
+        'elements': ['elements'],
+        'puffco': ['puffco'],
+        'lookah': ['lookah'],
+        'g-pen': ['g-pen', 'g pen', 'gpen'],
+        '710-sci': ['710-sci', '710 sci', '710sci'],
+        'scorch': ['scorch'],
+        'only-quartz': ['only quartz', 'only-quartz'],
+        'peaselburg': ['peaselburg'],
+        'eo-vape': ['eo-vape', 'eo vape', 'eovape'],
+    }
+
+    for brand_tag, patterns in brands.items():
+        if any(pattern in combined for pattern in patterns):
+            tags.append(f"brand:{brand_tag}")
+            tags.append("style:brand-highlight")
+
+    # ========================================================================
+    # JOINT SIZE DETECTION
+    # ========================================================================
+    if any(x in combined for x in ['10mm', '10 mm']):
+        tags.append("joint_size:10mm")
+    if any(x in combined for x in ['14mm', '14 mm', '14.5mm']):
+        tags.append("joint_size:14mm")
+    if any(x in combined for x in ['18mm', '18 mm', '19mm']):
+        tags.append("joint_size:18mm")
+
+    # Joint gender
+    if 'male' in combined and 'female' not in combined:
+        tags.append("joint_gender:male")
+    elif 'female' in combined:
+        tags.append("joint_gender:female")
+
+    # ========================================================================
+    # STYLE / FEATURE DETECTION
+    # ========================================================================
+    if any(x in combined for x in ['made in usa', 'american made', 'usa made', 'american glass']):
+        tags.append("style:made-in-usa")
+
+    if any(x in combined for x in ['heady', 'hand blown', 'artisan', 'wig wag', 'wigwag', 'fumed']):
+        tags.append("style:heady")
+
+    if any(x in combined for x in ['mini', 'pocket', 'travel', 'portable', 'small']):
+        tags.append("style:travel-friendly")
+
+    # Animal/character themed
+    animal_keywords = ['cat', 'dog', 'shark', 'dolphin', 'penguin', 'octopus', 'mouse',
+                       'rabbit', 'elephant', 'dragon', 'skull', 'alien', 'zombie',
+                       'witch', 'mummy', 'knight', 'baseball', 'soccer', 'husky']
+    if any(animal in name for animal in animal_keywords):
+        tags.append("style:animal")
+
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_tags = []
+    for tag in tags:
+        if tag not in seen:
+            seen.add(tag)
+            unique_tags.append(tag)
+
+    return ", ".join(unique_tags)
 
 
 def determine_product_type(name: str) -> str:

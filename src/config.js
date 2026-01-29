@@ -99,23 +99,29 @@ export const config = {
     ],
   },
 
+  // Valid vendors for the store (vendor-agnostic approach - collections use tags, not vendor filter)
+  validVendors: ['What You Need', 'Cloud YHS', 'Oil Slick', 'YHS', 'Cloud LA Warehouse', 'Dharma Distribution', 'YHS Smoke'],
+
   // Collection strategy for Smoke & Vape section
+  // NOTE: Collections are now vendor-agnostic - they use tags to determine membership
   collections: {
-    // Main landing collection
+    // Main landing collection - matches all smokeshop products via pillar tags
     main: {
       handle: 'smoke-and-vape',
       title: 'Smoke & Vape',
-      rules: [{ column: 'vendor', relation: 'equals', condition: 'What You Need' }],
+      rules: [
+        { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
+      ],
+      disjunctive: true, // Any product with smokeshop device OR accessory pillar
     },
 
-    // Primary category collections
+    // Primary category collections - VENDOR AGNOSTIC (uses tags only)
     categories: [
       {
         handle: 'bongs-water-pipes',
         title: 'Bongs & Water Pipes',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:glass-bong' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -124,7 +130,6 @@ export const config = {
         title: 'Bongs',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:glass-bong' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -133,7 +138,6 @@ export const config = {
         title: 'Dab Rigs',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:glass-rig' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -142,7 +146,6 @@ export const config = {
         title: 'Hand Pipes',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:spoon-pipe' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -151,7 +154,6 @@ export const config = {
         title: 'Bubblers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:bubbler' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -160,7 +162,6 @@ export const config = {
         title: 'Nectar Collectors',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:nectar-collector' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -169,17 +170,15 @@ export const config = {
         title: 'One Hitters & Chillums',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:chillum-onehitter' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
-      // SILICONE COLLECTIONS - Fixed to require material:silicone tag
+      // SILICONE COLLECTIONS - uses material:silicone tag
       {
         handle: 'silicone-rigs-bongs',
         title: 'Silicone Rigs & Bongs',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -189,7 +188,6 @@ export const config = {
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
           { column: 'tag', relation: 'equals', condition: 'family:spoon-pipe' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -199,7 +197,6 @@ export const config = {
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
           { column: 'tag', relation: 'equals', condition: 'family:glass-bong' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -208,20 +205,18 @@ export const config = {
         title: 'Silicone Smoking Devices',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
     ],
 
-    // Accessory collections
+    // Accessory collections - VENDOR AGNOSTIC (uses tags only)
     accessories: [
       {
         handle: 'accessories',
         title: 'Accessories',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -230,7 +225,6 @@ export const config = {
         title: 'Quartz Bangers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:banger' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -239,7 +233,6 @@ export const config = {
         title: 'Carb Caps',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:carb-cap' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -248,7 +241,6 @@ export const config = {
         title: 'Dab Tools',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:dab-tool' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -257,7 +249,6 @@ export const config = {
         title: 'Flower Bowls',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:flower-bowl' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -266,7 +257,6 @@ export const config = {
         title: 'Ash Catchers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:ash-catcher' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -275,7 +265,6 @@ export const config = {
         title: 'Torches',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:torch' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -284,7 +273,6 @@ export const config = {
         title: 'Grinders',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:grinder' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -293,7 +281,6 @@ export const config = {
         title: 'Rolling Papers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:rolling-paper' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -302,7 +289,6 @@ export const config = {
         title: 'Vapes & Electronics',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'use:vaping' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -311,7 +297,6 @@ export const config = {
         title: 'Storage & Containers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'use:storage' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -320,7 +305,6 @@ export const config = {
         title: 'Pendants & Merch',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'pillar:merch' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -329,7 +313,6 @@ export const config = {
         title: 'Trays & Work Surfaces',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:rolling-tray' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -388,13 +371,15 @@ export const config = {
           url: '/collections/extraction-packaging',
           children: [
             { title: 'Silicone Pads & Mats', url: '/collections/silicone-pads' },
-            { title: 'FEP Sheets & Rolls', url: '/collections/fep-sheets' },
+            { title: 'Non-Stick FEP Sheets', url: '/collections/fep-sheets' },
             { title: 'PTFE Sheets & Rolls', url: '/collections/ptfe-sheets' },
             { title: 'Parchment Paper', url: '/collections/parchment-paper' },
+            { title: 'Rosin Extraction Materials', url: '/collections/rosin-extraction' },
             { title: 'Glass Jars', url: '/collections/glass-jars' },
             { title: 'Concentrate Containers', url: '/collections/concentrate-containers' },
             { title: 'Mylar Bags', url: '/collections/mylar-bags' },
             { title: 'Joint Tubes', url: '/collections/joint-tubes' },
+            { title: 'Custom Packaging', url: '/collections/custom-packaging-options' },
             { title: 'Shop All Extraction', url: '/collections/extraction-packaging' },
           ],
         },
@@ -462,7 +447,23 @@ export const config = {
       title: 'Sidebar Menu',
       handle: 'sidebar-menu',
       items: [
-        { title: 'Extraction & Packaging', url: '/collections/extraction-packaging' },
+        {
+          title: 'Extraction & Packaging',
+          url: '/collections/extraction-packaging',
+          children: [
+            { title: 'Shop All', url: '/collections/extraction-packaging' },
+            { title: 'Silicone Pads & Mats', url: '/collections/silicone-pads' },
+            { title: 'Non-Stick FEP Sheets', url: '/collections/fep-sheets' },
+            { title: 'PTFE Sheets & Rolls', url: '/collections/ptfe-sheets' },
+            { title: 'Parchment Paper', url: '/collections/parchment-paper' },
+            { title: 'Rosin Materials', url: '/collections/rosin-extraction' },
+            { title: 'Glass Jars', url: '/collections/glass-jars' },
+            { title: 'Concentrate Containers', url: '/collections/concentrate-containers' },
+            { title: 'Mylar Bags', url: '/collections/mylar-bags' },
+            { title: 'Joint Tubes', url: '/collections/joint-tubes' },
+            { title: 'Custom Packaging', url: '/collections/custom-packaging-options' },
+          ],
+        },
         {
           title: 'Smoke & Vape',
           url: '/collections/smoke-and-vape',
@@ -474,6 +475,7 @@ export const config = {
             { title: 'Bubblers', url: '/collections/bubblers' },
             { title: 'Nectar Collectors', url: '/collections/nectar-collectors' },
             { title: 'One Hitters & Chillums', url: '/collections/one-hitters-chillums' },
+            { title: 'Silicone Pieces', url: '/collections/silicone-rigs-bongs' },
           ],
         },
         {
@@ -488,6 +490,7 @@ export const config = {
             { title: 'Torches', url: '/collections/torches' },
             { title: 'Grinders', url: '/collections/grinders' },
             { title: 'Rolling Papers', url: '/collections/rolling-papers' },
+            { title: 'Storage', url: '/collections/storage-containers' },
           ],
         },
         {
@@ -500,6 +503,7 @@ export const config = {
             { title: 'Maven', url: '/collections/maven' },
             { title: 'Vibes', url: '/collections/vibes' },
             { title: 'RAW', url: '/collections/raw' },
+            { title: 'Oil Slick', url: '/collections/extraction-packaging' },
           ],
         },
         { title: 'Clearance', url: '/collections/clearance' },
