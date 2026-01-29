@@ -211,6 +211,185 @@ const PRODUCT_TAG_FIXES = [
     titleContains: 'silicone pipe',
     ensureTags: ['material:silicone', 'family:spoon-pipe', 'use:flower-smoking', 'pillar:smokeshop-device'],
   },
+  // Silicone bongs and water pipes
+  {
+    titleContains: 'silicone bong',
+    ensureTags: ['material:silicone', 'family:glass-bong', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'silicone water pipe',
+    ensureTags: ['material:silicone', 'family:glass-bong', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'silicone beaker',
+    ensureTags: ['material:silicone', 'family:glass-bong', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  // Silicone accessories
+  {
+    titleContains: 'silicone ashtray',
+    ensureTags: ['material:silicone', 'family:ashtray', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'silicone container',
+    ensureTags: ['material:silicone', 'family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'silicone jar',
+    ensureTags: ['material:silicone', 'family:container', 'use:storage', 'pillar:accessory'],
+  },
+  // Glass products - ensure material tag
+  {
+    titleContains: 'glass bong',
+    ensureTags: ['material:glass', 'family:glass-bong', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'glass pipe',
+    ensureTags: ['material:glass', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'glass rig',
+    ensureTags: ['material:glass', 'family:glass-rig', 'use:dabbing', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'dab rig',
+    ensureTags: ['family:glass-rig', 'use:dabbing', 'pillar:smokeshop-device'],
+  },
+  // Quartz products
+  {
+    titleContains: 'quartz banger',
+    ensureTags: ['material:quartz', 'family:banger', 'use:dabbing', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'quartz nail',
+    ensureTags: ['material:quartz', 'family:banger', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Titanium products
+  {
+    titleContains: 'titanium nail',
+    ensureTags: ['material:titanium', 'family:banger', 'use:dabbing', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'titanium dab tool',
+    ensureTags: ['material:titanium', 'family:dab-tool', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Ceramic products
+  {
+    titleContains: 'ceramic nail',
+    ensureTags: ['material:ceramic', 'family:banger', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Carb caps
+  {
+    titleContains: 'carb cap',
+    ensureTags: ['family:carb-cap', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Dab tools
+  {
+    titleContains: 'dab tool',
+    ensureTags: ['family:dab-tool', 'use:dabbing', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'dabber',
+    ensureTags: ['family:dab-tool', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Torches
+  {
+    titleContains: 'torch',
+    ensureTags: ['family:torch', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Grinders
+  {
+    titleContains: 'grinder',
+    ensureTags: ['family:grinder', 'use:preparation', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'electric grinder',
+    ensureTags: ['family:grinder', 'use:preparation', 'pillar:accessory', 'style:electric'],
+  },
+  // Rolling products
+  {
+    titleContains: 'rolling paper',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'rolling tray',
+    ensureTags: ['family:rolling-tray', 'use:rolling', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'cone',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+  },
+  // Nectar collectors
+  {
+    titleContains: 'nectar collector',
+    ensureTags: ['family:nectar-collector', 'use:dabbing', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'honey straw',
+    ensureTags: ['family:nectar-collector', 'use:dabbing', 'pillar:smokeshop-device'],
+  },
+  // Bubblers
+  {
+    titleContains: 'bubbler',
+    ensureTags: ['family:bubbler', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  // One hitters and chillums
+  {
+    titleContains: 'one hitter',
+    ensureTags: ['family:chillum-onehitter', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'chillum',
+    ensureTags: ['family:chillum-onehitter', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'dugout',
+    ensureTags: ['family:chillum-onehitter', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  // Ash catchers and downstems
+  {
+    titleContains: 'ash catcher',
+    ensureTags: ['family:ash-catcher', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'downstem',
+    ensureTags: ['family:downstem', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  // Bowls
+  {
+    titleContains: 'flower bowl',
+    ensureTags: ['family:flower-bowl', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'bowl piece',
+    ensureTags: ['family:flower-bowl', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  // Vapes
+  {
+    titleContains: 'vape battery',
+    ensureTags: ['family:vape-battery', 'use:vaping', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: '510 battery',
+    ensureTags: ['family:vape-battery', 'use:vaping', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'vape pen',
+    ensureTags: ['family:vape-battery', 'use:vaping', 'pillar:smokeshop-device'],
+  },
+  // Steamrollers
+  {
+    titleContains: 'steamroller',
+    ensureTags: ['family:steamroller', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  // Storage
+  {
+    titleContains: 'stash jar',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'storage container',
+    ensureTags: ['family:storage-accessory', 'use:storage', 'pillar:accessory'],
+  },
 ];
 
 // ============================================================================

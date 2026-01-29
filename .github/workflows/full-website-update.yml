@@ -1,0 +1,164 @@
+name: Full Website Update - Collections, Menus & Products
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'analyze'
+        type: choice
+        options:
+          - analyze                    # Analyze and report all issues
+          - fix-collections            # Fix broken silicone collection rules
+          - delete-duplicates          # Delete duplicate collections
+          - fix-product-tags           # Fix product tags (silicone, etc.)
+          - update-menus               # Update navigation menus
+          - create-collections         # Create/update all collections from config
+          - full-update                # Execute ALL updates (be careful!)
+
+jobs:
+  full-website-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Analyze Collections and Products
+        if: ${{ inputs.action == 'analyze' || inputs.action == 'full-update' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "📊 Analyzing current state of collections, products, and menus..."
+          echo ""
+
+          echo "=== COLLECTION CLEANUP ANALYSIS ==="
+          node src/collection-cleanup.js --report || true
+
+          echo ""
+          echo "=== COLLECTION STRATEGY ANALYSIS ==="
+          node src/collection-strategy-bot.js --skip-collections --skip-menus || true
+
+          echo ""
+          echo "=== MENU ANALYSIS ==="
+          node src/auto-menu-setup.js || true
+
+      - name: Fix Broken Silicone Collections
+        if: ${{ inputs.action == 'fix-collections' || inputs.action == 'full-update' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🔧 Fixing broken silicone collection rules..."
+          echo "   - silicone-pipes"
+          echo "   - silicone-water-pipes"
+          echo "   - silicone-smoking-devices"
+          echo "   - silicone-rigs-bongs"
+          echo ""
+          node src/collection-cleanup.js --execute --fix-collections
+
+      - name: Delete Duplicate Collections
+        if: ${{ inputs.action == 'delete-duplicates' || inputs.action == 'full-update' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🗑️ Deleting duplicate collections..."
+          echo "   This will remove 40+ duplicate collections including:"
+          echo "   - Legacy underscore format (dab_rig, hand_pipe, etc.)"
+          echo "   - Redundant -collection suffix versions"
+          echo "   - Numbered duplicates (clearance-1, clearance-2, etc.)"
+          echo ""
+          node src/collection-cleanup.js --execute --delete-collections
+
+      - name: Fix Product Tags
+        if: ${{ inputs.action == 'fix-product-tags' || inputs.action == 'full-update' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🏷️ Fixing product tags..."
+          echo "   - Adding missing material:silicone tags"
+          echo "   - Fixing incorrect family tags on silicone products"
+          echo ""
+          node src/collection-cleanup.js --execute --fix-tags
+
+      - name: Create/Update All Collections
+        if: ${{ inputs.action == 'create-collections' || inputs.action == 'full-update' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "📦 Creating and updating all collections from configuration..."
+          echo "   This includes:"
+          echo "   - Main category collections (Smoke & Vape, Accessories)"
+          echo "   - Device collections (Bongs, Dab Rigs, Hand Pipes, etc.)"
+          echo "   - Accessory collections (Quartz Bangers, Carb Caps, etc.)"
+          echo "   - Brand collections (RAW, Zig Zag, Cookies, etc.)"
+          echo "   - Feature collections (Heady Glass, Made in USA, etc.)"
+          echo ""
+          node src/collection-strategy-bot.js --execute --skip-tags --skip-menus
+
+      - name: Update Navigation Menus
+        if: ${{ inputs.action == 'update-menus' || inputs.action == 'full-update' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🧭 Updating navigation menus..."
+          echo "   - Main menu (Extraction & Packaging, Smoke & Vape, Accessories, Brands)"
+          echo "   - Sidebar menu"
+          echo "   - Smoke & Vape dedicated menu"
+          echo ""
+          node src/auto-menu-setup.js --execute
+
+      - name: Generate Summary Report
+        if: always()
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "## 🏪 Oil Slick Website Update Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action performed:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ inputs.action }}" == "full-update" ]; then
+            echo "### ✅ Full Update Completed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The following operations were performed:" >> $GITHUB_STEP_SUMMARY
+            echo "1. ✅ Fixed broken silicone collection rules" >> $GITHUB_STEP_SUMMARY
+            echo "2. ✅ Deleted duplicate collections" >> $GITHUB_STEP_SUMMARY
+            echo "3. ✅ Fixed product tags" >> $GITHUB_STEP_SUMMARY
+            echo "4. ✅ Created/updated all collections" >> $GITHUB_STEP_SUMMARY
+            echo "5. ✅ Updated navigation menus" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Collection Structure" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Category | Collections |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Smoke & Vape** | smoke-and-vape, bongs-water-pipes, dab-rigs, hand-pipes, bubblers, nectar-collectors, one-hitters-chillums, silicone-rigs-bongs |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Accessories** | accessories, quartz-bangers, carb-caps, dab-tools, flower-bowls, ash-catchers, torches, grinders, rolling-papers, vapes-electronics, storage-containers, trays-work-surfaces |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Brands** | raw, zig-zag, vibes, elements, cookies, monark, maven, puffco, lookah, g-pen, 710-sci, scorch |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Featured** | heady-glass, made-in-usa, travel-friendly, clearance |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin](https://oil-slick-pad.myshopify.com/admin)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Collections](https://oil-slick-pad.myshopify.com/admin/collections)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Navigation](https://oil-slick-pad.myshopify.com/admin/menus)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Products](https://oil-slick-pad.myshopify.com/admin/products)" >> $GITHUB_STEP_SUMMARY

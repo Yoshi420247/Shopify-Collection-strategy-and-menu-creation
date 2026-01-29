@@ -299,6 +299,7 @@ async function createOrUpdateCollections(existingCollections, dryRun = true) {
     config.collections.main,
     ...config.collections.categories,
     ...config.collections.accessories,
+    ...(config.collections.additionalCategories || []),
   ];
 
   for (const collectionConfig of allCollections) {

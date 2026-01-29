@@ -55,6 +55,7 @@ export const config = {
       'flower-bowl': { use: 'flower-smoking', pillar: 'accessory', display: 'Flower Bowls' },
       'ash-catcher': { use: 'flower-smoking', pillar: 'accessory', display: 'Ash Catchers' },
       'downstem': { use: 'flower-smoking', pillar: 'accessory', display: 'Downstems' },
+      'ashtray': { use: 'flower-smoking', pillar: 'accessory', display: 'Ashtrays' },
 
       // Rolling
       'rolling-paper': { use: 'rolling', pillar: 'accessory', display: 'Rolling Papers' },
@@ -354,8 +355,80 @@ export const config = {
     // Style/feature collections
     features: [
       { handle: 'made-in-usa', title: 'Made in USA', tag: 'style:made-in-usa' },
+      { handle: 'made-in-usa-glass', title: 'Made In USA Glass', tag: 'style:made-in-usa' },
       { handle: 'heady-glass', title: 'Heady Glass', tag: 'style:heady' },
       { handle: 'travel-friendly', title: 'Travel Friendly', tag: 'style:travel-friendly' },
+      { handle: 'gifts', title: 'Gifts', tag: 'style:gift' },
+    ],
+
+    // Additional category collections
+    additionalCategories: [
+      {
+        handle: 'glass-pipes',
+        title: 'Glass Pipes',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:glass' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'downstems',
+        title: 'Downstems',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:downstem' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'ashtrays',
+        title: 'Ashtrays',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:ashtray' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'concentrate-jars',
+        title: 'Concentrate Jars',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:container' },
+          { column: 'tag', relation: 'equals', condition: 'use:storage' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'rolling-papers-cones',
+        title: 'Rolling Papers & Cones',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:rolling-paper' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'steamrollers',
+        title: 'Steamrollers',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:steamroller' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'electric-grinders',
+        title: 'Electric Grinders',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:grinder' },
+          { column: 'tag', relation: 'equals', condition: 'style:electric' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
     ],
 
     // Collections to DELETE (duplicates and broken)
