@@ -739,12 +739,81 @@ async function fixProductTags(dryRun = true) {
       }
     }
 
-    // Also check for silicone products missing the material tag
-    if (title.includes('silicone') && !newTags.has('material:silicone')) {
-      newTags.add('material:silicone');
-      needsUpdate = true;
-      console.log(`\n  ${product.title}`);
-      console.log(`    Adding missing tag: material:silicone`);
+    // Auto-detect materials from product title and add appropriate tags
+    const materialDetection = [
+      { keyword: 'silicone', tag: 'material:silicone' },
+      { keyword: 'glass', tag: 'material:glass' },
+      { keyword: 'quartz', tag: 'material:quartz' },
+      { keyword: 'titanium', tag: 'material:titanium' },
+      { keyword: 'ceramic', tag: 'material:ceramic' },
+      { keyword: 'borosilicate', tag: 'material:borosilicate' },
+      { keyword: 'metal', tag: 'material:metal' },
+      { keyword: 'wooden', tag: 'material:wood' },
+      { keyword: 'wood', tag: 'material:wood' },
+      { keyword: 'bamboo', tag: 'material:wood' },
+    ];
+
+    for (const { keyword, tag } of materialDetection) {
+      if (title.includes(keyword) && !newTags.has(tag)) {
+        newTags.add(tag);
+        needsUpdate = true;
+        console.log(`\n  ${product.title}`);
+        console.log(`    Adding missing material tag: ${tag}`);
+      }
+    }
+
+    // Auto-detect product types from title and ensure family tags
+    const productTypeDetection = [
+      { keywords: ['bong', 'water pipe', 'waterpipe'], family: 'glass-bong', use: 'flower-smoking', pillar: 'smokeshop-device' },
+      { keywords: ['dab rig', 'oil rig', 'concentrate rig'], family: 'glass-rig', use: 'dabbing', pillar: 'smokeshop-device' },
+      { keywords: ['hand pipe', 'spoon pipe', 'spoon'], family: 'spoon-pipe', use: 'flower-smoking', pillar: 'smokeshop-device' },
+      { keywords: ['bubbler'], family: 'bubbler', use: 'flower-smoking', pillar: 'smokeshop-device' },
+      { keywords: ['nectar collector', 'honey straw', 'nectar straw'], family: 'nectar-collector', use: 'dabbing', pillar: 'smokeshop-device' },
+      { keywords: ['one hitter', 'one-hitter', 'chillum', 'dugout'], family: 'chillum-onehitter', use: 'flower-smoking', pillar: 'smokeshop-device' },
+      { keywords: ['quartz banger', 'banger'], family: 'banger', use: 'dabbing', pillar: 'accessory' },
+      { keywords: ['carb cap'], family: 'carb-cap', use: 'dabbing', pillar: 'accessory' },
+      { keywords: ['dab tool', 'dabber'], family: 'dab-tool', use: 'dabbing', pillar: 'accessory' },
+      { keywords: ['torch', 'butane torch'], family: 'torch', use: 'dabbing', pillar: 'accessory' },
+      { keywords: ['grinder'], family: 'grinder', use: 'preparation', pillar: 'accessory' },
+      { keywords: ['rolling paper', 'rolling papers', 'cone', 'cones'], family: 'rolling-paper', use: 'rolling', pillar: 'accessory' },
+      { keywords: ['rolling tray'], family: 'rolling-tray', use: 'rolling', pillar: 'accessory' },
+      { keywords: ['ash catcher'], family: 'ash-catcher', use: 'flower-smoking', pillar: 'accessory' },
+      { keywords: ['downstem'], family: 'downstem', use: 'flower-smoking', pillar: 'accessory' },
+      { keywords: ['flower bowl', 'bowl piece', 'slide'], family: 'flower-bowl', use: 'flower-smoking', pillar: 'accessory' },
+      { keywords: ['ashtray'], family: 'ashtray', use: 'flower-smoking', pillar: 'accessory' },
+      { keywords: ['vape battery', '510 battery', 'vape pen'], family: 'vape-battery', use: 'vaping', pillar: 'smokeshop-device' },
+      { keywords: ['steamroller'], family: 'steamroller', use: 'flower-smoking', pillar: 'smokeshop-device' },
+      { keywords: ['stash jar', 'storage jar', 'concentrate container'], family: 'container', use: 'storage', pillar: 'accessory' },
+    ];
+
+    for (const { keywords, family, use, pillar } of productTypeDetection) {
+      for (const keyword of keywords) {
+        if (title.includes(keyword)) {
+          const familyTag = `family:${family}`;
+          const useTag = `use:${use}`;
+          const pillarTag = `pillar:${pillar}`;
+
+          // Check if product already has a family tag
+          const hasFamily = Array.from(newTags).some(t => t.startsWith('family:'));
+
+          if (!hasFamily && !newTags.has(familyTag)) {
+            newTags.add(familyTag);
+            needsUpdate = true;
+            console.log(`    Adding family tag: ${familyTag}`);
+          }
+          if (!newTags.has(useTag)) {
+            newTags.add(useTag);
+            needsUpdate = true;
+            console.log(`    Adding use tag: ${useTag}`);
+          }
+          if (!newTags.has(pillarTag)) {
+            newTags.add(pillarTag);
+            needsUpdate = true;
+            console.log(`    Adding pillar tag: ${pillarTag}`);
+          }
+          break; // Only apply first matching product type
+        }
+      }
     }
 
     if (needsUpdate) {

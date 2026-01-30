@@ -175,6 +175,7 @@ export const config = {
         disjunctive: false,
       },
       // SILICONE COLLECTIONS - Fixed to require material:silicone tag
+      // Uses disjunctive:true to match products with material:silicone OR specific family+silicone
       {
         handle: 'silicone-rigs-bongs',
         title: 'Silicone Rigs & Bongs',
@@ -189,7 +190,6 @@ export const config = {
         title: 'Silicone Pipes',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'tag', relation: 'equals', condition: 'family:spoon-pipe' },
           { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
@@ -199,7 +199,6 @@ export const config = {
         title: 'Silicone Water Pipes',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'tag', relation: 'equals', condition: 'family:glass-bong' },
           { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
@@ -209,6 +208,26 @@ export const config = {
         title: 'Silicone Smoking Devices',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'silicone-bubblers',
+        title: 'Silicone Bubblers',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'tag', relation: 'equals', condition: 'family:bubbler' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'silicone-nectar-collectors',
+        title: 'Silicone Nectar Collectors',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'tag', relation: 'equals', condition: 'family:nectar-collector' },
           { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
