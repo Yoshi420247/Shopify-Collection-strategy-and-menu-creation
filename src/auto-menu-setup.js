@@ -118,7 +118,8 @@ async function buildMenuItems() {
         { title: 'Bubblers', handle: 'bubblers', type: 'COLLECTION' },
         { title: 'Nectar Collectors', handle: 'nectar-collectors', type: 'COLLECTION' },
         { title: 'One Hitters & Chillums', handle: 'one-hitters-chillums', type: 'COLLECTION' },
-        { title: 'Silicone Pieces', handle: 'silicone-rigs-bongs', type: 'COLLECTION' },
+        { title: 'Silicone Pieces', handle: 'silicone-smoking-devices', type: 'COLLECTION' },
+        { title: 'Steamrollers', handle: 'steamrollers', type: 'COLLECTION' },
       ],
     },
     {
@@ -131,6 +132,7 @@ async function buildMenuItems() {
         { title: 'Dab Tools', handle: 'dab-tools', type: 'COLLECTION' },
         { title: 'Flower Bowls', handle: 'flower-bowls', type: 'COLLECTION' },
         { title: 'Ash Catchers', handle: 'ash-catchers', type: 'COLLECTION' },
+        { title: 'Downstems', handle: 'downstems', type: 'COLLECTION' },
         { title: 'Torches', handle: 'torches', type: 'COLLECTION' },
         { title: 'Grinders', handle: 'grinders', type: 'COLLECTION' },
         { title: 'Rolling Papers & Cones', handle: 'rolling-papers', type: 'COLLECTION' },

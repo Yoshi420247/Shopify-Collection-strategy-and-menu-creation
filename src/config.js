@@ -102,21 +102,21 @@ export const config = {
 
   // Collection strategy for Smoke & Vape section
   collections: {
-    // Main landing collection
+    // Main landing collection - includes both What You Need and Cloud YHS
     main: {
       handle: 'smoke-and-vape',
       title: 'Smoke & Vape',
-      rules: [{ column: 'vendor', relation: 'equals', condition: 'What You Need' }],
+      rules: [{ column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' }],
     },
 
-    // Primary category collections
+    // Primary category collections - use tags to include both vendors
     categories: [
       {
         handle: 'bongs-water-pipes',
         title: 'Bongs & Water Pipes',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:glass-bong' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
         ],
         disjunctive: false,
       },
@@ -125,7 +125,7 @@ export const config = {
         title: 'Bongs',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:glass-bong' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
         ],
         disjunctive: false,
       },
@@ -134,7 +134,7 @@ export const config = {
         title: 'Dab Rigs',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:glass-rig' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
         ],
         disjunctive: false,
       },
@@ -143,7 +143,7 @@ export const config = {
         title: 'Hand Pipes',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:spoon-pipe' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
         ],
         disjunctive: false,
       },
@@ -152,7 +152,7 @@ export const config = {
         title: 'Bubblers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:bubbler' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
         ],
         disjunctive: false,
       },
@@ -161,7 +161,7 @@ export const config = {
         title: 'Nectar Collectors',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:nectar-collector' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
         ],
         disjunctive: false,
       },
@@ -170,17 +170,17 @@ export const config = {
         title: 'One Hitters & Chillums',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:chillum-onehitter' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
         ],
         disjunctive: false,
       },
-      // SILICONE COLLECTIONS - Fixed to require material:silicone tag
+      // SILICONE COLLECTIONS - use pillar tag to include all vendors
       {
         handle: 'silicone-rigs-bongs',
         title: 'Silicone Rigs & Bongs',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
         ],
         disjunctive: false,
       },
@@ -189,8 +189,7 @@ export const config = {
         title: 'Silicone Pipes',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'tag', relation: 'equals', condition: 'family:spoon-pipe' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
         ],
         disjunctive: false,
       },
@@ -199,8 +198,7 @@ export const config = {
         title: 'Silicone Water Pipes',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'tag', relation: 'equals', condition: 'family:glass-bong' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
         ],
         disjunctive: false,
       },
@@ -209,20 +207,37 @@ export const config = {
         title: 'Silicone Smoking Devices',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'silicone-bubblers',
+        title: 'Silicone Bubblers',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'tag', relation: 'equals', condition: 'family:bubbler' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'silicone-nectar-collectors',
+        title: 'Silicone Nectar Collectors',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'tag', relation: 'equals', condition: 'family:nectar-collector' },
         ],
         disjunctive: false,
       },
     ],
 
-    // Accessory collections
+    // Accessory collections - use pillar tag to include all vendors
     accessories: [
       {
         handle: 'accessories',
         title: 'Accessories',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -231,7 +246,7 @@ export const config = {
         title: 'Quartz Bangers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:banger' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
         ],
         disjunctive: false,
       },
@@ -240,7 +255,7 @@ export const config = {
         title: 'Carb Caps',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:carb-cap' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
         ],
         disjunctive: false,
       },
@@ -249,7 +264,7 @@ export const config = {
         title: 'Dab Tools',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:dab-tool' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
         ],
         disjunctive: false,
       },
@@ -258,7 +273,7 @@ export const config = {
         title: 'Flower Bowls',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:flower-bowl' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
         ],
         disjunctive: false,
       },
@@ -267,7 +282,7 @@ export const config = {
         title: 'Ash Catchers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:ash-catcher' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
         ],
         disjunctive: false,
       },
@@ -276,7 +291,7 @@ export const config = {
         title: 'Torches',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:torch' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
         ],
         disjunctive: false,
       },
@@ -285,7 +300,7 @@ export const config = {
         title: 'Grinders',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:grinder' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
         ],
         disjunctive: false,
       },
@@ -294,7 +309,7 @@ export const config = {
         title: 'Rolling Papers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:rolling-paper' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:accessory' },
         ],
         disjunctive: false,
       },
@@ -303,7 +318,6 @@ export const config = {
         title: 'Vapes & Electronics',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'use:vaping' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -312,7 +326,6 @@ export const config = {
         title: 'Storage & Containers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'use:storage' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -321,7 +334,6 @@ export const config = {
         title: 'Pendants & Merch',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'pillar:merch' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -330,7 +342,6 @@ export const config = {
         title: 'Trays & Work Surfaces',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:rolling-tray' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
