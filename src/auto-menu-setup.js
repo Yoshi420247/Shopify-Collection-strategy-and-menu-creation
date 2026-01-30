@@ -86,9 +86,25 @@ async function buildMenuItems() {
 
   const menuStructure = [
     {
+      title: 'Shop All',
+      handle: 'all',
+      type: 'COLLECTION',
+    },
+    {
       title: 'Extraction & Packaging',
       handle: 'extraction-packaging',
       type: 'COLLECTION',
+      children: [
+        { title: 'Silicone Pads & Mats', handle: 'silicone-pads', type: 'COLLECTION' },
+        { title: 'FEP Sheets & Rolls', handle: 'fep-sheets', type: 'COLLECTION' },
+        { title: 'PTFE Sheets & Rolls', handle: 'ptfe-sheets', type: 'COLLECTION' },
+        { title: 'Parchment Paper', handle: 'parchment-paper', type: 'COLLECTION' },
+        { title: 'Glass Jars', handle: 'glass-jars', type: 'COLLECTION' },
+        { title: 'Concentrate Containers', handle: 'concentrate-containers', type: 'COLLECTION' },
+        { title: 'Mylar Bags', handle: 'mylar-bags', type: 'COLLECTION' },
+        { title: 'Joint Tubes', handle: 'joint-tubes', type: 'COLLECTION' },
+        { title: 'Shop All Extraction', handle: 'extraction-packaging', type: 'COLLECTION' },
+      ],
     },
     {
       title: 'Smoke & Vape',
@@ -102,6 +118,7 @@ async function buildMenuItems() {
         { title: 'Bubblers', handle: 'bubblers', type: 'COLLECTION' },
         { title: 'Nectar Collectors', handle: 'nectar-collectors', type: 'COLLECTION' },
         { title: 'One Hitters & Chillums', handle: 'one-hitters-chillums', type: 'COLLECTION' },
+        { title: 'Silicone Pieces', handle: 'silicone-rigs-bongs', type: 'COLLECTION' },
       ],
     },
     {
@@ -116,7 +133,10 @@ async function buildMenuItems() {
         { title: 'Ash Catchers', handle: 'ash-catchers', type: 'COLLECTION' },
         { title: 'Torches', handle: 'torches', type: 'COLLECTION' },
         { title: 'Grinders', handle: 'grinders', type: 'COLLECTION' },
-        { title: 'Rolling Papers', handle: 'rolling-papers', type: 'COLLECTION' },
+        { title: 'Rolling Papers & Cones', handle: 'rolling-papers', type: 'COLLECTION' },
+        { title: 'Vapes & Electronics', handle: 'vapes-electronics', type: 'COLLECTION' },
+        { title: 'Storage & Containers', handle: 'storage-containers', type: 'COLLECTION' },
+        { title: 'Trays & Work Surfaces', handle: 'trays-work-surfaces', type: 'COLLECTION' },
       ],
     },
     {
@@ -124,19 +144,28 @@ async function buildMenuItems() {
       type: 'HTTP',
       url: '#',
       children: [
-        { title: 'Monark', handle: 'monark', type: 'COLLECTION' },
-        { title: 'Zig Zag', handle: 'zig-zag', type: 'COLLECTION' },
-        { title: 'Cookies', handle: 'cookies', type: 'COLLECTION' },
-        { title: 'Maven', handle: 'maven', type: 'COLLECTION' },
-        { title: 'Vibes', handle: 'vibes', type: 'COLLECTION' },
         { title: 'RAW', handle: 'raw', type: 'COLLECTION' },
-        { title: 'Made in USA', handle: 'made-in-usa', type: 'COLLECTION' },
+        { title: 'Zig Zag', handle: 'zig-zag', type: 'COLLECTION' },
+        { title: 'Vibes', handle: 'vibes', type: 'COLLECTION' },
+        { title: 'Elements', handle: 'elements', type: 'COLLECTION' },
+        { title: 'Cookies', handle: 'cookies', type: 'COLLECTION' },
+        { title: 'Monark', handle: 'monark', type: 'COLLECTION' },
+        { title: 'Maven', handle: 'maven', type: 'COLLECTION' },
+        { title: 'Puffco', handle: 'puffco', type: 'COLLECTION' },
+        { title: 'Lookah', handle: 'lookah', type: 'COLLECTION' },
+        { title: 'G Pen', handle: 'g-pen', type: 'COLLECTION' },
       ],
     },
     {
-      title: 'Clearance',
-      handle: 'clearance',
-      type: 'COLLECTION',
+      title: 'Featured',
+      type: 'HTTP',
+      url: '#',
+      children: [
+        { title: 'Heady Glass', handle: 'heady-glass', type: 'COLLECTION' },
+        { title: 'Made In USA', handle: 'made-in-usa', type: 'COLLECTION' },
+        { title: 'Travel Friendly', handle: 'travel-friendly', type: 'COLLECTION' },
+        { title: 'Clearance', handle: 'clearance', type: 'COLLECTION' },
+      ],
     },
   ];
 
