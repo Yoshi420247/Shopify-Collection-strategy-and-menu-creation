@@ -1,0 +1,57 @@
+name: Collection Health Monitor
+
+on:
+  # Run every 6 hours
+  schedule:
+    - cron: '0 */6 * * *'
+
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Check mode'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - quick
+          - full
+          - fix
+
+env:
+  SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+  SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run health check (scheduled - quick)
+        if: github.event_name == 'schedule'
+        run: node src/health-monitor.js --quick
+
+      - name: Run health check (manual - quick)
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'quick'
+        run: node src/health-monitor.js --quick
+
+      - name: Run health check (manual - full)
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'full'
+        run: node src/health-monitor.js
+
+      - name: Run health check (manual - fix)
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'fix'
+        run: node src/health-monitor.js --fix

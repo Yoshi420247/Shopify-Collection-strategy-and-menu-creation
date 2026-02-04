@@ -1,0 +1,62 @@
+name: Store Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Operation to run'
+        required: true
+        type: choice
+        options:
+          - list-webhooks
+          - register-webhooks
+          - remove-wholesale-family-tags
+          - fix-or-collection-rules
+          - standardize-collection-tags
+          - cleanup-report
+
+env:
+  SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+  SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+jobs:
+  run-operation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: List webhooks
+        if: inputs.operation == 'list-webhooks'
+        run: node src/register-webhooks.js --list
+
+      - name: Register webhooks
+        if: inputs.operation == 'register-webhooks'
+        run: node src/register-webhooks.js --register
+
+      - name: Remove wholesale family tags
+        if: inputs.operation == 'remove-wholesale-family-tags'
+        run: node src/remove-family-tags-from-wholesale.js
+
+      - name: Fix OR collection rules
+        if: inputs.operation == 'fix-or-collection-rules'
+        run: node src/fix-or-collection-rules.js
+
+      - name: Standardize collection tags
+        if: inputs.operation == 'standardize-collection-tags'
+        run: node src/standardize-collection-tags.js
+
+      - name: Cleanup report
+        if: inputs.operation == 'cleanup-report'
+        run: node src/collection-cleanup.js --report

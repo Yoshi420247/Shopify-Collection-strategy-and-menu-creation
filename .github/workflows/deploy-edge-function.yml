@@ -1,0 +1,40 @@
+name: Deploy Edge Function
+
+on:
+  push:
+    paths:
+      - 'supabase/functions/**'
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_PROJECT_ID: iezzvdftbcboychqlaav
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy product-webhook function
+        run: |
+          supabase functions deploy product-webhook \
+            --project-ref ${{ env.SUPABASE_PROJECT_ID }}
+
+      - name: Set function secrets
+        run: |
+          echo "Setting Edge Function secrets..."
+          supabase secrets set \
+            SHOPIFY_STORE_URL=${{ secrets.SHOPIFY_STORE_URL }} \
+            SHOPIFY_ACCESS_TOKEN=${{ secrets.SHOPIFY_ACCESS_TOKEN }} \
+            SHOPIFY_WEBHOOK_SECRET=${{ secrets.SHOPIFY_WEBHOOK_SECRET }} \
+            --project-ref ${{ env.SUPABASE_PROJECT_ID }}
