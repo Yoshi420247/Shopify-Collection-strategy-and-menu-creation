@@ -38,6 +38,7 @@ function matchesConditions(product, conditions) {
   const title = product.title || '';
   const titleLower = title.toLowerCase();
   const tags = (product.tags || '').split(',').map(t => t.trim()).filter(t => t);
+  const tagsLower = tags.map(t => t.toLowerCase());
   const vendor = product.vendor || '';
 
   // title_contains_any: title must contain at least one keyword
@@ -76,18 +77,18 @@ function matchesConditions(product, conditions) {
     if (!match) return false;
   }
 
-  // tags_include: product must have ALL these tags
+  // tags_include: product must have ALL these tags (case-insensitive)
   if (conditions.tags_include) {
     const match = conditions.tags_include.every(tag =>
-      tags.includes(tag)
+      tagsLower.includes(tag.toLowerCase())
     );
     if (!match) return false;
   }
 
-  // tags_exclude: product must NOT have any of these tags
+  // tags_exclude: product must NOT have any of these tags (case-insensitive)
   if (conditions.tags_exclude) {
     const blocked = conditions.tags_exclude.some(tag =>
-      tags.includes(tag)
+      tagsLower.includes(tag.toLowerCase())
     );
     if (blocked) return false;
   }
@@ -108,16 +109,17 @@ function matchesConditions(product, conditions) {
 function computeTagChanges(currentTags, matchedRules) {
   const tagsToAdd = new Set();
   const tagsToRemove = new Set();
+  const currentTagsLower = currentTags.map(t => t.toLowerCase());
 
   for (const rule of matchedRules) {
     for (const tag of (rule.apply_tags || [])) {
-      if (!currentTags.includes(tag)) {
+      if (!currentTagsLower.includes(tag.toLowerCase())) {
         tagsToAdd.add(tag);
       }
     }
     for (const tag of (rule.remove_tags || [])) {
-      if (currentTags.includes(tag)) {
-        tagsToRemove.add(tag);
+      if (currentTagsLower.includes(tag.toLowerCase())) {
+        tagsToRemove.add(tag.toLowerCase());
       }
     }
   }
@@ -149,9 +151,9 @@ async function classifyProduct(product, rules) {
     return { changed: false, matchedRules, alreadyCorrect: true };
   }
 
-  // Apply changes
+  // Apply changes (case-insensitive removal)
   const newTags = [
-    ...currentTags.filter(t => !changes.remove.includes(t)),
+    ...currentTags.filter(t => !changes.remove.includes(t.toLowerCase())),
     ...changes.add
   ];
 
@@ -193,22 +195,6 @@ async function classifyProduct(product, rules) {
 // BATCH MODE
 // ============================================================
 
-async function getAllProducts() {
-  let products = [];
-  let sinceId = 0;
-
-  while (true) {
-    const data = await shopify.get(`products.json?limit=250&since_id=${sinceId}`);
-    if (!data.products || data.products.length === 0) break;
-    products = products.concat(data.products);
-    sinceId = data.products[data.products.length - 1].id;
-    process.stderr.write(`\rFetched ${products.length} products...`);
-    if (data.products.length < 250) break;
-  }
-  console.error('');
-  return products;
-}
-
 async function runBatch() {
   console.log('='.repeat(70));
   console.log(`AUTO-TAGGER ${DRY_RUN ? '(DRY RUN)' : '(LIVE)'}`);
@@ -227,7 +213,7 @@ async function runBatch() {
     products = data.product ? [data.product] : [];
   } else {
     console.log('Fetching all products from Shopify...');
-    products = await getAllProducts();
+    products = await shopify.getAllProducts();
   }
 
   console.log(`Processing ${products.length} products...\n`);
@@ -275,6 +261,13 @@ async function runBatch() {
   if (DRY_RUN) {
     console.log('\n(DRY RUN - no changes were made)');
   }
+
+  if (failed > 0) {
+    process.exit(1);
+  }
 }
 
-runBatch().catch(console.error);
+runBatch().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

@@ -8,14 +8,16 @@
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://iezzvdftbcboychqlaav.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-if (!SUPABASE_SERVICE_KEY) {
-  console.warn('WARNING: SUPABASE_SERVICE_KEY not set in .env');
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+  console.error('ERROR: SUPABASE_URL and SUPABASE_SERVICE_KEY must be set in .env');
+  console.error('See .env.example for required values.');
+  process.exit(1);
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY || '', {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   auth: { persistSession: false }
 });
 

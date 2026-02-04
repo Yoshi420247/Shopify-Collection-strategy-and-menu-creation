@@ -1,4 +1,4 @@
-name: Sync & Auto-Tag Products
+name: Daily Product Sync & Auto-Classification
 
 on:
   # Run daily at 6 AM UTC (midnight CST)

@@ -14,7 +14,7 @@
 
 import 'dotenv/config';
 import { config } from './config.js';
-import api from './shopify-api.js';
+import * as api from './shopify-api.js';
 
 // ANSI colors
 const colors = {

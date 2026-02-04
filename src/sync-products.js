@@ -8,27 +8,11 @@
  */
 
 import 'dotenv/config';
-import * as api from './shopify-api.js';
+import { getAllProducts } from './shopify-api.js';
 import { supabase, upsertProduct, logAudit } from './supabase-client.js';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function getAllProducts() {
-  let products = [];
-  let sinceId = 0;
-
-  while (true) {
-    const data = await api.get(`products.json?limit=250&since_id=${sinceId}`);
-    if (!data.products || data.products.length === 0) break;
-    products = products.concat(data.products);
-    sinceId = data.products[data.products.length - 1].id;
-    process.stderr.write(`\rFetched ${products.length} products from Shopify...`);
-    if (data.products.length < 250) break;
-  }
-  console.error('');
-  return products;
 }
 
 async function main() {
@@ -49,6 +33,11 @@ async function main() {
     try {
       await upsertProduct(product);
       synced++;
+
+      // Rate limit Supabase writes
+      if (synced % 10 === 0) {
+        await sleep(100);
+      }
 
       if (synced % 50 === 0) {
         process.stdout.write(`\rSynced ${synced}/${products.length}...`);
@@ -90,6 +79,13 @@ async function main() {
   console.log('SYNC COMPLETE');
   console.log('='.repeat(70));
   console.log(`Synced: ${synced} | Failed: ${failed}`);
+
+  if (failed > 0) {
+    process.exit(1);
+  }
 }
 
-main().catch(console.error);
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

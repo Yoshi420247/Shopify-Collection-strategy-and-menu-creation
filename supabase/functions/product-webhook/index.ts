@@ -7,21 +7,11 @@
  * Deploy:
  *   supabase functions deploy product-webhook
  *
- * Register webhook in Shopify:
- *   POST /admin/api/2024-01/webhooks.json
- *   {
- *     "webhook": {
- *       "topic": "products/create",
- *       "address": "https://iezzvdftbcboychqlaav.supabase.co/functions/v1/product-webhook",
- *       "format": "json"
- *     }
- *   }
- *   (Repeat for products/update and products/delete)
- *
- * Set these secrets:
+ * Required secrets:
  *   supabase secrets set SHOPIFY_WEBHOOK_SECRET=your_secret
  *   supabase secrets set SHOPIFY_STORE_URL=oil-slick-pad.myshopify.com
  *   supabase secrets set SHOPIFY_ACCESS_TOKEN=shpat_xxx
+ *   supabase secrets set SHOPIFY_API_VERSION=2024-01
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -32,6 +22,7 @@ const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const SHOPIFY_WEBHOOK_SECRET = Deno.env.get('SHOPIFY_WEBHOOK_SECRET') || '';
 const SHOPIFY_STORE_URL = Deno.env.get('SHOPIFY_STORE_URL') || '';
 const SHOPIFY_ACCESS_TOKEN = Deno.env.get('SHOPIFY_ACCESS_TOKEN') || '';
+const SHOPIFY_API_VERSION = Deno.env.get('SHOPIFY_API_VERSION') || '2024-01';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   auth: { persistSession: false },
@@ -42,7 +33,10 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
 // ============================================================
 
 function verifyWebhook(body: string, hmacHeader: string): boolean {
-  if (!SHOPIFY_WEBHOOK_SECRET) return true; // Skip if not configured
+  if (!SHOPIFY_WEBHOOK_SECRET) {
+    console.warn('WARNING: SHOPIFY_WEBHOOK_SECRET not set -- rejecting webhook');
+    return false;
+  }
   const hash = createHmac('sha256', SHOPIFY_WEBHOOK_SECRET)
     .update(body, 'utf8')
     .digest('base64');
@@ -94,6 +88,7 @@ function matchesConditions(product: any, conditions: any): boolean {
     .split(',')
     .map((t: string) => t.trim())
     .filter((t: string) => t);
+  const tagsLower = tags.map((t: string) => t.toLowerCase());
   const vendor = product.vendor || '';
 
   if (conditions.title_contains_any) {
@@ -110,11 +105,12 @@ function matchesConditions(product: any, conditions: any): boolean {
       try { return new RegExp(p, 'i').test(title); } catch { return false; }
     })) return false;
   }
+  // Case-insensitive tag matching
   if (conditions.tags_include) {
-    if (!conditions.tags_include.every((tag: string) => tags.includes(tag))) return false;
+    if (!conditions.tags_include.every((tag: string) => tagsLower.includes(tag.toLowerCase()))) return false;
   }
   if (conditions.tags_exclude) {
-    if (conditions.tags_exclude.some((tag: string) => tags.includes(tag))) return false;
+    if (conditions.tags_exclude.some((tag: string) => tagsLower.includes(tag.toLowerCase()))) return false;
   }
   if (conditions.vendor_equals && vendor !== conditions.vendor_equals) return false;
   if (conditions.vendor_not_equals && vendor === conditions.vendor_not_equals) return false;
@@ -138,6 +134,7 @@ async function classifyProduct(product: any): Promise<any> {
     .split(',')
     .map((t: string) => t.trim())
     .filter((t: string) => t);
+  const currentTagsLower = currentTags.map((t: string) => t.toLowerCase());
 
   const matchedRules = rules.filter((rule: any) => matchesConditions(product, rule.conditions));
 
@@ -145,31 +142,32 @@ async function classifyProduct(product: any): Promise<any> {
     return { changed: false, matchedRules: [] };
   }
 
-  // Compute tag changes
+  // Compute tag changes (case-insensitive)
   const tagsToAdd = new Set<string>();
   const tagsToRemove = new Set<string>();
 
   for (const rule of matchedRules) {
     for (const tag of rule.apply_tags || []) {
-      if (!currentTags.includes(tag)) tagsToAdd.add(tag);
+      if (!currentTagsLower.includes(tag.toLowerCase())) tagsToAdd.add(tag);
     }
     for (const tag of rule.remove_tags || []) {
-      if (currentTags.includes(tag)) tagsToRemove.add(tag);
+      if (currentTagsLower.includes(tag.toLowerCase())) tagsToRemove.add(tag.toLowerCase());
     }
   }
 
   if (tagsToAdd.size === 0 && tagsToRemove.size === 0) {
+    // Tags already correct -- no Shopify update needed (prevents infinite loop)
     return { changed: false, matchedRules, alreadyCorrect: true };
   }
 
   // Build new tags
   const newTags = [
-    ...currentTags.filter((t: string) => !tagsToRemove.has(t)),
+    ...currentTags.filter((t: string) => !tagsToRemove.has(t.toLowerCase())),
     ...tagsToAdd,
   ];
 
   // Update Shopify product
-  const shopifyUrl = `https://${SHOPIFY_STORE_URL}/admin/api/2024-01/products/${product.id}.json`;
+  const shopifyUrl = `https://${SHOPIFY_STORE_URL}/admin/api/${SHOPIFY_API_VERSION}/products/${product.id}.json`;
   const res = await fetch(shopifyUrl, {
     method: 'PUT',
     headers: {
@@ -229,7 +227,7 @@ Deno.serve(async (req) => {
 
   const body = await req.text();
 
-  // Verify HMAC
+  // Verify HMAC (fails closed if secret not configured)
   const hmac = req.headers.get('X-Shopify-Hmac-Sha256') || '';
   if (!verifyWebhook(body, hmac)) {
     return new Response('Unauthorized', { status: 401 });
@@ -267,7 +265,8 @@ Deno.serve(async (req) => {
       // Sync product data
       await syncProduct(product);
 
-      // Run classification
+      // Run classification (returns early with no Shopify write if tags already correct,
+      // which prevents the infinite webhook loop)
       result = await classifyProduct(product);
     }
 

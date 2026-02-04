@@ -13,7 +13,12 @@
 import 'dotenv/config';
 import * as api from './shopify-api.js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://iezzvdftbcboychqlaav.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+if (!SUPABASE_URL) {
+  console.error('ERROR: SUPABASE_URL must be set in .env');
+  process.exit(1);
+}
+
 const WEBHOOK_ENDPOINT = `${SUPABASE_URL}/functions/v1/product-webhook`;
 
 const TOPICS = [
@@ -38,7 +43,21 @@ async function listWebhooks() {
 async function registerWebhooks() {
   console.log(`\nRegistering webhooks pointing to:\n  ${WEBHOOK_ENDPOINT}\n`);
 
+  // Check for existing webhooks to avoid duplicates
+  const existing = await api.get('webhooks.json');
+  const existingWebhooks = existing.webhooks || [];
+  const existingTopics = new Set(
+    existingWebhooks
+      .filter(wh => wh.address === WEBHOOK_ENDPOINT)
+      .map(wh => wh.topic)
+  );
+
   for (const topic of TOPICS) {
+    if (existingTopics.has(topic)) {
+      console.log(`  Skipped: ${topic} (already registered)`);
+      continue;
+    }
+
     try {
       const result = await api.post('webhooks.json', {
         webhook: {
@@ -51,7 +70,7 @@ async function registerWebhooks() {
       if (result.webhook) {
         console.log(`  Registered: ${topic} (ID: ${result.webhook.id})`);
       } else if (result.errors) {
-        console.log(`  Skipped ${topic}: ${JSON.stringify(result.errors)}`);
+        console.log(`  Failed ${topic}: ${JSON.stringify(result.errors)}`);
       }
     } catch (error) {
       console.error(`  Failed ${topic}: ${error.message}`);
@@ -63,11 +82,8 @@ async function cleanupWebhooks() {
   const data = await api.get('webhooks.json');
   const webhooks = data.webhooks || [];
 
-  // Find webhooks pointing to old/wrong endpoints
-  const toDelete = webhooks.filter(wh =>
-    !wh.address.includes('supabase.co') ||
-    !wh.address.includes('product-webhook')
-  );
+  // Find webhooks NOT pointing to our current endpoint
+  const toDelete = webhooks.filter(wh => wh.address !== WEBHOOK_ENDPOINT);
 
   if (toDelete.length === 0) {
     console.log('\nNo stale webhooks to clean up.');
@@ -77,10 +93,7 @@ async function cleanupWebhooks() {
   console.log(`\nCleaning up ${toDelete.length} stale webhooks:\n`);
   for (const wh of toDelete) {
     try {
-      await api.get(`webhooks/${wh.id}.json`); // verify exists
-      // Delete via REST
-      const deleteUrl = `webhooks/${wh.id}.json`;
-      await api.put(deleteUrl.replace('.json', ''), {}); // No direct delete helper, log for manual
+      await api.deleteWebhook(wh.id);
       console.log(`  Deleted: [${wh.id}] ${wh.topic} -> ${wh.address}`);
     } catch (error) {
       console.error(`  Failed to delete ${wh.id}: ${error.message}`);
@@ -109,4 +122,7 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

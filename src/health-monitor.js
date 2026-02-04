@@ -30,14 +30,33 @@ function sleep(ms) {
 // FETCH SHOPIFY STATE
 // ============================================================
 
-async function getAllSmartCollections() {
-  const data = await shopify.get('smart_collections.json?limit=250');
-  return data.smart_collections || [];
-}
-
 async function getCollectionProductCount(collectionId) {
   const data = await shopify.get(`collections/${collectionId}/products/count.json`);
   return data.count || 0;
+}
+
+// ============================================================
+// RULE COMPARISON (order-independent, key-order-independent)
+// ============================================================
+
+function normalizeRule(rule) {
+  // Sort keys and produce a stable string for comparison
+  const sorted = {};
+  for (const key of Object.keys(rule).sort()) {
+    sorted[key] = rule[key];
+  }
+  return JSON.stringify(sorted);
+}
+
+function rulesMatch(expectedRules, actualRules) {
+  if (expectedRules.length !== actualRules.length) return false;
+  const expectedSet = new Set(expectedRules.map(normalizeRule));
+  const actualSet = new Set(actualRules.map(normalizeRule));
+  if (expectedSet.size !== actualSet.size) return false;
+  for (const item of expectedSet) {
+    if (!actualSet.has(item)) return false;
+  }
+  return true;
 }
 
 // ============================================================
@@ -56,6 +75,7 @@ async function checkCollectionRules(shopifyCollections, definitions) {
       issues.push({
         severity: 'fail',
         collection: def.title,
+        shopify_id: def.shopify_id,
         issue: 'Collection not found in Shopify',
         expected: `Shopify ID ${def.shopify_id}`,
         actual: 'Missing',
@@ -68,6 +88,7 @@ async function checkCollectionRules(shopifyCollections, definitions) {
       issues.push({
         severity: 'warn',
         collection: def.title,
+        shopify_id: def.shopify_id,
         issue: 'Logic mode mismatch',
         expected: def.disjunctive ? 'OR (disjunctive)' : 'AND (conjunctive)',
         actual: shopifyCol.disjunctive ? 'OR (disjunctive)' : 'AND (conjunctive)',
@@ -79,29 +100,26 @@ async function checkCollectionRules(shopifyCollections, definitions) {
       issues.push({
         severity: 'warn',
         collection: def.title,
+        shopify_id: def.shopify_id,
         issue: 'Sort order mismatch',
         expected: def.sort_order,
         actual: shopifyCol.sort_order,
       });
     }
 
-    // Check rules match expected
+    // Check rules match expected (order-independent comparison)
     const expectedRules = def.rules || [];
     const actualRules = shopifyCol.rules || [];
 
-    if (JSON.stringify(expectedRules) !== JSON.stringify(actualRules)) {
-      const expectedCount = expectedRules.length;
-      const actualCount = actualRules.length;
-
-      if (expectedCount !== actualCount || JSON.stringify(expectedRules.sort()) !== JSON.stringify(actualRules.sort())) {
-        issues.push({
-          severity: 'fail',
-          collection: def.title,
-          issue: 'Collection rules have drifted',
-          expected: `${expectedCount} rules: ${JSON.stringify(expectedRules)}`,
-          actual: `${actualCount} rules: ${JSON.stringify(actualRules)}`,
-        });
-      }
+    if (!rulesMatch(expectedRules, actualRules)) {
+      issues.push({
+        severity: 'fail',
+        collection: def.title,
+        shopify_id: def.shopify_id,
+        issue: 'Collection rules have drifted',
+        expected: `${expectedRules.length} rules`,
+        actual: `${actualRules.length} rules`,
+      });
     }
   }
 
@@ -228,7 +246,8 @@ async function fixDrift(shopifyCollections, definitions, ruleIssues) {
   let fixed = 0;
 
   for (const drift of ruleDrifts) {
-    const def = definitions.find(d => d.title === drift.collection);
+    // Match by shopify_id (reliable) instead of title (fragile)
+    const def = definitions.find(d => d.shopify_id === drift.shopify_id);
     if (!def || !def.shopify_id) continue;
 
     try {
@@ -279,9 +298,9 @@ async function main() {
   const definitions = await getCollectionDefinitions();
   console.log(`Loaded ${definitions.length} collection definitions`);
 
-  // Load current Shopify state
+  // Load current Shopify state (with full pagination)
   console.log('Fetching collections from Shopify...');
-  const shopifyCollections = await getAllSmartCollections();
+  const shopifyCollections = await shopify.getAllSmartCollections();
   console.log(`Found ${shopifyCollections.length} smart collections in Shopify`);
 
   const allIssues = [];
@@ -379,6 +398,13 @@ async function main() {
   console.log('\n' + '='.repeat(70));
   console.log('DONE');
   console.log('='.repeat(70));
+
+  if (fails.length > 0) {
+    process.exit(1);
+  }
 }
 
-main().catch(console.error);
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

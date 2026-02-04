@@ -40,16 +40,19 @@ async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3)
         maxBuffer: 50 * 1024 * 1024, // 50MB buffer for large responses
       });
 
-      // Check for error responses
-      if (result.includes('upstream connect error') || result.includes('error')) {
-        const parsed = JSON.parse(result);
-        if (parsed.errors) {
-          throw new Error(JSON.stringify(parsed.errors));
-        }
-        return parsed;
+      // DELETE returns empty body
+      if (method === 'DELETE' && (!result || result.trim() === '')) {
+        return {};
       }
 
-      return JSON.parse(result);
+      const parsed = JSON.parse(result);
+
+      // Check for Shopify error responses
+      if (parsed.errors) {
+        throw new Error(JSON.stringify(parsed.errors));
+      }
+
+      return parsed;
     } catch (error) {
       if (attempt < retries) {
         const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff
@@ -223,6 +226,10 @@ export async function post(endpoint, data) {
   return rateLimitedRequest(`${BASE_URL}/${endpoint}`, 'POST', data);
 }
 
+export async function del(endpoint) {
+  return rateLimitedRequest(`${BASE_URL}/${endpoint}`, 'DELETE');
+}
+
 // Inventory item methods
 export async function getInventoryItem(inventoryItemId) {
   return rateLimitedRequest(`${BASE_URL}/inventory_items/${inventoryItemId}.json`);
@@ -234,6 +241,46 @@ export async function updateInventoryItem(inventoryItemId, data) {
     'PUT',
     { inventory_item: data }
   );
+}
+
+// Webhook methods
+export async function deleteWebhook(webhookId) {
+  return rateLimitedRequest(
+    `${BASE_URL}/webhooks/${webhookId}.json`,
+    'DELETE'
+  );
+}
+
+// Fetch all products with pagination (shared helper)
+export async function getAllProducts() {
+  let products = [];
+  let sinceId = 0;
+
+  while (true) {
+    const data = await get(`products.json?limit=250&since_id=${sinceId}`);
+    if (!data.products || data.products.length === 0) break;
+    products = products.concat(data.products);
+    sinceId = data.products[data.products.length - 1].id;
+    process.stderr.write(`\rFetched ${products.length} products...`);
+    if (data.products.length < 250) break;
+  }
+  console.error('');
+  return products;
+}
+
+// Fetch all smart collections with pagination
+export async function getAllSmartCollections() {
+  let collections = [];
+  let sinceId = 0;
+
+  while (true) {
+    const data = await get(`smart_collections.json?limit=250&since_id=${sinceId}`);
+    if (!data.smart_collections || data.smart_collections.length === 0) break;
+    collections = collections.concat(data.smart_collections);
+    sinceId = data.smart_collections[data.smart_collections.length - 1].id;
+    if (data.smart_collections.length < 250) break;
+  }
+  return collections;
 }
 
 export default {
@@ -251,6 +298,10 @@ export default {
   get,
   put,
   post,
+  del,
   getInventoryItem,
   updateInventoryItem,
+  deleteWebhook,
+  getAllProducts,
+  getAllSmartCollections,
 };

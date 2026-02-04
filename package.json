@@ -34,7 +34,8 @@
     "health:quick": "node src/health-monitor.js --quick",
     "health:fix": "node src/health-monitor.js --fix",
     "webhooks:list": "node src/register-webhooks.js --list",
-    "webhooks:register": "node src/register-webhooks.js --register"
+    "webhooks:register": "node src/register-webhooks.js --register",
+    "webhooks:cleanup": "node src/register-webhooks.js --cleanup"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",

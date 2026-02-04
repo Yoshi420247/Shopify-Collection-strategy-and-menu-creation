@@ -1,4 +1,4 @@
-name: Collection Health Monitor
+name: Collection Health Check & Drift Detection
 
 on:
   # Run every 6 hours

@@ -1,4 +1,4 @@
-name: Store Operations
+name: Manual Store Operations (Webhooks, Cleanup, Reports)
 
 on:
   workflow_dispatch:
@@ -10,10 +10,9 @@ on:
         options:
           - list-webhooks
           - register-webhooks
-          - remove-wholesale-family-tags
-          - fix-or-collection-rules
-          - standardize-collection-tags
-          - cleanup-report
+          - cleanup-webhooks
+          - collection-cleanup-report
+          - collection-cleanup-execute
 
 env:
   SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
@@ -45,18 +44,14 @@ jobs:
         if: inputs.operation == 'register-webhooks'
         run: node src/register-webhooks.js --register
 
-      - name: Remove wholesale family tags
-        if: inputs.operation == 'remove-wholesale-family-tags'
-        run: node src/remove-family-tags-from-wholesale.js
+      - name: Cleanup stale webhooks
+        if: inputs.operation == 'cleanup-webhooks'
+        run: node src/register-webhooks.js --cleanup
 
-      - name: Fix OR collection rules
-        if: inputs.operation == 'fix-or-collection-rules'
-        run: node src/fix-or-collection-rules.js
-
-      - name: Standardize collection tags
-        if: inputs.operation == 'standardize-collection-tags'
-        run: node src/standardize-collection-tags.js
-
-      - name: Cleanup report
-        if: inputs.operation == 'cleanup-report'
+      - name: Collection cleanup report (dry run)
+        if: inputs.operation == 'collection-cleanup-report'
         run: node src/collection-cleanup.js --report
+
+      - name: Collection cleanup (execute)
+        if: inputs.operation == 'collection-cleanup-execute'
+        run: node src/collection-cleanup.js --execute

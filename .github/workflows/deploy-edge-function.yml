@@ -1,4 +1,4 @@
-name: Deploy Edge Function
+name: Deploy Supabase Webhook Handler
 
 on:
   push:
