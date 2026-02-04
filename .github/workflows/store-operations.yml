@@ -13,6 +13,9 @@ on:
           - cleanup-webhooks
           - collection-cleanup-report
           - collection-cleanup-execute
+          - analyze-store
+          - create-update-collections
+          - update-menus
 
 env:
   SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
@@ -55,3 +58,23 @@ jobs:
       - name: Collection cleanup (execute)
         if: inputs.operation == 'collection-cleanup-execute'
         run: node src/collection-cleanup.js --execute
+
+      - name: Analyze store (collections, products, menus)
+        if: inputs.operation == 'analyze-store'
+        run: |
+          echo "=== COLLECTION CLEANUP ANALYSIS ==="
+          node src/collection-cleanup.js --report || true
+          echo ""
+          echo "=== COLLECTION STRATEGY ANALYSIS ==="
+          node src/collection-strategy-bot.js --skip-collections --skip-menus || true
+          echo ""
+          echo "=== MENU ANALYSIS ==="
+          node src/auto-menu-setup.js || true
+
+      - name: Create/update all collections from config
+        if: inputs.operation == 'create-update-collections'
+        run: node src/collection-strategy-bot.js --execute --skip-tags --skip-menus
+
+      - name: Update navigation menus
+        if: inputs.operation == 'update-menus'
+        run: node src/auto-menu-setup.js --execute

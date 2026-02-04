@@ -26,7 +26,7 @@ import pandas as pd
 import requests
 
 # Configuration
-SHOPIFY_STORE = os.environ.get("SHOPIFY_STORE", "oil-slick-pad.myshopify.com")
+SHOPIFY_STORE = os.environ.get("SHOPIFY_STORE_URL") or os.environ.get("SHOPIFY_STORE", "oil-slick-pad.myshopify.com")
 SHOPIFY_ACCESS_TOKEN = os.environ.get("SHOPIFY_ACCESS_TOKEN", "")
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 VENDOR_NAME = "Cloud YHS"
