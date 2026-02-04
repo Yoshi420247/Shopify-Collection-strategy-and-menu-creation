@@ -25,7 +25,9 @@
     "import": "python3 tools/pdf_product_importer.py --dry-run",
     "import:execute": "python3 tools/pdf_product_importer.py --execute",
     "import:publish": "python3 tools/pdf_product_importer.py --execute --publish",
-    "import:list": "python3 tools/pdf_product_importer.py --list"
+    "import:list": "python3 tools/pdf_product_importer.py --list",
+    "restock": "node src/restock-sold-out.js",
+    "restock:execute": "node src/restock-sold-out.js --execute"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",

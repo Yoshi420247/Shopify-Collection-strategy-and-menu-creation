@@ -1,0 +1,58 @@
+name: Restock Sold-Out Products
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run       # Show what would be restocked (no changes)
+          - execute        # Actually restock sold-out items with 10 units
+
+jobs:
+  restock:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Restock Sold-Out Products
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "🔄 Restocking all sold-out 'What You Need' products with 10 units..."
+            node src/restock-sold-out.js --execute
+          else
+            echo "👀 Dry run - showing sold-out products that would be restocked..."
+            node src/restock-sold-out.js
+          fi
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## 📦 Restock Sold-Out Products Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Restock quantity:** 10 units per sold-out variant" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "All sold-out 'What You Need' products have been restocked with 10 units." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "This was a **dry run**. No changes were made." >> $GITHUB_STEP_SUMMARY
+            echo "Run again with \`execute\` to apply changes." >> $GITHUB_STEP_SUMMARY
+          fi
