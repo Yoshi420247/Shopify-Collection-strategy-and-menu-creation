@@ -196,15 +196,30 @@ npm run cleanup:tags
 
 This fixes silicone products with wrong family tags.
 
-### Step 5: Delete Duplicate Collections
+### Step 5: Create URL Redirects (BEFORE deleting!)
+
+```bash
+npm run redirects          # Preview all 60+ redirects
+npm run redirects:audit    # Check which already exist in Shopify
+npm run redirects:execute  # Create all redirects via Shopify API
+```
+
+This creates 301 redirects from every broken/duplicate/empty collection URL to its
+correct canonical counterpart. **Run this BEFORE deleting collections** so that
+any external links, Google index entries, or bookmarks still reach a populated page.
+
+The redirect map is defined in `src/config.js` under `collections.redirects`.
+
+### Step 6: Delete Duplicate Collections
 
 ```bash
 npm run cleanup:delete
 ```
 
 **WARNING:** This permanently deletes collections. Review the list first!
+Make sure redirects are in place (Step 5) before deleting.
 
-### Step 6: All at Once (Be Careful!)
+### Step 7: All at Once (Be Careful!)
 
 ```bash
 npm run cleanup:all
@@ -285,6 +300,7 @@ Main menu
 | Action | Count | Impact |
 |--------|-------|--------|
 | Fix broken silicone collections | 4 | Correct product filtering |
+| Create URL redirects | 60+ | No more empty pages, preserve SEO |
 | Delete duplicate collections | 40+ | Clean up admin, better SEO |
 | Fix product tags | ~20 | Proper categorization |
 | Update menu structure | 2 menus | Better navigation |
@@ -301,6 +317,10 @@ Main menu
 | `npm run cleanup:delete` | Delete duplicate collections |
 | `npm run cleanup:tags` | Fix product tags |
 | `npm run cleanup:all` | Execute all fixes |
+| `npm run redirects` | Preview all URL redirects (dry run) |
+| `npm run redirects:audit` | Audit existing vs desired redirects |
+| `npm run redirects:execute` | Create all redirects in Shopify |
+| `npm run redirects:cleanup` | Fix redirects pointing to wrong targets |
 
 ---
 

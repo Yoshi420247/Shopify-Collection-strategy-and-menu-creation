@@ -54,7 +54,6 @@ All URLs follow Shopify's standard patterns:
 #### Smoke & Vape (Smokeshop)
 | Handle | Title | URL |
 |--------|-------|-----|
-| `smoke-vape` | Smoke & Vape | `/collections/smoke-vape` |
 | `smoke-and-vape` | Smoke & Vape | `/collections/smoke-and-vape` |
 | `all` | All Products | `/collections/all` |
 | `bongs` | Bongs | `/collections/bongs` |
@@ -77,10 +76,7 @@ All URLs follow Shopify's standard patterns:
 | `flower-bowls` | Flower Bowls | `/collections/flower-bowls` |
 | `grinders` | Grinders | `/collections/grinders` |
 | `ash-catchers` | Ash Catchers | `/collections/ash-catchers` |
-| `ash-catchers-downstems` | Ash Catchers & Downstems | `/collections/ash-catchers-downstems` |
 | `rolling-papers` | Rolling Papers | `/collections/rolling-papers` |
-| `rolling-papers-cones` | Rolling Papers & Cones | `/collections/rolling-papers-cones` |
-| `rolling-accessories` | Rolling Accessories | `/collections/rolling-accessories` |
 | `trays-work-surfaces` | Trays & Work Surfaces | `/collections/trays-work-surfaces` |
 | `vapes-electronics` | Vapes & Electronics | `/collections/vapes-electronics` |
 | `ashtrays` | Ashtrays | `/collections/ashtrays` |
@@ -134,125 +130,64 @@ All URLs follow Shopify's standard patterns:
 /collections/710-sci
 /collections/accessories
 /collections/all
-/collections/all-headshop
 /collections/ash-catchers
-/collections/ash-catchers-downstems
 /collections/ashtrays
 /collections/bongs
 /collections/bongs-water-pipes
 /collections/bubblers
-/collections/bulk-ptfe-fep
 /collections/carb-caps
-/collections/carb-caps-collection
 /collections/clearance
-/collections/clearance-1
-/collections/clearance-2
 /collections/concentrate-containers
 /collections/concentrate-jars
 /collections/cookies
-/collections/custom
-/collections/custom-packaging-options
-/collections/cute-silicone-rigs
 /collections/dab-rigs
-/collections/dab-rigs-and-oil-rigs
 /collections/dab-tools
-/collections/dab_rig
-/collections/dabbers-collection
-/collections/dabbing
 /collections/electric-grinders
 /collections/elements
 /collections/eo-vape
-/collections/essentials-accessories-collection
-/collections/extract-packaging-jars-and-nonstick
-/collections/extraction-materials-packaging
 /collections/extraction-packaging
-/collections/extraction-supplies
 /collections/fep-sheets
 /collections/flower-bowls
-/collections/flower-bowls-collection
 /collections/g-pen
 /collections/gifts
-/collections/glass-bongs-and-water-pipes
 /collections/glass-jars
-/collections/glass-jars-extract-packaging
 /collections/glass-pipes
-/collections/grinder
 /collections/grinders
-/collections/grinders-collection
-/collections/grinders-in-retail-bulk-display
 /collections/hand-pipes
-/collections/hand-pipes-collection
-/collections/hand_pipe
 /collections/heady-glass
-/collections/heady-glass-collection
 /collections/joint-tubes
-/collections/large-pipes-and-rigs
 /collections/lookah
 /collections/made-in-usa
 /collections/made-in-usa-glass
 /collections/maven
-/collections/medium-pipes-and-rigs
 /collections/monark
 /collections/mylar-bags
-/collections/mylar-bags-1
 /collections/nectar-collectors
-/collections/nectar-collectors-1
-/collections/nectar-collectors-collection
-/collections/non-stick-containers
-/collections/non-stick-paper-and-ptfe
-/collections/nonstick-materials-for-extraction
-/collections/one-hitter-and-chillums-collection
 /collections/one-hitters-chillums
 /collections/only-quartz
-/collections/other
-/collections/packaging-storage
-/collections/papers
 /collections/parchment-paper
-/collections/parchment-papers
 /collections/peaselburg
-/collections/pendants-collection
 /collections/pendants-merch
 /collections/ptfe-sheets
 /collections/puffco
 /collections/quartz-bangers
-/collections/quartz_banger
 /collections/raw
-/collections/rolling-accessories
 /collections/rolling-papers
-/collections/rolling-papers-cones
 /collections/rosin-extraction
 /collections/scorch
-/collections/shop-all-what-you-need
-/collections/silicone-ashtrays
-/collections/silicone-beaker-bongs
-/collections/silicone-glass-hybrid-rigs-and-bubblers
 /collections/silicone-pads
 /collections/silicone-pipes
 /collections/silicone-rigs-bongs
 /collections/silicone-smoking-devices
 /collections/silicone-water-pipes
-/collections/small-pipes-rigs
 /collections/smoke-and-vape
-/collections/smoke-shop-products
-/collections/smoke-vape
-/collections/smoking
-/collections/smoking-devices
-/collections/spooky-haloween-sale
-/collections/spoons
-/collections/storage
+/collections/steamrollers
 /collections/storage-containers
-/collections/storage-packaging
-/collections/top-selling-silicone-rigs
-/collections/torch_tool
 /collections/torches
-/collections/torches-collection
 /collections/travel-friendly
 /collections/trays-work-surfaces
 /collections/vapes-electronics
-/collections/vaporizer-parts-and-accessories
 /collections/vibes
-/collections/water_pipe
-/collections/wholesale-pipes
 /collections/zig-zag
 ```
 
@@ -594,14 +529,15 @@ Main menu
 │   ├── Glass Jars → /collections/glass-jars
 │   ├── Concentrate Containers → /collections/concentrate-containers
 │   └── Shop All Extraction → /collections/extraction-packaging
-├── Smoke & Vape → /collections/smoke-vape
-│   ├── Bongs → /collections/bongs
+├── Smoke & Vape → /collections/smoke-and-vape
+│   ├── Bongs & Water Pipes → /collections/bongs-water-pipes
 │   ├── Dab Rigs → /collections/dab-rigs
-│   ├── Bubblers → /collections/bubblers
 │   ├── Hand Pipes → /collections/hand-pipes
-│   ├── One Hitters & Chillums → /collections/one-hitters-chillums
+│   ├── Bubblers → /collections/bubblers
 │   ├── Nectar Collectors → /collections/nectar-collectors
-│   └── Shop All Smoke & Vape → /collections/smoke-vape
+│   ├── One Hitters & Chillums → /collections/one-hitters-chillums
+│   ├── Silicone Pieces → /collections/silicone-rigs-bongs
+│   └── Shop All Smoke & Vape → /collections/smoke-and-vape
 ├── Accessories → /collections/accessories
 │   ├── Quartz Bangers → /collections/quartz-bangers
 │   ├── Carb Caps → /collections/carb-caps
@@ -609,10 +545,10 @@ Main menu
 │   ├── Torches → /collections/torches
 │   ├── Flower Bowls → /collections/flower-bowls
 │   ├── Grinders → /collections/grinders
-│   ├── Rolling Papers & Cones → /collections/rolling-papers-cones
-│   ├── Rolling Accessories → /collections/rolling-accessories
-│   ├── Ash Catchers & Downstems → /collections/ash-catchers-downstems
+│   ├── Rolling Papers & Cones → /collections/rolling-papers
+│   ├── Ash Catchers → /collections/ash-catchers
 │   ├── Trays & Work Surfaces → /collections/trays-work-surfaces
+│   ├── Storage & Containers → /collections/storage-containers
 │   └── Vapes & Electronics → /collections/vapes-electronics
 ├── Brands → /collections/raw
 │   ├── RAW → /collections/raw
@@ -624,11 +560,11 @@ Main menu
 │   ├── Lookah → /collections/lookah
 │   ├── Maven → /collections/maven
 │   └── G Pen → /collections/g-pen
-└── Featured → /collections/heady-glass
+└── Featured → #
     ├── Heady Glass → /collections/heady-glass
-    ├── Made In USA → /collections/made-in-usa-glass
-    ├── Silicone Pieces → /collections/silicone-rigs-bongs
-    └── Travel Friendly → /collections/travel-friendly
+    ├── Made In USA → /collections/made-in-usa
+    ├── Travel Friendly → /collections/travel-friendly
+    └── Clearance → /collections/clearance
 ```
 
 ### Footer Menu (Info)
@@ -773,7 +709,7 @@ Use natural, descriptive anchor text:
 4. `/collections/quartz-bangers` - Quartz Bangers
 5. `/collections/extraction-packaging` - Extraction & Packaging
 6. `/collections/accessories` - Accessories
-7. `/collections/smoke-vape` - Smoke & Vape
+7. `/collections/smoke-and-vape` - Smoke & Vape
 8. `/collections/silicone-pads` - Silicone Pads & Mats
 9. `/collections/glass-jars` - Glass Jars
 10. `/collections/grinders` - Grinders

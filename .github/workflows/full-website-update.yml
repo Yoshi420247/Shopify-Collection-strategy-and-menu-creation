@@ -11,6 +11,7 @@ on:
         options:
           - analyze                    # Analyze and report all issues
           - fix-collections            # Fix broken silicone collection rules
+          - create-redirects           # Create URL redirects for broken/empty collections
           - delete-duplicates          # Delete duplicate collections
           - fix-product-tags           # Fix product tags (silicone, etc.)
           - update-menus               # Update navigation menus
@@ -66,6 +67,18 @@ jobs:
           echo "   - silicone-rigs-bongs"
           echo ""
           node src/collection-cleanup.js --execute --fix-collections
+
+      - name: Create URL Redirects
+        if: ${{ inputs.action == 'create-redirects' || inputs.action == 'full-update' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🔀 Creating URL redirects for broken/empty/duplicate collections..."
+          echo "   This creates 301 redirects so old URLs reach correct pages."
+          echo "   60+ redirects from config.collections.redirects"
+          echo ""
+          node src/redirect-manager.js --execute
 
       - name: Delete Duplicate Collections
         if: ${{ inputs.action == 'delete-duplicates' || inputs.action == 'full-update' }}
@@ -139,10 +152,11 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "The following operations were performed:" >> $GITHUB_STEP_SUMMARY
             echo "1. ✅ Fixed broken silicone collection rules" >> $GITHUB_STEP_SUMMARY
-            echo "2. ✅ Deleted duplicate collections" >> $GITHUB_STEP_SUMMARY
-            echo "3. ✅ Fixed product tags" >> $GITHUB_STEP_SUMMARY
-            echo "4. ✅ Created/updated all collections" >> $GITHUB_STEP_SUMMARY
-            echo "5. ✅ Updated navigation menus" >> $GITHUB_STEP_SUMMARY
+            echo "2. ✅ Created URL redirects (60+ broken/empty → canonical)" >> $GITHUB_STEP_SUMMARY
+            echo "3. ✅ Deleted duplicate collections" >> $GITHUB_STEP_SUMMARY
+            echo "4. ✅ Fixed product tags" >> $GITHUB_STEP_SUMMARY
+            echo "5. ✅ Created/updated all collections" >> $GITHUB_STEP_SUMMARY
+            echo "6. ✅ Updated navigation menus" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
