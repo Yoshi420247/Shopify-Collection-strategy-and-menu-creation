@@ -77,11 +77,23 @@ const BROKEN_COLLECTIONS = {
     },
   },
   'silicone-rigs-bongs': {
-    issue: 'May need rule update for silicone material',
+    issue: 'Too broad - matches silicone accessories/containers, not just rigs & bongs',
     fix: {
       rules: [
         { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+        { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
+      ],
+      disjunctive: false,
+    },
+  },
+  'quartz-bangers': {
+    issue: 'Missing material:quartz rule - includes titanium and ceramic nails incorrectly',
+    fix: {
+      rules: [
+        { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        { column: 'tag', relation: 'equals', condition: 'family:banger' },
+        { column: 'tag', relation: 'equals', condition: 'material:quartz' },
       ],
       disjunctive: false,
     },
@@ -237,6 +249,38 @@ const PRODUCT_TAG_FIXES = [
     titleContains: 'silicone jar',
     ensureTags: ['material:silicone', 'family:container', 'use:storage', 'pillar:accessory'],
   },
+  {
+    titleContains: 'dab container',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'concentrate jar',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'concentrate container',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'wax container',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'wax jar',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'non-stick container',
+    ensureTags: ['material:silicone', 'family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'nonstick container',
+    ensureTags: ['material:silicone', 'family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'non stick container',
+    ensureTags: ['material:silicone', 'family:container', 'use:storage', 'pillar:accessory'],
+  },
   // Glass products - ensure material tag
   {
     titleContains: 'glass bong',
@@ -315,7 +359,19 @@ const PRODUCT_TAG_FIXES = [
     ensureTags: ['family:rolling-tray', 'use:rolling', 'pillar:accessory'],
   },
   {
-    titleContains: 'cone',
+    titleContains: ' cone',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'cones ',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'cones-',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'pre-roll',
     ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
   },
   // Nectar collectors
@@ -389,6 +445,37 @@ const PRODUCT_TAG_FIXES = [
   {
     titleContains: 'storage container',
     ensureTags: ['family:storage-accessory', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'wigwag jar',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  // Additional rolling paper patterns
+  {
+    titleContains: 'blunt wrap',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'rolling cone',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'paper tips',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'filter tips',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+  },
+  // Additional quartz banger patterns
+  {
+    titleContains: 'banger',
+    ensureTags: ['family:banger', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Ensure quartz bangers get material:quartz tag
+  {
+    titleContains: 'quartz',
+    ensureTags: ['material:quartz'],
   },
 ];
 
@@ -745,6 +832,30 @@ async function fixProductTags(dryRun = true) {
       needsUpdate = true;
       console.log(`\n  ${product.title}`);
       console.log(`    Adding missing tag: material:silicone`);
+    }
+
+    // Fix silicone products incorrectly tagged as rolling papers
+    // (caused by old 'cone' pattern matching substring in 'silicone')
+    if (title.includes('silicone') && !title.includes('rolling') && !title.includes('paper')) {
+      if (newTags.has('family:rolling-paper')) {
+        newTags.delete('family:rolling-paper');
+        needsUpdate = true;
+        console.log(`\n  ${product.title}`);
+        console.log(`    Removing incorrect tag: family:rolling-paper (silicone product, not rolling paper)`);
+      }
+      if (newTags.has('use:rolling')) {
+        newTags.delete('use:rolling');
+        needsUpdate = true;
+        console.log(`    Removing incorrect tag: use:rolling (silicone product, not rolling paper)`);
+      }
+    }
+
+    // Ensure quartz products have material:quartz tag
+    if (title.includes('quartz') && !newTags.has('material:quartz')) {
+      newTags.add('material:quartz');
+      needsUpdate = true;
+      console.log(`\n  ${product.title}`);
+      console.log(`    Adding missing tag: material:quartz`);
     }
 
     if (needsUpdate) {

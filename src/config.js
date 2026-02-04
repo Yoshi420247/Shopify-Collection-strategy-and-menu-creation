@@ -180,6 +180,7 @@ export const config = {
         title: 'Silicone Rigs & Bongs',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'tag', relation: 'equals', condition: 'pillar:smokeshop-device' },
           { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
@@ -213,6 +214,16 @@ export const config = {
         ],
         disjunctive: false,
       },
+      {
+        handle: 'silicone-hand-pipes',
+        title: 'Silicone Hand Pipes',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'tag', relation: 'equals', condition: 'family:spoon-pipe' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
     ],
 
     // Accessory collections
@@ -231,6 +242,7 @@ export const config = {
         title: 'Quartz Bangers',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:banger' },
+          { column: 'tag', relation: 'equals', condition: 'material:quartz' },
           { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
@@ -425,6 +437,16 @@ export const config = {
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:grinder' },
           { column: 'tag', relation: 'equals', condition: 'style:electric' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'non-stick-silicone-dab-containers',
+        title: 'Non-Stick Silicone Dab Containers',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
+          { column: 'tag', relation: 'equals', condition: 'family:container' },
           { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
