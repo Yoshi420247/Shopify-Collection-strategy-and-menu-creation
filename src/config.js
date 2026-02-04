@@ -443,6 +443,92 @@ export const config = {
       'smoke-vape', 'smoke-shop-products', 'all-headshop', 'shop-all-what-you-need',
       'smoking', 'smoking-devices',
     ],
+
+    // URL Redirects: maps broken/empty/duplicate collection paths to canonical ones.
+    // Format: { from: '/collections/old-handle', to: '/collections/correct-handle' }
+    // These are created via Shopify Admin API (POST /admin/api/redirects.json)
+    redirects: [
+      // === Legacy underscore-format handles ===
+      { from: '/collections/dab_rig', to: '/collections/dab-rigs' },
+      { from: '/collections/hand_pipe', to: '/collections/hand-pipes' },
+      { from: '/collections/quartz_banger', to: '/collections/quartz-bangers' },
+      { from: '/collections/torch_tool', to: '/collections/torches' },
+      { from: '/collections/water_pipe', to: '/collections/bongs-water-pipes' },
+      { from: '/collections/grinder', to: '/collections/grinders' },
+
+      // === Redundant "-collection" suffix handles ===
+      { from: '/collections/hand-pipes-collection', to: '/collections/hand-pipes' },
+      { from: '/collections/flower-bowls-collection', to: '/collections/flower-bowls' },
+      { from: '/collections/grinders-collection', to: '/collections/grinders' },
+      { from: '/collections/torches-collection', to: '/collections/torches' },
+      { from: '/collections/heady-glass-collection', to: '/collections/heady-glass' },
+      { from: '/collections/pendants-collection', to: '/collections/pendants-merch' },
+      { from: '/collections/one-hitter-and-chillums-collection', to: '/collections/one-hitters-chillums' },
+      { from: '/collections/nectar-collectors-collection', to: '/collections/nectar-collectors' },
+      { from: '/collections/carb-caps-collection', to: '/collections/carb-caps' },
+      { from: '/collections/dabbers-collection', to: '/collections/dab-tools' },
+      { from: '/collections/essentials-accessories-collection', to: '/collections/accessories' },
+
+      // === Numbered duplicate handles ===
+      { from: '/collections/clearance-1', to: '/collections/clearance' },
+      { from: '/collections/clearance-2', to: '/collections/clearance' },
+      { from: '/collections/nectar-collectors-1', to: '/collections/nectar-collectors' },
+      { from: '/collections/mylar-bags-1', to: '/collections/mylar-bags' },
+
+      // === Smoke & Vape duplicates ===
+      { from: '/collections/smoke-vape', to: '/collections/smoke-and-vape' },
+      { from: '/collections/smoke-shop-products', to: '/collections/smoke-and-vape' },
+      { from: '/collections/all-headshop', to: '/collections/smoke-and-vape' },
+      { from: '/collections/shop-all-what-you-need', to: '/collections/smoke-and-vape' },
+      { from: '/collections/smoking', to: '/collections/smoke-and-vape' },
+      { from: '/collections/smoking-devices', to: '/collections/smoke-and-vape' },
+
+      // === Redundant long-name duplicates ===
+      { from: '/collections/dab-rigs-and-oil-rigs', to: '/collections/dab-rigs' },
+      { from: '/collections/glass-bongs-and-water-pipes', to: '/collections/bongs-water-pipes' },
+
+      // === Duplicate silicone collections ===
+      { from: '/collections/silicone-beaker-bongs', to: '/collections/silicone-rigs-bongs' },
+      { from: '/collections/silicone-glass-hybrid-rigs-and-bubblers', to: '/collections/silicone-rigs-bongs' },
+      { from: '/collections/cute-silicone-rigs', to: '/collections/silicone-rigs-bongs' },
+      { from: '/collections/top-selling-silicone-rigs', to: '/collections/silicone-rigs-bongs' },
+      { from: '/collections/silicone-ashtrays', to: '/collections/ashtrays' },
+
+      // === Duplicate extraction/packaging collections ===
+      { from: '/collections/extract-packaging-jars-and-nonstick', to: '/collections/extraction-packaging' },
+      { from: '/collections/extraction-materials-packaging', to: '/collections/extraction-packaging' },
+      { from: '/collections/extraction-supplies', to: '/collections/extraction-packaging' },
+      { from: '/collections/nonstick-materials-for-extraction', to: '/collections/extraction-packaging' },
+      { from: '/collections/non-stick-paper-and-ptfe', to: '/collections/ptfe-sheets' },
+      { from: '/collections/glass-jars-extract-packaging', to: '/collections/glass-jars' },
+      { from: '/collections/non-stick-containers', to: '/collections/concentrate-containers' },
+      { from: '/collections/packaging-storage', to: '/collections/storage-containers' },
+      { from: '/collections/storage-packaging', to: '/collections/storage-containers' },
+      { from: '/collections/storage', to: '/collections/storage-containers' },
+      { from: '/collections/parchment-papers', to: '/collections/parchment-paper' },
+
+      // === Variant / alternate-name handles ===
+      { from: '/collections/nectar-collectors-straws', to: '/collections/nectar-collectors' },
+      { from: '/collections/dabbing', to: '/collections/dab-rigs' },
+      { from: '/collections/large-pipes-and-rigs', to: '/collections/smoke-and-vape' },
+      { from: '/collections/medium-pipes-and-rigs', to: '/collections/smoke-and-vape' },
+      { from: '/collections/small-pipes-rigs', to: '/collections/smoke-and-vape' },
+      { from: '/collections/spoons', to: '/collections/hand-pipes' },
+      { from: '/collections/spooky-haloween-sale', to: '/collections/clearance' },
+      { from: '/collections/wholesale-pipes', to: '/collections/smoke-and-vape' },
+      { from: '/collections/vaporizer-parts-and-accessories', to: '/collections/vapes-electronics' },
+      { from: '/collections/papers', to: '/collections/rolling-papers' },
+      { from: '/collections/grinders-in-retail-bulk-display', to: '/collections/grinders' },
+      { from: '/collections/other', to: '/collections/all' },
+      { from: '/collections/custom', to: '/collections/all' },
+
+      // === Overlapping accessory handles ===
+      { from: '/collections/ash-catchers-downstems', to: '/collections/ash-catchers' },
+      { from: '/collections/rolling-papers-cones', to: '/collections/rolling-papers' },
+      { from: '/collections/rolling-accessories', to: '/collections/rolling-papers' },
+      { from: '/collections/bulk-ptfe-fep', to: '/collections/extraction-packaging' },
+      { from: '/collections/custom-packaging-options', to: '/collections/extraction-packaging' },
+    ],
   },
 
   // Menu structure - Cleaned up and organized

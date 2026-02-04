@@ -25,7 +25,11 @@
     "import": "python3 tools/pdf_product_importer.py --dry-run",
     "import:execute": "python3 tools/pdf_product_importer.py --execute",
     "import:publish": "python3 tools/pdf_product_importer.py --execute --publish",
-    "import:list": "python3 tools/pdf_product_importer.py --list"
+    "import:list": "python3 tools/pdf_product_importer.py --list",
+    "redirects": "node src/redirect-manager.js",
+    "redirects:audit": "node src/redirect-manager.js --audit",
+    "redirects:execute": "node src/redirect-manager.js --execute",
+    "redirects:cleanup": "node src/redirect-manager.js --cleanup"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
