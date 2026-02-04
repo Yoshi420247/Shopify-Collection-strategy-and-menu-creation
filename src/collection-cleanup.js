@@ -281,6 +281,51 @@ const PRODUCT_TAG_FIXES = [
     titleContains: 'non stick container',
     ensureTags: ['material:silicone', 'family:container', 'use:storage', 'pillar:accessory'],
   },
+  // Oil Slick brand concentrate container patterns
+  {
+    titleContains: 'oil container',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'plastic container',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'glass jar',
+    ensureTags: ['material:glass', 'family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'concentrate storage',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'extract jar',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'extract container',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'oil jar',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'child resistant jar',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'child-resistant jar',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'screw top jar',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'screw-top jar',
+    ensureTags: ['family:container', 'use:storage', 'pillar:accessory'],
+  },
   // Glass products - ensure material tag
   {
     titleContains: 'glass bong',
@@ -784,9 +829,20 @@ async function fixProductTags(dryRun = true) {
     log('DRY RUN MODE - No changes will be made', 'yellow');
   }
 
-  // Fetch all products from vendor
-  const products = await api.getAllProductsByVendor(config.vendor);
-  log(`Fetched ${products.length} products`, 'cyan');
+  // Fetch products from ALL vendors (not just What You Need)
+  // Concentrate jars, silicone containers etc. span multiple vendors
+  const vendorsToFix = [config.vendor, 'Oil Slick', 'Cloud YHS'];
+  let products = [];
+  for (const vendor of vendorsToFix) {
+    try {
+      const vendorProducts = await api.getAllProductsByVendor(vendor);
+      log(`  Fetched ${vendorProducts.length} products from "${vendor}"`, 'cyan');
+      products.push(...vendorProducts);
+    } catch (error) {
+      log(`  Warning: Could not fetch "${vendor}" products: ${error.message}`, 'yellow');
+    }
+  }
+  log(`Total: ${products.length} products across ${vendorsToFix.length} vendors`, 'cyan');
 
   let fixed = 0;
   let errors = 0;

@@ -406,10 +406,10 @@ export const config = {
       {
         handle: 'concentrate-jars',
         title: 'Concentrate Jars',
+        // No vendor filter - includes Oil Slick, What You Need, and Cloud YHS jars
         rules: [
           { column: 'tag', relation: 'equals', condition: 'family:container' },
           { column: 'tag', relation: 'equals', condition: 'use:storage' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
@@ -444,10 +444,10 @@ export const config = {
       {
         handle: 'non-stick-silicone-dab-containers',
         title: 'Non-Stick Silicone Dab Containers',
+        // No vendor filter - Oil Slick's core product line includes silicone containers
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
           { column: 'tag', relation: 'equals', condition: 'family:container' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
       },
