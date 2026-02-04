@@ -1,0 +1,75 @@
+name: Daily Product Sync & Auto-Classification
+
+on:
+  # Run daily at 6 AM UTC (midnight CST)
+  schedule:
+    - cron: '0 6 * * *'
+
+  # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'sync-and-tag'
+        type: choice
+        options:
+          - sync-only
+          - sync-and-tag
+          - tag-dry-run
+          - tag-only
+      product_id:
+        description: 'Single product ID (optional, for tag-only mode)'
+        required: false
+        type: string
+
+env:
+  SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+  SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+jobs:
+  sync-and-classify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 1: Sync products from Shopify to Supabase
+      - name: Sync products
+        if: >-
+          github.event_name == 'schedule' ||
+          inputs.mode == 'sync-only' ||
+          inputs.mode == 'sync-and-tag'
+        run: node src/sync-products.js
+
+      # Step 2: Auto-tag (live)
+      - name: Auto-tag products (live)
+        if: >-
+          github.event_name == 'schedule' ||
+          inputs.mode == 'sync-and-tag' ||
+          inputs.mode == 'tag-only'
+        run: |
+          if [ -n "${{ inputs.product_id }}" ]; then
+            node src/auto-tagger.js --product-id ${{ inputs.product_id }}
+          else
+            node src/auto-tagger.js
+          fi
+
+      # Step 2 (alt): Auto-tag dry run
+      - name: Auto-tag products (dry run)
+        if: inputs.mode == 'tag-dry-run'
+        run: node src/auto-tagger.js --dry-run
+
+      - name: Summary
+        run: echo "Sync and classification complete at $(date -u)"

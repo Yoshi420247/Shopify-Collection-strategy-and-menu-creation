@@ -868,7 +868,7 @@ def upload_to_shopify(
     """Upload a generated image to Shopify product."""
 
     # Get credentials from environment if not provided
-    shopify_store = shopify_store or os.environ.get("SHOPIFY_STORE", "")
+    shopify_store = shopify_store or os.environ.get("SHOPIFY_STORE_URL") or os.environ.get("SHOPIFY_STORE", "")
     access_token = access_token or os.environ.get("SHOPIFY_ACCESS_TOKEN", "")
 
     if not shopify_store or not access_token:

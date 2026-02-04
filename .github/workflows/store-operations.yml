@@ -1,0 +1,80 @@
+name: Manual Store Operations (Webhooks, Cleanup, Reports)
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Operation to run'
+        required: true
+        type: choice
+        options:
+          - list-webhooks
+          - register-webhooks
+          - cleanup-webhooks
+          - collection-cleanup-report
+          - collection-cleanup-execute
+          - analyze-store
+          - create-update-collections
+          - update-menus
+
+env:
+  SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+  SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+jobs:
+  run-operation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: List webhooks
+        if: inputs.operation == 'list-webhooks'
+        run: node src/register-webhooks.js --list
+
+      - name: Register webhooks
+        if: inputs.operation == 'register-webhooks'
+        run: node src/register-webhooks.js --register
+
+      - name: Cleanup stale webhooks
+        if: inputs.operation == 'cleanup-webhooks'
+        run: node src/register-webhooks.js --cleanup
+
+      - name: Collection cleanup report (dry run)
+        if: inputs.operation == 'collection-cleanup-report'
+        run: node src/collection-cleanup.js --report
+
+      - name: Collection cleanup (execute)
+        if: inputs.operation == 'collection-cleanup-execute'
+        run: node src/collection-cleanup.js --execute
+
+      - name: Analyze store (collections, products, menus)
+        if: inputs.operation == 'analyze-store'
+        run: |
+          echo "=== COLLECTION CLEANUP ANALYSIS ==="
+          node src/collection-cleanup.js --report || true
+          echo ""
+          echo "=== COLLECTION STRATEGY ANALYSIS ==="
+          node src/collection-strategy-bot.js --skip-collections --skip-menus || true
+          echo ""
+          echo "=== MENU ANALYSIS ==="
+          node src/auto-menu-setup.js || true
+
+      - name: Create/update all collections from config
+        if: inputs.operation == 'create-update-collections'
+        run: node src/collection-strategy-bot.js --execute --skip-tags --skip-menus
+
+      - name: Update navigation menus
+        if: inputs.operation == 'update-menus'
+        run: node src/auto-menu-setup.js --execute

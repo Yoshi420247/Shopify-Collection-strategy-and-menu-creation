@@ -70,7 +70,7 @@ jobs:
         if: ${{ inputs.mode == 'preset' }}
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
         run: |
           echo "🚀 Running in PRESET mode: ${{ inputs.preset }}"
@@ -114,7 +114,7 @@ jobs:
       - name: Upload Custom Images to Shopify
         if: ${{ inputs.mode == 'custom' && inputs.upload_to_shopify == true }}
         env:
-          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
         run: |
           echo "⚠️  Custom mode: Shopify upload requires product_id in preset."

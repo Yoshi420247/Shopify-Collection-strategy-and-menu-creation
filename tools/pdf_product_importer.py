@@ -41,7 +41,7 @@ except ImportError:
     print("Install with: pip install Pillow")
 
 # Configuration
-SHOPIFY_STORE = os.environ.get("SHOPIFY_STORE", "oil-slick-pad.myshopify.com")
+SHOPIFY_STORE = os.environ.get("SHOPIFY_STORE_URL") or os.environ.get("SHOPIFY_STORE", "oil-slick-pad.myshopify.com")
 SHOPIFY_ACCESS_TOKEN = os.environ.get("SHOPIFY_ACCESS_TOKEN", "")
 SHOPIFY_API_VERSION = "2024-01"
 SHOPIFY_BASE_URL = f"https://{SHOPIFY_STORE}/admin/api/{SHOPIFY_API_VERSION}"

@@ -35,8 +35,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: claude/document-codebase-4caDs
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -56,7 +54,7 @@ jobs:
       - name: Import Products
         if: ${{ inputs.show_list != true }}
         env:
-          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
         run: |
           echo "🚀 Cloud YHS Product Listing Import (PDF)"
@@ -91,7 +89,7 @@ jobs:
           echo "Running: python tools/pdf_product_importer.py $ARGS"
           echo ""
 
-          eval "python tools/pdf_product_importer.py $ARGS"
+          python tools/pdf_product_importer.py $ARGS
 
       - name: Generate Summary
         if: always()
