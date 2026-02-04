@@ -15,7 +15,7 @@ const TAG_CORRECTIONS = {
   'family:pipe': 'family:spoon-pipe',
   'family:bowl': 'family:flower-bowl',
   'family:battery': 'family:vape-battery',
-  'family:ashtray': 'family:storage-accessory',
+  'family:storage-accessory': 'family:container',  // Jars should use family:container
   'pillar:water-pipe': 'pillar:smokeshop-device',
   'pillar:hand-pipe': 'pillar:smokeshop-device',
 };
@@ -79,12 +79,19 @@ const categoryRules = [
     pillar: 'smokeshop-device',
     use: 'vaping'
   },
-  // Storage / Containers
+  // Concentrate Jars / Containers
   {
-    pattern: /jar|ashtray/i,
-    family: 'storage-accessory',
+    pattern: /jar|container/i,
+    family: 'container',
     pillar: 'accessory',
     use: 'storage'
+  },
+  // Ashtrays
+  {
+    pattern: /ashtray/i,
+    family: 'ashtray',
+    pillar: 'accessory',
+    use: 'flower-smoking'
   },
 ];
 
