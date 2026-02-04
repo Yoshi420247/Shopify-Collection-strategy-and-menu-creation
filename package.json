@@ -25,10 +25,20 @@
     "import": "python3 tools/pdf_product_importer.py --dry-run",
     "import:execute": "python3 tools/pdf_product_importer.py --execute",
     "import:publish": "python3 tools/pdf_product_importer.py --execute --publish",
-    "import:list": "python3 tools/pdf_product_importer.py --list"
+    "import:list": "python3 tools/pdf_product_importer.py --list",
+    "sync": "node src/sync-products.js",
+    "auto-tag": "node src/auto-tagger.js",
+    "auto-tag:dry": "node src/auto-tagger.js --dry-run",
+    "auto-tag:product": "node src/auto-tagger.js --product-id",
+    "health": "node src/health-monitor.js",
+    "health:quick": "node src/health-monitor.js --quick",
+    "health:fix": "node src/health-monitor.js --fix",
+    "webhooks:list": "node src/register-webhooks.js --list",
+    "webhooks:register": "node src/register-webhooks.js --register"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
+    "@supabase/supabase-js": "^2.94.0",
     "dotenv": "^16.3.1",
     "xlsx": "^0.18.5"
   },
