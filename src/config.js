@@ -414,6 +414,16 @@ export const config = {
         disjunctive: false,
       },
       {
+        handle: 'glass-jars',
+        title: 'Glass Jars',
+        // Glass jars from any vendor - linked from Extraction & Packaging menu
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:glass' },
+          { column: 'tag', relation: 'equals', condition: 'family:container' },
+        ],
+        disjunctive: false,
+      },
+      {
         handle: 'rolling-papers-cones',
         title: 'Rolling Papers & Cones',
         rules: [

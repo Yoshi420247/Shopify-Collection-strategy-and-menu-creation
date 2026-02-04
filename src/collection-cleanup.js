@@ -914,6 +914,47 @@ async function fixProductTags(dryRun = true) {
       console.log(`    Adding missing tag: material:quartz`);
     }
 
+    // Catch-all: Any product with "jar" in the title is a concentrate jar/container
+    // This catches Oil Slick products like "5ml Jar", "9ml CR Jar", etc.
+    if (title.includes('jar') && !title.includes('bong') && !title.includes('pipe') && !title.includes('rig')) {
+      if (!newTags.has('family:container')) {
+        newTags.add('family:container');
+        needsUpdate = true;
+        console.log(`\n  ${product.title}`);
+        console.log(`    Adding missing tag: family:container (jar product)`);
+      }
+      if (!newTags.has('use:storage')) {
+        newTags.add('use:storage');
+        needsUpdate = true;
+        console.log(`    Adding missing tag: use:storage (jar product)`);
+      }
+      if (!newTags.has('pillar:accessory')) {
+        newTags.add('pillar:accessory');
+        needsUpdate = true;
+        console.log(`    Adding missing tag: pillar:accessory (jar product)`);
+      }
+    }
+
+    // Catch-all: Any product with "container" in the title (not already covered)
+    if (title.includes('container') && !title.includes('bong') && !title.includes('pipe')) {
+      if (!newTags.has('family:container')) {
+        newTags.add('family:container');
+        needsUpdate = true;
+        console.log(`\n  ${product.title}`);
+        console.log(`    Adding missing tag: family:container (container product)`);
+      }
+      if (!newTags.has('use:storage')) {
+        newTags.add('use:storage');
+        needsUpdate = true;
+        console.log(`    Adding missing tag: use:storage (container product)`);
+      }
+      if (!newTags.has('pillar:accessory')) {
+        newTags.add('pillar:accessory');
+        needsUpdate = true;
+        console.log(`    Adding missing tag: pillar:accessory (container product)`);
+      }
+    }
+
     if (needsUpdate) {
       if (!dryRun) {
         try {
