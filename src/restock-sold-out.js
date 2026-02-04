@@ -104,6 +104,22 @@ async function getAllProducts(vendor) {
 }
 
 /**
+ * Enable inventory tracking on an inventory item
+ */
+async function enableTracking(inventoryItemId) {
+  return curlRequest(
+    `${BASE_URL}/inventory_items/${inventoryItemId}.json`,
+    'PUT',
+    {
+      inventory_item: {
+        id: inventoryItemId,
+        tracked: true,
+      },
+    }
+  );
+}
+
+/**
  * Set inventory level for an item at a location
  */
 async function setInventoryLevel(inventoryItemId, locationId, quantity) {
@@ -196,6 +212,21 @@ async function main() {
     console.log(`    Current qty: ${item.currentQuantity} → New qty: ${RESTOCK_QUANTITY}`);
 
     if (!dryRun) {
+      // Step 1: Enable inventory tracking
+      const trackResult = await enableTracking(item.inventoryItemId);
+      if (!trackResult || !trackResult.inventory_item) {
+        log(`    ✗ Failed to enable tracking`, 'red');
+        if (trackResult && trackResult.errors) {
+          console.log(`      Error: ${JSON.stringify(trackResult.errors)}`);
+        }
+        errors++;
+        await sleep(550);
+        continue;
+      }
+
+      await sleep(550);
+
+      // Step 2: Set inventory level
       const result = await setInventoryLevel(item.inventoryItemId, locationId, RESTOCK_QUANTITY);
 
       if (result && result.inventory_level) {
