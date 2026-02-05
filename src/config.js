@@ -74,9 +74,26 @@ export const config = {
       'storage-accessory': { use: 'storage', pillar: 'accessory', display: 'Storage' },
       'container': { use: 'storage', pillar: 'accessory', display: 'Containers' },
 
+      // Adapters & Misc Accessories
+      'adapter': { use: 'flower-smoking', pillar: 'accessory', display: 'Adapters & Drop Downs' },
+      'cleaning-supply': { use: null, pillar: 'accessory', display: 'Cleaning Supplies' },
+      'lighter': { use: 'flower-smoking', pillar: 'accessory', display: 'Lighters' },
+      'clip': { use: null, pillar: 'accessory', display: 'Clips & Holders' },
+      'screen': { use: 'flower-smoking', pillar: 'accessory', display: 'Screens' },
+
       // Merch
       'merch-pendant': { use: null, pillar: 'merch', display: 'Pendants' },
       'merch-apparel': { use: null, pillar: 'merch', display: 'Apparel' },
+    },
+
+    // Expected material associations per family (for cross-validation)
+    familyMaterials: {
+      'glass-bong': ['glass', 'borosilicate'],
+      'glass-rig': ['glass', 'borosilicate'],
+      'silicone-rig': ['silicone'],
+      'banger': ['quartz', 'titanium', 'ceramic'],
+      'spoon-pipe': ['glass', 'silicone', 'metal', 'wood'],
+      'bubbler': ['glass', 'silicone'],
     },
 
     // Materials (keep these - useful for filtering)
@@ -210,16 +227,6 @@ export const config = {
         title: 'Silicone Smoking Devices',
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
-        ],
-        disjunctive: false,
-      },
-      {
-        handle: 'silicone-hand-pipes',
-        title: 'Silicone Hand Pipes',
-        rules: [
-          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'tag', relation: 'equals', condition: 'family:spoon-pipe' },
           { column: 'vendor', relation: 'equals', condition: 'What You Need' },
         ],
         disjunctive: false,
@@ -367,7 +374,16 @@ export const config = {
     // Style/feature collections
     features: [
       { handle: 'made-in-usa', title: 'Made in USA', tag: 'style:made-in-usa' },
-      { handle: 'made-in-usa-glass', title: 'Made In USA Glass', tag: 'style:made-in-usa' },
+      {
+        handle: 'made-in-usa-glass',
+        title: 'Made In USA Glass',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'style:made-in-usa' },
+          { column: 'tag', relation: 'equals', condition: 'material:glass' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
       { handle: 'heady-glass', title: 'Heady Glass', tag: 'style:heady' },
       { handle: 'travel-friendly', title: 'Travel Friendly', tag: 'style:travel-friendly' },
       { handle: 'gifts', title: 'Gifts', tag: 'style:gift' },
@@ -604,8 +620,14 @@ export const config = {
 
   // Tags to remove (obsolete/redundant)
   tagsToRemove: [
-    // Keep format tags only where family doesn't exist
-    // Remove duplicate/legacy tags
+    // Legacy format tags superseded by family tags
+    'format:bong', 'format:rig', 'format:pipe', 'format:bubbler',
+    'format:nectar-collector', 'format:chillum', 'format:steamroller',
+    'format:bowl', 'format:banger', 'format:carb-cap', 'format:dab-tool',
+    'format:torch', 'format:grinder', 'format:paper', 'format:tray',
+    'format:vape', 'format:pendant', 'format:ashtray', 'format:downstem',
+    // Typos and malformed tags
+    'famly:', 'famliy:', 'materail:', 'materal:',
   ],
 };
 

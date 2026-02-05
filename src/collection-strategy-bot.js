@@ -45,9 +45,19 @@ function logSection(title) {
 function analyzeProductTags(products) {
   logSection('ANALYZING PRODUCT TAGS');
 
+  const taxonomy = config.taxonomy;
+  const validFamilies = new Set(Object.keys(taxonomy.families));
+  const validPillars = new Set(Object.keys(taxonomy.pillars));
+  const validUses = new Set(Object.keys(taxonomy.uses));
+  const validMaterials = new Set(taxonomy.materials);
+  const validBrands = new Set(taxonomy.brands);
+
   const tagStats = {};
   const productsByFamily = {};
   const productsWithoutFamily = [];
+  const productsWithInvalidTags = [];
+  const productsWithMismatchedTags = [];
+  const productsWithMultipleFamilies = [];
   const tagPatterns = {
     family: new Set(),
     format: new Set(),
@@ -67,13 +77,22 @@ function analyzeProductTags(products) {
   for (const product of products) {
     const tags = product.tags ? product.tags.split(',').map(t => t.trim()) : [];
     let hasFamily = false;
+    const productFamilies = [];
+    const productPillars = [];
+    const productUses = [];
+    const invalidTags = [];
 
     for (const tag of tags) {
-      // Count all tags
       tagStats[tag] = (tagStats[tag] || 0) + 1;
 
-      // Categorize by pattern
-      const [prefix, value] = tag.includes(':') ? tag.split(':') : ['other', tag];
+      const colonIdx = tag.indexOf(':');
+      if (colonIdx === -1) {
+        tagPatterns.other.add(tag);
+        continue;
+      }
+
+      const prefix = tag.substring(0, colonIdx);
+      const value = tag.substring(colonIdx + 1);
 
       if (tagPatterns[prefix]) {
         tagPatterns[prefix].add(tag);
@@ -81,36 +100,123 @@ function analyzeProductTags(products) {
         tagPatterns.other.add(tag);
       }
 
-      // Track products by family
       if (prefix === 'family') {
         hasFamily = true;
-        if (!productsByFamily[value]) {
-          productsByFamily[value] = [];
-        }
+        productFamilies.push(value);
+        if (!productsByFamily[value]) productsByFamily[value] = [];
         productsByFamily[value].push(product);
+
+        // Validate family value exists in taxonomy
+        if (!validFamilies.has(value)) {
+          invalidTags.push({ tag, reason: `Unknown family: "${value}" not in taxonomy` });
+        }
+      }
+
+      if (prefix === 'pillar') {
+        productPillars.push(value);
+        if (!validPillars.has(value)) {
+          invalidTags.push({ tag, reason: `Unknown pillar: "${value}"` });
+        }
+      }
+
+      if (prefix === 'use') {
+        productUses.push(value);
+        if (!validUses.has(value)) {
+          invalidTags.push({ tag, reason: `Unknown use: "${value}"` });
+        }
+      }
+
+      if (prefix === 'material' && !validMaterials.has(value)) {
+        invalidTags.push({ tag, reason: `Unknown material: "${value}"` });
+      }
+
+      if (prefix === 'brand' && !validBrands.has(value)) {
+        invalidTags.push({ tag, reason: `Unknown brand: "${value}"` });
       }
     }
 
     if (!hasFamily) {
       productsWithoutFamily.push(product);
     }
+
+    if (invalidTags.length > 0) {
+      productsWithInvalidTags.push({ product, invalidTags });
+    }
+
+    if (productFamilies.length > 1) {
+      productsWithMultipleFamilies.push({ product, families: productFamilies });
+    }
+
+    // Cross-validate family <-> pillar/use
+    for (const family of productFamilies) {
+      const def = taxonomy.families[family];
+      if (!def) continue;
+
+      const mismatches = [];
+      if (def.pillar && productPillars.length > 0 && !productPillars.includes(def.pillar)) {
+        mismatches.push(`Expected pillar:${def.pillar}, found pillar:${productPillars.join(',')}`);
+      }
+      if (def.use && productUses.length > 0 && !productUses.includes(def.use)) {
+        mismatches.push(`Expected use:${def.use}, found use:${productUses.join(',')}`);
+      }
+      if (mismatches.length > 0) {
+        productsWithMismatchedTags.push({ product, family, mismatches });
+      }
+    }
   }
 
-  // Report findings
+  // ---- Report findings ----
   log(`\nTotal products: ${products.length}`, 'cyan');
   log(`Products with family tags: ${products.length - productsWithoutFamily.length}`, 'green');
-  log(`Products without family tags: ${productsWithoutFamily.length}`, 'yellow');
+  log(`Products without family tags: ${productsWithoutFamily.length}`, productsWithoutFamily.length > 0 ? 'yellow' : 'green');
 
-  console.log('\nTag categories:');
+  console.log('\nTag namespace coverage:');
   for (const [category, tags] of Object.entries(tagPatterns)) {
     if (tags.size > 0) {
-      console.log(`  ${category}: ${tags.size} unique tags`);
+      console.log(`  ${category}: ${tags.size} unique values`);
     }
   }
 
   console.log('\nProducts by family:');
   for (const [family, prods] of Object.entries(productsByFamily).sort((a, b) => b[1].length - a[1].length)) {
-    console.log(`  ${family}: ${prods.length} products`);
+    const validMarker = validFamilies.has(family) ? '' : ' [NOT IN TAXONOMY]';
+    console.log(`  ${family}: ${prods.length} products${validMarker}`);
+  }
+
+  // Invalid tags report
+  if (productsWithInvalidTags.length > 0) {
+    log(`\nProducts with invalid tag values: ${productsWithInvalidTags.length}`, 'red');
+    for (const { product, invalidTags } of productsWithInvalidTags.slice(0, 10)) {
+      console.log(`  - ${product.title} (ID: ${product.id})`);
+      for (const { tag, reason } of invalidTags) {
+        log(`    ${tag}: ${reason}`, 'yellow');
+      }
+    }
+    if (productsWithInvalidTags.length > 10) {
+      console.log(`  ... and ${productsWithInvalidTags.length - 10} more`);
+    }
+  }
+
+  // Family-pillar/use mismatches
+  if (productsWithMismatchedTags.length > 0) {
+    log(`\nProducts with family/pillar/use mismatches: ${productsWithMismatchedTags.length}`, 'red');
+    for (const { product, family, mismatches } of productsWithMismatchedTags.slice(0, 10)) {
+      console.log(`  - ${product.title} (family:${family})`);
+      for (const m of mismatches) {
+        log(`    ${m}`, 'yellow');
+      }
+    }
+    if (productsWithMismatchedTags.length > 10) {
+      console.log(`  ... and ${productsWithMismatchedTags.length - 10} more`);
+    }
+  }
+
+  // Multiple families
+  if (productsWithMultipleFamilies.length > 0) {
+    log(`\nProducts with multiple family tags: ${productsWithMultipleFamilies.length}`, 'yellow');
+    for (const { product, families } of productsWithMultipleFamilies.slice(0, 10)) {
+      console.log(`  - ${product.title}: ${families.map(f => `family:${f}`).join(', ')}`);
+    }
   }
 
   if (productsWithoutFamily.length > 0) {
@@ -124,10 +230,33 @@ function analyzeProductTags(products) {
     }
   }
 
+  // Health score
+  const healthPct = Math.round((products.length - productsWithoutFamily.length) / products.length * 100);
+  const invalidPct = Math.round(productsWithInvalidTags.length / products.length * 100);
+  const mismatchPct = Math.round(productsWithMismatchedTags.length / products.length * 100);
+
+  logSection('TAG HEALTH SCORE');
+  log(`  Family coverage: ${healthPct}%`, healthPct >= 95 ? 'green' : healthPct >= 80 ? 'yellow' : 'red');
+  log(`  Invalid tags: ${invalidPct}% of products`, invalidPct <= 2 ? 'green' : invalidPct <= 10 ? 'yellow' : 'red');
+  log(`  Mismatched tags: ${mismatchPct}% of products`, mismatchPct <= 2 ? 'green' : mismatchPct <= 10 ? 'yellow' : 'red');
+
+  if (healthPct >= 95 && invalidPct <= 2 && mismatchPct <= 2) {
+    log('  Overall: HEALTHY', 'green');
+  } else if (healthPct >= 80 && invalidPct <= 10 && mismatchPct <= 10) {
+    log('  Overall: NEEDS ATTENTION', 'yellow');
+  } else {
+    log('  Overall: NEEDS FIXING', 'red');
+  }
+
+  log('\nRun "node src/metadata-validator.js" for detailed per-product validation', 'cyan');
+
   return {
     tagStats,
     productsByFamily,
     productsWithoutFamily,
+    productsWithInvalidTags,
+    productsWithMismatchedTags,
+    productsWithMultipleFamilies,
     tagPatterns,
   };
 }
@@ -135,27 +264,31 @@ function analyzeProductTags(products) {
 function generateOptimalTags(product, analysis) {
   /**
    * Determine optimal tags for a product based on:
-   * 1. Product title analysis
-   * 2. Product type
-   * 3. Existing tags that are valid
+   * 1. Existing valid structured tags
+   * 2. Family definition cross-references (auto-add pillar/use from family)
+   * 3. Title-based inference for missing tags
+   * 4. Removal of redundant format tags
+   * 5. Removal of legacy tags from tagsToRemove list
    */
+  const taxonomy = config.taxonomy;
   const currentTags = product.tags ? product.tags.split(',').map(t => t.trim()) : [];
   const optimalTags = new Set();
 
-  // Keep valid structured tags
   const validPrefixes = ['family', 'material', 'use', 'pillar', 'brand', 'style', 'joint_size', 'joint_gender', 'joint_angle'];
 
+  // Step 1: Keep valid structured tags
   for (const tag of currentTags) {
-    const [prefix] = tag.split(':');
+    const colonIdx = tag.indexOf(':');
+    if (colonIdx === -1) continue;
+    const prefix = tag.substring(0, colonIdx);
     if (validPrefixes.includes(prefix)) {
       optimalTags.add(tag);
     }
   }
 
-  // Remove redundant format tags if family exists
-  const hasFamily = currentTags.some(t => t.startsWith('family:'));
-  if (hasFamily) {
-    // Format tags are redundant when family exists
+  // Step 2: Remove redundant format tags when family exists
+  const families = currentTags.filter(t => t.startsWith('family:'));
+  if (families.length > 0) {
     for (const tag of currentTags) {
       if (tag.startsWith('format:')) {
         optimalTags.delete(tag);
@@ -163,18 +296,44 @@ function generateOptimalTags(product, analysis) {
     }
   }
 
-  // Keep length tags but standardize format
+  // Step 3: Auto-add missing pillar/use tags based on family definition
+  for (const familyTag of families) {
+    const familyName = familyTag.substring(7);
+    const def = taxonomy.families[familyName];
+    if (!def) continue;
+
+    if (def.pillar && !optimalTags.has(`pillar:${def.pillar}`)) {
+      optimalTags.add(`pillar:${def.pillar}`);
+    }
+    if (def.use && !optimalTags.has(`use:${def.use}`)) {
+      optimalTags.add(`use:${def.use}`);
+    }
+  }
+
+  // Step 4: Keep length and bundle tags
   for (const tag of currentTags) {
-    if (tag.startsWith('length:')) {
+    if (tag.startsWith('length:') || tag.startsWith('bundle:')) {
       optimalTags.add(tag);
     }
   }
 
-  // Keep bundle tags
-  for (const tag of currentTags) {
-    if (tag.startsWith('bundle:')) {
-      optimalTags.add(tag);
+  // Step 5: Remove known legacy/obsolete tags
+  if (config.tagsToRemove) {
+    for (const tag of config.tagsToRemove) {
+      optimalTags.delete(tag);
     }
+  }
+
+  // Step 6: Title-based material inference
+  const titleLower = (product.title || '').toLowerCase();
+  if (titleLower.includes('silicone') && !optimalTags.has('material:silicone')) {
+    optimalTags.add('material:silicone');
+  }
+  if (titleLower.includes('quartz') && !optimalTags.has('material:quartz')) {
+    optimalTags.add('material:quartz');
+  }
+  if (titleLower.includes('titanium') && !optimalTags.has('material:titanium')) {
+    optimalTags.add('material:titanium');
   }
 
   return Array.from(optimalTags);
