@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync } from 'fs';
 const STORE_URL = process.env.SHOPIFY_STORE_URL;
 const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
 const API_VERSION = process.env.SHOPIFY_API_VERSION || '2024-01';
-const THEME_ID = '140853018904';
+const THEME_ID = process.env.SHOPIFY_THEME_ID || '140853018904';
 
 const BASE_URL = `https://${STORE_URL}/admin/api/${API_VERSION}`;
 

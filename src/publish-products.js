@@ -6,65 +6,13 @@
  * sales channel so they appear on the storefront.
  */
 
-import 'dotenv/config';
 import { execSync } from 'child_process';
+import { STORE_URL, ACCESS_TOKEN, BASE_URL, sleep, getAllProducts } from './utils.js';
 
-const STORE_URL = process.env.SHOPIFY_STORE_URL;
-const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
-const API_VERSION = process.env.SHOPIFY_API_VERSION || '2024-01';
-
-const BASE_URL = `https://${STORE_URL}/admin/api/${API_VERSION}`;
 const GRAPHQL_URL = `${BASE_URL}/graphql.json`;
 
-// Online Store publication ID
-const ONLINE_STORE_PUB_ID = 'gid://shopify/Publication/46793987';
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function curlRequest(url, method = 'GET', body = null) {
-  let cmd = `curl -s --max-time 60 -X ${method} "${url}" `;
-  cmd += `-H "X-Shopify-Access-Token: ${ACCESS_TOKEN}" `;
-  cmd += `-H "Content-Type: application/json" `;
-
-  if (body) {
-    const escapedBody = JSON.stringify(body).replace(/'/g, "'\\''");
-    cmd += `-d '${escapedBody}'`;
-  }
-
-  try {
-    const result = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
-    return JSON.parse(result);
-  } catch (e) {
-    return null;
-  }
-}
-
-async function getAllProducts(vendor) {
-  console.log(`Fetching all "${vendor}" products...`);
-  const products = [];
-  let page = 1;
-  let lastId = 0;
-
-  while (true) {
-    const url = lastId > 0
-      ? `${BASE_URL}/products.json?vendor=${encodeURIComponent(vendor)}&limit=250&since_id=${lastId}`
-      : `${BASE_URL}/products.json?vendor=${encodeURIComponent(vendor)}&limit=250`;
-
-    const data = curlRequest(url);
-    if (!data || !data.products || data.products.length === 0) break;
-
-    products.push(...data.products);
-    lastId = data.products[data.products.length - 1].id;
-    console.log(`  Fetched ${products.length} products...`);
-
-    if (data.products.length < 250) break;
-    await sleep(500);
-  }
-
-  return products;
-}
+// Online Store publication ID - can override via env var if it changes
+const ONLINE_STORE_PUB_ID = process.env.SHOPIFY_PUBLICATION_ID || 'gid://shopify/Publication/46793987';
 
 async function publishProduct(productId) {
   const mutation = `

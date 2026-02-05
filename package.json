@@ -32,7 +32,6 @@
     "dedup:execute": "node src/fix-duplicate-listings.js --execute"
   },
   "dependencies": {
-    "@shopify/shopify-api": "^9.0.0",
     "dotenv": "^16.3.1",
     "xlsx": "^0.18.5"
   },

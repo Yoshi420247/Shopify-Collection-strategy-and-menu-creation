@@ -158,7 +158,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 Quick Links" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- [Shopify Admin](https://oil-slick-pad.myshopify.com/admin)" >> $GITHUB_STEP_SUMMARY
-          echo "- [Collections](https://oil-slick-pad.myshopify.com/admin/collections)" >> $GITHUB_STEP_SUMMARY
-          echo "- [Navigation](https://oil-slick-pad.myshopify.com/admin/menus)" >> $GITHUB_STEP_SUMMARY
-          echo "- [Products](https://oil-slick-pad.myshopify.com/admin/products)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin](https://${{ secrets.SHOPIFY_STORE }}/admin)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Collections](https://${{ secrets.SHOPIFY_STORE }}/admin/collections)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Navigation](https://${{ secrets.SHOPIFY_STORE }}/admin/menus)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Products](https://${{ secrets.SHOPIFY_STORE }}/admin/products)" >> $GITHUB_STEP_SUMMARY

@@ -121,6 +121,7 @@ export const config = {
         disjunctive: false,
       },
       {
+        // SEO alias - same rules as bongs-water-pipes, kept for URL compatibility
         handle: 'bongs',
         title: 'Bongs',
         rules: [
@@ -214,16 +215,7 @@ export const config = {
         ],
         disjunctive: false,
       },
-      {
-        handle: 'silicone-hand-pipes',
-        title: 'Silicone Hand Pipes',
-        rules: [
-          { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-          { column: 'tag', relation: 'equals', condition: 'family:spoon-pipe' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
-        ],
-        disjunctive: false,
-      },
+      // Note: silicone-hand-pipes removed - identical rules to silicone-pipes above
     ],
 
     // Accessory collections
@@ -455,6 +447,7 @@ export const config = {
 
     // Collections to DELETE (duplicates and broken)
     toDelete: [
+      'silicone-hand-pipes', // Duplicate of silicone-pipes (identical rules)
       'dab_rig', 'hand_pipe', 'quartz_banger', 'torch_tool', 'water_pipe', 'grinder',
       'hand-pipes-collection', 'flower-bowls-collection', 'grinders-collection',
       'torches-collection', 'heady-glass-collection', 'pendants-collection',

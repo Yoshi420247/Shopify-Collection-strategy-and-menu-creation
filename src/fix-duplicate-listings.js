@@ -16,86 +16,7 @@
  *   node src/fix-duplicate-listings.js --execute     # Archive duplicates
  */
 
-import 'dotenv/config';
-import { execSync } from 'child_process';
-
-const STORE_URL = process.env.SHOPIFY_STORE_URL;
-const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
-const API_VERSION = process.env.SHOPIFY_API_VERSION || '2024-01';
-
-const BASE_URL = `https://${STORE_URL}/admin/api/${API_VERSION}`;
-
-// ANSI colors
-const colors = {
-  reset: '\x1b[0m',
-  bright: '\x1b[1m',
-  dim: '\x1b[2m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  cyan: '\x1b[36m',
-  red: '\x1b[31m',
-  magenta: '\x1b[35m',
-};
-
-function log(message, color = 'reset') {
-  console.log(`${colors[color]}${message}${colors.reset}`);
-}
-
-function logSection(title) {
-  console.log('\n' + '='.repeat(70));
-  log(title, 'bright');
-  console.log('='.repeat(70));
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function curlRequest(url, method = 'GET', body = null) {
-  let cmd = `curl -s --max-time 60 -X ${method} "${url}" `;
-  cmd += `-H "X-Shopify-Access-Token: ${ACCESS_TOKEN}" `;
-  cmd += `-H "Content-Type: application/json" `;
-
-  if (body) {
-    const escapedBody = JSON.stringify(body).replace(/'/g, "'\\''");
-    cmd += `-d '${escapedBody}'`;
-  }
-
-  try {
-    const result = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
-    return JSON.parse(result);
-  } catch (e) {
-    console.error(`  Request error: ${e.message}`);
-    return null;
-  }
-}
-
-/**
- * Fetch all products from a vendor with pagination
- */
-async function getAllProducts(vendor) {
-  const products = [];
-  let lastId = 0;
-
-  while (true) {
-    const url = lastId > 0
-      ? `${BASE_URL}/products.json?vendor=${encodeURIComponent(vendor)}&limit=250&since_id=${lastId}`
-      : `${BASE_URL}/products.json?vendor=${encodeURIComponent(vendor)}&limit=250`;
-
-    const data = curlRequest(url);
-    if (!data || !data.products || data.products.length === 0) break;
-
-    products.push(...data.products);
-    lastId = data.products[data.products.length - 1].id;
-    console.log(`  Fetched ${products.length} products...`);
-
-    if (data.products.length < 250) break;
-    await sleep(500);
-  }
-
-  return products;
-}
+import { STORE_URL, BASE_URL, colors, log, logSection, sleep, curlRequest, getAllProducts } from './utils.js';
 
 /**
  * Normalize a product title for comparison.
@@ -240,7 +161,6 @@ async function main() {
     scored.sort((a, b) => b.score - a.score);
 
     const keeper = scored[0];
-    const duplicates = scored.slice(1);
 
     for (const item of scored) {
       const p = item.product;
@@ -256,6 +176,7 @@ async function main() {
     }
 
     // Queue duplicates for archiving
+    const duplicates = scored.slice(1);
     for (const dup of duplicates) {
       toArchive.push({
         product: dup.product,

@@ -11,7 +11,7 @@ import { config } from './config.js';
 import { execSync } from 'child_process';
 
 const BASE_URL = `https://${config.shopify.storeUrl}/admin/api/${config.shopify.apiVersion}`;
-const THEME_ID = '140853018904'; // Active theme
+const THEME_ID = process.env.SHOPIFY_THEME_ID || '140853018904';
 
 // ANSI colors
 const colors = {

@@ -40,16 +40,14 @@ async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3)
         maxBuffer: 50 * 1024 * 1024, // 50MB buffer for large responses
       });
 
-      // Check for error responses
-      if (result.includes('upstream connect error') || result.includes('error')) {
-        const parsed = JSON.parse(result);
-        if (parsed.errors) {
-          throw new Error(JSON.stringify(parsed.errors));
-        }
-        return parsed;
+      const parsed = JSON.parse(result);
+
+      // Check for Shopify API error responses
+      if (parsed.errors) {
+        throw new Error(JSON.stringify(parsed.errors));
       }
 
-      return JSON.parse(result);
+      return parsed;
     } catch (error) {
       if (attempt < retries) {
         const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff

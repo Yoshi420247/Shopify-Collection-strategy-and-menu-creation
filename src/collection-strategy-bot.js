@@ -554,6 +554,7 @@ async function main() {
 
     // Step 2: Analyze tags
     if (!skipTags) {
+      logSection('STEP 2: TAG ANALYSIS');
       const analysis = analyzeProductTags(products);
 
       // Step 3: Clean up tags

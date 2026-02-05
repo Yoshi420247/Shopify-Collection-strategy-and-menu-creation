@@ -97,31 +97,30 @@ function readExcelCosts(filePath) {
 }
 
 /**
- * Get all Cloud YHS products from Shopify
+ * Get all Cloud YHS products from Shopify (handles pagination)
  */
 async function getCloudYHSProducts() {
   logSection('FETCHING CLOUD YHS PRODUCTS FROM SHOPIFY');
 
   const allProducts = [];
-  let pageInfo = null;
-  let page = 1;
+  let lastId = 0;
 
-  do {
-    const url = pageInfo
-      ? `products.json?limit=250&page_info=${pageInfo}`
-      : `products.json?limit=250&vendor=Cloud%20YHS`;
+  while (true) {
+    const params = lastId > 0
+      ? `products.json?vendor=Cloud%20YHS&limit=250&since_id=${lastId}`
+      : `products.json?vendor=Cloud%20YHS&limit=250`;
 
-    const response = await api.get(url);
+    const response = await api.get(params);
     const products = response.products || [];
+
+    if (products.length === 0) break;
+
     allProducts.push(...products);
+    lastId = products[products.length - 1].id;
+    console.log(`  Fetched ${allProducts.length} products...`);
 
-    console.log(`  Fetched page ${page}: ${products.length} products`);
-    page++;
-
-    // Check for pagination
-    pageInfo = null; // Simple pagination - may need link header parsing for more
-
-  } while (pageInfo);
+    if (products.length < 250) break;
+  }
 
   log(`Found ${allProducts.length} Cloud YHS products in Shopify`, 'cyan');
 
