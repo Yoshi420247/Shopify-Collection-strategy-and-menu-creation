@@ -1,0 +1,253 @@
+name: Validate Product Metadata
+
+on:
+  # Run daily at 6 AM UTC
+  schedule:
+    - cron: '0 6 * * *'
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'validate'
+        type: choice
+        options:
+          - validate        # Run validation and report issues
+          - validate-strict # Fail if any errors found
+          - fix-preview     # Preview fixes (dry-run)
+          - fix-execute     # Apply fixes to products
+
+      vendor:
+        description: 'Vendor to validate'
+        required: false
+        default: 'What You Need'
+        type: string
+
+  # Run on PRs that touch product-related files
+  pull_request:
+    paths:
+      - 'src/config.js'
+      - 'src/metadata-validator.js'
+      - 'src/metadata-fixer.js'
+      - 'src/cloud-yhs-organizer.js'
+
+jobs:
+  validate-metadata:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Metadata Validation
+        id: validate
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🔍 Running metadata validation..."
+          echo ""
+
+          ACTION="${{ inputs.action || 'validate' }}"
+          VENDOR="${{ inputs.vendor || 'What You Need' }}"
+
+          # Create output file for parsing
+          OUTPUT_FILE="validation-output.txt"
+
+          case "$ACTION" in
+            "validate")
+              node src/metadata-validator.js --vendor="$VENDOR" 2>&1 | tee "$OUTPUT_FILE" || true
+              ;;
+            "validate-strict")
+              node src/metadata-validator.js --vendor="$VENDOR" 2>&1 | tee "$OUTPUT_FILE"
+              ;;
+            "fix-preview")
+              node src/metadata-fixer.js --vendor="$VENDOR" 2>&1 | tee "$OUTPUT_FILE" || true
+              ;;
+            "fix-execute")
+              node src/metadata-fixer.js --vendor="$VENDOR" --execute 2>&1 | tee "$OUTPUT_FILE"
+              ;;
+          esac
+
+          # Extract stats for summary
+          TOTAL=$(grep -oP 'Total Products Analyzed:\s*\K\d+' "$OUTPUT_FILE" || echo "0")
+          VALID=$(grep -oP 'Valid Products:\s*\K\d+' "$OUTPUT_FILE" || echo "0")
+          ERRORS=$(grep -oP 'Total Errors:\s*\K\d+' "$OUTPUT_FILE" || echo "0")
+          WARNINGS=$(grep -oP 'Total Warnings:\s*\K\d+' "$OUTPUT_FILE" || echo "0")
+
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "valid=$VALID" >> $GITHUB_OUTPUT
+          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+
+      - name: Generate Summary Report
+        if: always()
+        run: |
+          echo "## 🔍 Metadata Validation Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** ${{ inputs.action || 'validate' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Vendor:** ${{ inputs.vendor || 'What You Need' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Stats section
+          echo "### 📊 Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Products | ${{ steps.validate.outputs.total }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Valid Products | ${{ steps.validate.outputs.valid }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Errors | ${{ steps.validate.outputs.errors }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Warnings | ${{ steps.validate.outputs.warnings }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Status badge
+          ERRORS="${{ steps.validate.outputs.errors }}"
+          if [ "$ERRORS" = "0" ]; then
+            echo "### ✅ Status: All products have valid metadata" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Status: $ERRORS errors require attention" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Run \`npm run validate\` locally to see detailed error messages." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Validation Checks Performed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Description |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Required Tags | \`family:\` and \`pillar:\` must exist |" >> $GITHUB_STEP_SUMMARY
+          echo "| Valid Values | Tag values must be in allowed list |" >> $GITHUB_STEP_SUMMARY
+          echo "| Consistency | Family/pillar/use must be compatible |" >> $GITHUB_STEP_SUMMARY
+          echo "| Title Match | Product title should match family tag |" >> $GITHUB_STEP_SUMMARY
+          echo "| Material | Material tags should match product |" >> $GITHUB_STEP_SUMMARY
+          echo "| Orphaned Tags | No legacy/deprecated tags |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 🛠️ Commands" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# Run validation locally" >> $GITHUB_STEP_SUMMARY
+          echo "npm run validate" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Preview fixes" >> $GITHUB_STEP_SUMMARY
+          echo "npm run validate:fix" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Apply fixes" >> $GITHUB_STEP_SUMMARY
+          echo "npm run validate:fix:execute" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Validation Output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-report
+          path: validation-output.txt
+          retention-days: 30
+
+      - name: Create Issue on Errors (Scheduled runs only)
+        if: github.event_name == 'schedule' && steps.validate.outputs.errors != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const errors = '${{ steps.validate.outputs.errors }}';
+            const total = '${{ steps.validate.outputs.total }}';
+            const warnings = '${{ steps.validate.outputs.warnings }}';
+
+            // Check if there's already an open issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'metadata-validation'
+            });
+
+            const existingIssue = issues.data.find(i =>
+              i.title.includes('Metadata Validation Errors Detected')
+            );
+
+            const body = `## 🚨 Metadata Validation Failed
+
+            The scheduled metadata validation found **${errors} errors** that need attention.
+
+            ### Summary
+            - **Total Products:** ${total}
+            - **Errors:** ${errors}
+            - **Warnings:** ${warnings}
+
+            ### What to do
+            1. Run \`npm run validate\` locally to see detailed errors
+            2. Run \`npm run validate:fix\` to preview automatic fixes
+            3. Run \`npm run validate:fix:execute\` to apply fixes
+            4. Commit and push the changes
+
+            ### Why this matters
+            Metadata errors can cause:
+            - Products appearing in wrong collections
+            - Products missing from collections entirely
+            - Poor customer experience
+            - Lost sales
+
+            ---
+            *This issue was automatically created by the metadata validation workflow.*
+            `;
+
+            if (existingIssue) {
+              // Update existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `### Update: ${new Date().toISOString().split('T')[0]}\n\nStill detecting **${errors} errors**.\n\nPlease address these issues.`
+              });
+            } else {
+              // Create new issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '🚨 Metadata Validation Errors Detected',
+                body: body,
+                labels: ['metadata-validation', 'automated']
+              });
+            }
+
+      - name: Close Issue on Success (Scheduled runs only)
+        if: github.event_name == 'schedule' && steps.validate.outputs.errors == '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'metadata-validation'
+            });
+
+            for (const issue of issues.data) {
+              if (issue.title.includes('Metadata Validation Errors Detected')) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'closed'
+                });
+
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: '✅ All metadata errors have been resolved. Closing this issue.'
+                });
+              }
+            }
