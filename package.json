@@ -27,7 +27,12 @@
     "import:publish": "python3 tools/pdf_product_importer.py --execute --publish",
     "import:list": "python3 tools/pdf_product_importer.py --list",
     "restock": "node src/restock-sold-out.js",
-    "restock:execute": "node src/restock-sold-out.js --execute"
+    "restock:execute": "node src/restock-sold-out.js --execute",
+    "validate": "node src/metadata-validator.js",
+    "validate:verbose": "node src/metadata-validator.js --verbose",
+    "validate:export": "node src/metadata-validator.js --export",
+    "validate:fix": "node src/metadata-fixer.js",
+    "validate:fix:execute": "node src/metadata-fixer.js --execute"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
