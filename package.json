@@ -27,7 +27,9 @@
     "import:publish": "python3 tools/pdf_product_importer.py --execute --publish",
     "import:list": "python3 tools/pdf_product_importer.py --list",
     "restock": "node src/restock-sold-out.js",
-    "restock:execute": "node src/restock-sold-out.js --execute"
+    "restock:execute": "node src/restock-sold-out.js --execute",
+    "dedup": "node src/fix-duplicate-listings.js",
+    "dedup:execute": "node src/fix-duplicate-listings.js --execute"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
