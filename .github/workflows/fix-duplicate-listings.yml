@@ -1,0 +1,58 @@
+name: Fix Duplicate Listings
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run       # Report duplicates (no changes)
+          - execute        # Archive duplicate listings (set to draft)
+
+jobs:
+  dedup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Fix Duplicate Listings
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "Archiving duplicate product listings..."
+            node src/fix-duplicate-listings.js --execute
+          else
+            echo "Dry run - scanning for duplicate listings..."
+            node src/fix-duplicate-listings.js
+          fi
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Fix Duplicate Listings Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "Duplicate listings have been archived (set to draft status)." >> $GITHUB_STEP_SUMMARY
+            echo "Archived products can be found in Shopify Admin under Products > Draft." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "This was a **dry run**. No changes were made." >> $GITHUB_STEP_SUMMARY
+            echo "Run again with \`execute\` to archive duplicates." >> $GITHUB_STEP_SUMMARY
+          fi
