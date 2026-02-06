@@ -13,6 +13,8 @@ on:
           - fix-collections            # Fix broken silicone collection rules
           - delete-duplicates          # Delete duplicate collections
           - fix-product-tags           # Fix product tags (silicone, etc.)
+          - fix-redirects              # Create URL redirects for dead-end collections
+          - validate-metadata          # Run metadata validation report
           - update-menus               # Update navigation menus
           - create-collections         # Create/update all collections from config
           - full-update                # Execute ALL updates (be careful!)
@@ -109,6 +111,36 @@ jobs:
           echo ""
           node src/collection-strategy-bot.js --execute --skip-tags --skip-menus
 
+      - name: Fix Dead-End Collection Redirects
+        if: ${{ inputs.action == 'fix-redirects' || inputs.action == 'full-update' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🔀 Creating URL redirects for dead-end collection URLs..."
+          echo "   - Legacy underscore format (dab_rig → dab-rigs)"
+          echo "   - Redundant -collection suffix (dabbers-collection → dab-tools)"
+          echo "   - Alternate names (dab-tools-dabbers → dab-tools)"
+          echo "   - Duplicate landing pages (smoke-vape → smoke-and-vape)"
+          echo "   - 70+ total dead-end URLs being redirected"
+          echo ""
+          node src/fix-redirects.js --execute
+
+      - name: Validate Product Metadata
+        if: ${{ inputs.action == 'validate-metadata' || inputs.action == 'analyze' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🔍 Running metadata validation..."
+          echo "   Checking all products for:"
+          echo "   - Missing family/pillar/use tags"
+          echo "   - Family-pillar mismatches"
+          echo "   - Invalid tag values"
+          echo "   - Collection rule accuracy"
+          echo ""
+          node src/metadata-validator.js || true
+
       - name: Update Navigation Menus
         if: ${{ inputs.action == 'update-menus' || inputs.action == 'full-update' }}
         env:
@@ -142,7 +174,8 @@ jobs:
             echo "2. ✅ Deleted duplicate collections" >> $GITHUB_STEP_SUMMARY
             echo "3. ✅ Fixed product tags" >> $GITHUB_STEP_SUMMARY
             echo "4. ✅ Created/updated all collections" >> $GITHUB_STEP_SUMMARY
-            echo "5. ✅ Updated navigation menus" >> $GITHUB_STEP_SUMMARY
+            echo "5. ✅ Created URL redirects for 70+ dead-end collection URLs" >> $GITHUB_STEP_SUMMARY
+            echo "6. ✅ Updated navigation menus" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
