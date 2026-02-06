@@ -20,6 +20,11 @@
     "cleanup:delete": "node src/collection-cleanup.js --execute --delete-collections",
     "cleanup:tags": "node src/collection-cleanup.js --execute --fix-tags",
     "cleanup:all": "node src/collection-cleanup.js --execute --fix-collections --delete-collections --fix-tags",
+    "cleanup:validate": "node src/collection-cleanup.js --report --validate",
+    "validate": "node src/metadata-validator.js",
+    "validate:fix": "node src/metadata-validator.js --fix",
+    "validate:execute": "node src/metadata-validator.js --fix --execute",
+    "validate:json": "node src/metadata-validator.js --json",
     "costs": "node src/update-product-costs.js",
     "costs:execute": "node src/update-product-costs.js --execute",
     "import": "python3 tools/pdf_product_importer.py --dry-run",
@@ -29,7 +34,10 @@
     "restock": "node src/restock-sold-out.js",
     "restock:execute": "node src/restock-sold-out.js --execute",
     "dedup": "node src/fix-duplicate-listings.js",
-    "dedup:execute": "node src/fix-duplicate-listings.js --execute"
+    "dedup:execute": "node src/fix-duplicate-listings.js --execute",
+    "redirects": "node src/fix-redirects.js",
+    "redirects:execute": "node src/fix-redirects.js --execute",
+    "redirects:audit": "node src/fix-redirects.js --audit"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
