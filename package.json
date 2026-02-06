@@ -37,7 +37,11 @@
     "dedup:execute": "node src/fix-duplicate-listings.js --execute",
     "redirects": "node src/fix-redirects.js",
     "redirects:execute": "node src/fix-redirects.js --execute",
-    "redirects:audit": "node src/fix-redirects.js --audit"
+    "redirects:audit": "node src/fix-redirects.js --audit",
+    "descriptions": "node src/update-collection-descriptions.js",
+    "descriptions:report": "node src/update-collection-descriptions.js --report",
+    "descriptions:execute": "node src/update-collection-descriptions.js --execute",
+    "descriptions:single": "node src/update-collection-descriptions.js --execute --collection="
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",

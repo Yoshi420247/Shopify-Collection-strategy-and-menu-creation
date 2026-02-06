@@ -17,6 +17,7 @@ on:
           - validate-metadata          # Run metadata validation report
           - update-menus               # Update navigation menus
           - create-collections         # Create/update all collections from config
+          - update-descriptions        # Push SEO descriptions to all collections
           - full-update                # Execute ALL updates (be careful!)
 
 jobs:
@@ -110,6 +111,15 @@ jobs:
           echo "   - Feature collections (Heady Glass, Made in USA, etc.)"
           echo ""
           node src/collection-strategy-bot.js --execute --skip-tags --skip-menus
+
+      - name: Update Collection SEO Descriptions
+        if: ${{ inputs.action == 'update-descriptions' || inputs.action == 'full-update' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Updating SEO descriptions for all collections..."
+          node src/update-collection-descriptions.js --execute
 
       - name: Fix Dead-End Collection Redirects
         if: ${{ inputs.action == 'fix-redirects' || inputs.action == 'full-update' }}

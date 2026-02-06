@@ -1,0 +1,76 @@
+name: Update Collection Descriptions
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Execution mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run       # Preview changes without applying
+          - report        # Show current vs new description status
+          - execute       # Apply all description updates to Shopify
+
+jobs:
+  update-descriptions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Description Update (Dry Run)
+        if: ${{ inputs.mode == 'dry-run' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Preview of collection description updates..."
+          node src/update-collection-descriptions.js
+
+      - name: Run Description Report
+        if: ${{ inputs.mode == 'report' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Collection description status report..."
+          node src/update-collection-descriptions.js --report
+
+      - name: Apply Description Updates
+        if: ${{ inputs.mode == 'execute' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Applying collection description updates to Shopify..."
+          node src/update-collection-descriptions.js --execute
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Collection Description Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** \`${{ inputs.mode }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Collections with SEO Descriptions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "59 collections with long-form, keyword-rich descriptions covering:" >> $GITHUB_STEP_SUMMARY
+          echo "- Smoke & Vape devices (bongs, rigs, pipes, bubblers, nectar collectors)" >> $GITHUB_STEP_SUMMARY
+          echo "- Silicone pieces (rigs, bongs, pipes, water pipes)" >> $GITHUB_STEP_SUMMARY
+          echo "- Accessories (bangers, caps, tools, bowls, catchers, torches, grinders)" >> $GITHUB_STEP_SUMMARY
+          echo "- Rolling & vape (papers, cones, vape batteries, e-rigs)" >> $GITHUB_STEP_SUMMARY
+          echo "- Brands (RAW, Zig Zag, Vibes, Elements, Cookies, Monark, Maven, Puffco, Lookah, G Pen, 710 SCI, Scorch)" >> $GITHUB_STEP_SUMMARY
+          echo "- Featured (Made in USA, Heady Glass, Travel Friendly, Gifts)" >> $GITHUB_STEP_SUMMARY
+          echo "- Extraction & Packaging (silicone pads, FEP, PTFE, parchment, jars, mylar, tubes)" >> $GITHUB_STEP_SUMMARY
