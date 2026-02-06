@@ -15,27 +15,22 @@
 import 'dotenv/config';
 import { config } from './config.js';
 import api from './shopify-api.js';
+import { createLogger } from './lib/logger.js';
+import {
+  analyzeProductTags as analyzeProductTagsLib,
+  generateOptimalTags as generateOptimalTagsLib,
+  parseTags,
+} from './lib/tag-analysis.js';
 
-// ANSI colors for console output
-const colors = {
-  reset: '\x1b[0m',
-  bright: '\x1b[1m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  magenta: '\x1b[35m',
-  cyan: '\x1b[36m',
-  red: '\x1b[31m',
-};
+// Logger instance — supports --json flag for structured output
+const logger = createLogger();
 
 function log(message, color = 'reset') {
-  console.log(`${colors[color]}${message}${colors.reset}`);
+  logger.log(message, color);
 }
 
 function logSection(title) {
-  console.log('\n' + '='.repeat(70));
-  log(title, 'bright');
-  console.log('='.repeat(70));
+  logger.section(title);
 }
 
 // ============================================================================

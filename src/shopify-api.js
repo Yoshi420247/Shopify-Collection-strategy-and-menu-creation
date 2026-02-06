@@ -1,59 +1,120 @@
 // Shopify API wrapper using child_process for curl (more reliable in some environments)
+// Supports adaptive rate limiting based on Shopify's X-Shopify-Shop-Api-Call-Limit header
 import { config } from './config.js';
 import { execSync } from 'child_process';
 
 const BASE_URL = `https://${config.shopify.storeUrl}/admin/api/${config.shopify.apiVersion}`;
 const GRAPHQL_URL = `${BASE_URL}/graphql.json`;
 
-// Rate limiting
+// Adaptive rate limiting state
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 550;
+let minInterval = 550; // Default conservative interval (ms)
+const MIN_INTERVAL_FLOOR = 200;  // Fastest we'll go when bucket is nearly empty
+const MIN_INTERVAL_CEIL = 1000;  // Slowest we'll go when bucket is nearly full
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Adjust request interval based on Shopify's rate limit header.
+ * Header format: "used/available" (e.g. "32/40")
+ */
+function adjustRateLimit(callLimitHeader) {
+  if (!callLimitHeader) return;
+  const parts = callLimitHeader.split('/');
+  if (parts.length !== 2) return;
+
+  const used = parseInt(parts[0], 10);
+  const available = parseInt(parts[1], 10);
+  if (isNaN(used) || isNaN(available) || available === 0) return;
+
+  const usageRatio = used / available;
+
+  if (usageRatio > 0.9) {
+    // Over 90% used — slow down significantly
+    minInterval = MIN_INTERVAL_CEIL;
+  } else if (usageRatio > 0.7) {
+    // 70-90% used — moderate pacing
+    minInterval = 700;
+  } else if (usageRatio > 0.5) {
+    // 50-70% used — default pace
+    minInterval = 550;
+  } else {
+    // Under 50% used — speed up
+    minInterval = MIN_INTERVAL_FLOOR;
+  }
 }
 
 async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3) {
   const now = Date.now();
   const timeSinceLastRequest = now - lastRequestTime;
 
-  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-    await sleep(MIN_REQUEST_INTERVAL - timeSinceLastRequest);
+  if (timeSinceLastRequest < minInterval) {
+    await sleep(minInterval - timeSinceLastRequest);
   }
   lastRequestTime = Date.now();
 
-  // Build curl command
-  let curlCmd = `curl -s --max-time 30 -X ${method} "${url}" `;
+  // Build curl command — use -i to include response headers
+  let curlCmd = `curl -s -i --max-time 30 -X ${method} "${url}" `;
   curlCmd += `-H "X-Shopify-Access-Token: ${config.shopify.accessToken}" `;
   curlCmd += `-H "Content-Type: application/json" `;
 
   if (body) {
-    // Escape the body for shell
     const escapedBody = JSON.stringify(body).replace(/'/g, "'\\''");
     curlCmd += `-d '${escapedBody}'`;
   }
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const result = execSync(curlCmd, {
+      const rawResult = execSync(curlCmd, {
         encoding: 'utf8',
-        maxBuffer: 50 * 1024 * 1024, // 50MB buffer for large responses
+        maxBuffer: 50 * 1024 * 1024,
       });
 
-      // Check for error responses
-      if (result.includes('upstream connect error') || result.includes('error')) {
-        const parsed = JSON.parse(result);
-        if (parsed.errors) {
-          throw new Error(JSON.stringify(parsed.errors));
-        }
-        return parsed;
+      // Split headers from body (blank line separates them)
+      const headerBodySplit = rawResult.indexOf('\r\n\r\n');
+      let headers = '';
+      let bodyStr = rawResult;
+
+      if (headerBodySplit !== -1) {
+        headers = rawResult.substring(0, headerBodySplit);
+        bodyStr = rawResult.substring(headerBodySplit + 4);
       }
 
-      return JSON.parse(result);
+      // Parse rate limit header
+      const callLimitMatch = headers.match(/x-shopify-shop-api-call-limit:\s*(\S+)/i);
+      if (callLimitMatch) {
+        adjustRateLimit(callLimitMatch[1]);
+      }
+
+      // Parse HTTP status from headers
+      const statusMatch = headers.match(/HTTP\/[\d.]+ (\d{3})/);
+      const statusCode = statusMatch ? parseInt(statusMatch[1], 10) : 200;
+
+      // Handle 429 Too Many Requests — mandatory backoff
+      if (statusCode === 429) {
+        const retryAfter = headers.match(/retry-after:\s*(\d+)/i);
+        const waitTime = retryAfter ? parseInt(retryAfter[1], 10) * 1000 : Math.pow(2, attempt) * 2000;
+        console.log(`  Rate limited (429). Waiting ${waitTime / 1000}s before retry...`);
+        minInterval = MIN_INTERVAL_CEIL; // Slow down for subsequent requests
+        await sleep(waitTime);
+        continue;
+      }
+
+      // Parse JSON body
+      const parsed = JSON.parse(bodyStr);
+
+      // Check for API-level errors
+      if (parsed.errors) {
+        throw new Error(JSON.stringify(parsed.errors));
+      }
+
+      return parsed;
     } catch (error) {
       if (attempt < retries) {
-        const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff
-        console.log(`  Retry ${attempt}/${retries} after ${waitTime/1000}s...`);
+        const waitTime = Math.pow(2, attempt) * 1000;
+        console.log(`  Retry ${attempt}/${retries} after ${waitTime / 1000}s...`);
         await sleep(waitTime);
       } else {
         console.error(`API Error after ${retries} attempts: ${error.message}`);
@@ -152,42 +213,75 @@ export async function graphqlQuery(query, variables = {}) {
   );
 }
 
-// Get menus via GraphQL
-export async function getMenus() {
-  const query = `
-    query {
-      menus(first: 50) {
-        edges {
-          node {
-            id
-            title
-            handle
-            items(first: 50) {
-              edges {
-                node {
-                  id
-                  title
-                  url
-                  type
-                  items(first: 20) {
-                    edges {
-                      node {
-                        id
-                        title
-                        url
-                        type
+// Get menus via GraphQL with cursor-based pagination
+export async function getMenus({ menuLimit = 50, itemLimit = 50, subItemLimit = 50 } = {}) {
+  let allMenus = [];
+  let hasNextPage = true;
+  let cursor = null;
+
+  while (hasNextPage) {
+    const afterClause = cursor ? `, after: "${cursor}"` : '';
+    const query = `
+      query {
+        menus(first: ${menuLimit}${afterClause}) {
+          edges {
+            cursor
+            node {
+              id
+              title
+              handle
+              items(first: ${itemLimit}) {
+                edges {
+                  node {
+                    id
+                    title
+                    url
+                    type
+                    items(first: ${subItemLimit}) {
+                      edges {
+                        node {
+                          id
+                          title
+                          url
+                          type
+                        }
                       }
+                      pageInfo { hasNextPage }
                     }
                   }
                 }
+                pageInfo { hasNextPage }
               }
             }
           }
+          pageInfo {
+            hasNextPage
+          }
         }
       }
+    `;
+
+    const result = await graphqlQuery(query);
+
+    if (result.errors) return result; // Pass errors through
+
+    const edges = result.data?.menus?.edges || [];
+    allMenus.push(...edges);
+
+    hasNextPage = result.data?.menus?.pageInfo?.hasNextPage || false;
+    if (hasNextPage && edges.length > 0) {
+      cursor = edges[edges.length - 1].cursor;
     }
-  `;
-  return graphqlQuery(query);
+  }
+
+  // Return in the same shape as the old single-query response
+  return {
+    data: {
+      menus: {
+        edges: allMenus,
+      },
+    },
+  };
 }
 
 // Create menu via GraphQL
