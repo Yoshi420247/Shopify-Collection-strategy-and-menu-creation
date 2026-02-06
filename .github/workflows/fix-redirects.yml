@@ -1,0 +1,84 @@
+name: Fix Collection Redirects
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'audit'
+        type: choice
+        options:
+          - audit           # Audit existing redirects for issues
+          - dry-run         # Preview all redirects that would be created
+          - execute         # Create all redirects in Shopify
+
+jobs:
+  fix-redirects:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Redirect Manager
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "Creating redirects for all dead-end collection URLs..."
+            node src/fix-redirects.js --execute
+          elif [ "${{ inputs.action }}" == "dry-run" ]; then
+            echo "Dry run - previewing all redirects that would be created..."
+            node src/fix-redirects.js
+          else
+            echo "Auditing existing redirects for issues..."
+            node src/fix-redirects.js --audit
+          fi
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Collection Redirect Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "### Redirects Created" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All dead-end collection URLs now redirect to their correct active collections." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Examples of redirects applied:" >> $GITHUB_STEP_SUMMARY
+            echo "| Dead URL | Redirects To |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------------|" >> $GITHUB_STEP_SUMMARY
+            echo "| /collections/dab-tools-dabbers | /collections/dab-tools |" >> $GITHUB_STEP_SUMMARY
+            echo "| /collections/dabbers-collection | /collections/dab-tools |" >> $GITHUB_STEP_SUMMARY
+            echo "| /collections/smoke-vape | /collections/smoke-and-vape |" >> $GITHUB_STEP_SUMMARY
+            echo "| /collections/glass-bongs-and-water-pipes | /collections/bongs-water-pipes |" >> $GITHUB_STEP_SUMMARY
+            echo "| /collections/dab-rigs-and-oil-rigs | /collections/dab-rigs |" >> $GITHUB_STEP_SUMMARY
+            echo "| /collections/hand_pipe | /collections/hand-pipes |" >> $GITHUB_STEP_SUMMARY
+            echo "| /collections/silicone-beaker-bongs | /collections/silicone-rigs-bongs |" >> $GITHUB_STEP_SUMMARY
+            echo "| /collections/extraction-supplies | /collections/extraction-packaging |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "dry-run" ]; then
+            echo "This was a **dry run**. No changes were made." >> $GITHUB_STEP_SUMMARY
+            echo "Run again with \`execute\` to create the redirects." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Redirect audit complete. Check the workflow logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - URL Redirects](https://oil-slick-pad.myshopify.com/admin/online_store/redirects)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Navigation](https://oil-slick-pad.myshopify.com/admin/menus)" >> $GITHUB_STEP_SUMMARY
