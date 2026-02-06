@@ -471,15 +471,38 @@ export const config = {
 
     // Collections to DELETE (duplicates and broken)
     toDelete: [
+      // Legacy underscore format
       'dab_rig', 'hand_pipe', 'quartz_banger', 'torch_tool', 'water_pipe', 'grinder',
+      // Redundant "-collection" suffix
       'hand-pipes-collection', 'flower-bowls-collection', 'grinders-collection',
       'torches-collection', 'heady-glass-collection', 'pendants-collection',
       'one-hitter-and-chillums-collection', 'nectar-collectors-collection',
       'carb-caps-collection', 'dabbers-collection', 'essentials-accessories-collection',
+      // Numbered duplicates
       'clearance-1', 'clearance-2', 'nectar-collectors-1', 'mylar-bags-1',
+      // Overly specific duplicates
       'dab-rigs-and-oil-rigs', 'glass-bongs-and-water-pipes',
+      // Duplicate Smoke & Vape landing pages
       'smoke-vape', 'smoke-shop-products', 'all-headshop', 'shop-all-what-you-need',
       'smoking', 'smoking-devices',
+      // Alternate dabber/dab-tool names
+      'dab-tools-dabbers',
+      // Duplicate silicone collections
+      'silicone-beaker-bongs', 'silicone-glass-hybrid-rigs-and-bubblers',
+      'cute-silicone-rigs', 'top-selling-silicone-rigs', 'silicone-ashtrays',
+      // Duplicate extraction/packaging
+      'extract-packaging-jars-and-nonstick', 'extraction-materials-packaging',
+      'extraction-supplies', 'nonstick-materials-for-extraction',
+      'non-stick-paper-and-ptfe', 'glass-jars-extract-packaging',
+      'non-stick-containers', 'packaging-storage', 'storage-packaging',
+      'storage', 'parchment-papers',
+      // Duplicate accessory/misc
+      'rolling-accessories', 'ash-catchers-downstems',
+      'vaporizer-parts-and-accessories', 'spoons',
+      // Size-based (too vague)
+      'large-pipes-and-rigs', 'medium-pipes-and-rigs', 'small-pipes-rigs',
+      // Seasonal / misc
+      'spooky-haloween-sale', 'custom', 'other',
     ],
   },
 
@@ -619,6 +642,121 @@ export const config = {
   },
 
   // Tags to remove (obsolete/redundant)
+  // URL redirects: legacy/dead collection URLs → correct active collection URLs
+  // These handle old bookmarks, external links, and SEO for deleted collections
+  redirects: [
+    // =====================================================
+    // Legacy underscore format → correct hyphen format
+    // =====================================================
+    { from: '/collections/dab_rig', to: '/collections/dab-rigs' },
+    { from: '/collections/hand_pipe', to: '/collections/hand-pipes' },
+    { from: '/collections/quartz_banger', to: '/collections/quartz-bangers' },
+    { from: '/collections/torch_tool', to: '/collections/torches' },
+    { from: '/collections/water_pipe', to: '/collections/bongs-water-pipes' },
+
+    // =====================================================
+    // Redundant "-collection" suffix → clean handles
+    // =====================================================
+    { from: '/collections/hand-pipes-collection', to: '/collections/hand-pipes' },
+    { from: '/collections/flower-bowls-collection', to: '/collections/flower-bowls' },
+    { from: '/collections/grinders-collection', to: '/collections/grinders' },
+    { from: '/collections/torches-collection', to: '/collections/torches' },
+    { from: '/collections/heady-glass-collection', to: '/collections/heady-glass' },
+    { from: '/collections/pendants-collection', to: '/collections/pendants-merch' },
+    { from: '/collections/one-hitter-and-chillums-collection', to: '/collections/one-hitters-chillums' },
+    { from: '/collections/nectar-collectors-collection', to: '/collections/nectar-collectors' },
+    { from: '/collections/carb-caps-collection', to: '/collections/carb-caps' },
+    { from: '/collections/dabbers-collection', to: '/collections/dab-tools' },
+    { from: '/collections/essentials-accessories-collection', to: '/collections/accessories' },
+
+    // =====================================================
+    // Alternate names / legacy "dabbers" variants → dab-tools
+    // =====================================================
+    { from: '/collections/dab-tools-dabbers', to: '/collections/dab-tools' },
+    { from: '/collections/dabbers', to: '/collections/dab-tools' },
+
+    // =====================================================
+    // Numbered duplicates → primary collections
+    // =====================================================
+    { from: '/collections/clearance-1', to: '/collections/clearance' },
+    { from: '/collections/clearance-2', to: '/collections/clearance' },
+    { from: '/collections/nectar-collectors-1', to: '/collections/nectar-collectors' },
+    { from: '/collections/mylar-bags-1', to: '/collections/mylar-bags' },
+
+    // =====================================================
+    // Overly specific duplicates → primary category
+    // =====================================================
+    { from: '/collections/dab-rigs-and-oil-rigs', to: '/collections/dab-rigs' },
+    { from: '/collections/glass-bongs-and-water-pipes', to: '/collections/bongs-water-pipes' },
+
+    // =====================================================
+    // Duplicate Smoke & Vape landing pages → canonical URL
+    // =====================================================
+    { from: '/collections/smoke-vape', to: '/collections/smoke-and-vape' },
+    { from: '/collections/smoke-shop-products', to: '/collections/smoke-and-vape' },
+    { from: '/collections/all-headshop', to: '/collections/smoke-and-vape' },
+    { from: '/collections/shop-all-what-you-need', to: '/collections/smoke-and-vape' },
+    { from: '/collections/smoking', to: '/collections/smoke-and-vape' },
+    { from: '/collections/smoking-devices', to: '/collections/smoke-and-vape' },
+
+    // =====================================================
+    // Duplicate accessory/rolling collections
+    // =====================================================
+    { from: '/collections/rolling-accessories', to: '/collections/rolling-papers' },
+    { from: '/collections/ash-catchers-downstems', to: '/collections/ash-catchers' },
+    { from: '/collections/papers', to: '/collections/rolling-papers' },
+    { from: '/collections/spoons', to: '/collections/hand-pipes' },
+
+    // =====================================================
+    // Duplicate silicone collections → consolidated handle
+    // =====================================================
+    { from: '/collections/silicone-beaker-bongs', to: '/collections/silicone-rigs-bongs' },
+    { from: '/collections/silicone-glass-hybrid-rigs-and-bubblers', to: '/collections/silicone-rigs-bongs' },
+    { from: '/collections/cute-silicone-rigs', to: '/collections/silicone-rigs-bongs' },
+    { from: '/collections/top-selling-silicone-rigs', to: '/collections/silicone-rigs-bongs' },
+    { from: '/collections/silicone-ashtrays', to: '/collections/ashtrays' },
+
+    // =====================================================
+    // Duplicate extraction/packaging collections → canonical
+    // =====================================================
+    { from: '/collections/extract-packaging-jars-and-nonstick', to: '/collections/extraction-packaging' },
+    { from: '/collections/extraction-materials-packaging', to: '/collections/extraction-packaging' },
+    { from: '/collections/extraction-supplies', to: '/collections/extraction-packaging' },
+    { from: '/collections/nonstick-materials-for-extraction', to: '/collections/extraction-packaging' },
+    { from: '/collections/non-stick-paper-and-ptfe', to: '/collections/ptfe-sheets' },
+    { from: '/collections/glass-jars-extract-packaging', to: '/collections/glass-jars' },
+    { from: '/collections/non-stick-containers', to: '/collections/concentrate-containers' },
+    { from: '/collections/packaging-storage', to: '/collections/storage-containers' },
+    { from: '/collections/storage-packaging', to: '/collections/storage-containers' },
+    { from: '/collections/storage', to: '/collections/storage-containers' },
+    { from: '/collections/parchment-papers', to: '/collections/parchment-paper' },
+
+    // =====================================================
+    // Duplicate vape/misc collections
+    // =====================================================
+    { from: '/collections/vaporizer-parts-and-accessories', to: '/collections/vapes-electronics' },
+    { from: '/collections/dabbing', to: '/collections/dab-rigs' },
+
+    // =====================================================
+    // Size-based browsing (too vague) → main landing
+    // =====================================================
+    { from: '/collections/large-pipes-and-rigs', to: '/collections/smoke-and-vape' },
+    { from: '/collections/medium-pipes-and-rigs', to: '/collections/smoke-and-vape' },
+    { from: '/collections/small-pipes-rigs', to: '/collections/smoke-and-vape' },
+
+    // =====================================================
+    // Seasonal / misc dead collections → best match
+    // =====================================================
+    { from: '/collections/spooky-haloween-sale', to: '/collections/clearance' },
+    { from: '/collections/custom', to: '/collections/all' },
+    { from: '/collections/other', to: '/collections/all' },
+
+    // =====================================================
+    // Legacy "grinder" singular → "grinders" plural
+    // =====================================================
+    { from: '/collections/grinder', to: '/collections/grinders' },
+  ],
+
   tagsToRemove: [
     // Legacy format tags superseded by family tags
     'format:bong', 'format:rig', 'format:pipe', 'format:bubbler',

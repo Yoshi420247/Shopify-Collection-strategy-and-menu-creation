@@ -34,7 +34,10 @@
     "restock": "node src/restock-sold-out.js",
     "restock:execute": "node src/restock-sold-out.js --execute",
     "dedup": "node src/fix-duplicate-listings.js",
-    "dedup:execute": "node src/fix-duplicate-listings.js --execute"
+    "dedup:execute": "node src/fix-duplicate-listings.js --execute",
+    "redirects": "node src/fix-redirects.js",
+    "redirects:execute": "node src/fix-redirects.js --execute",
+    "redirects:audit": "node src/fix-redirects.js --audit"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",

@@ -176,6 +176,12 @@ const DUPLICATE_COLLECTIONS_TO_DELETE = [
   // Vaporizer
   'vaporizer-parts-and-accessories', // Keep: vapes-electronics
 
+  // Alternate dabber/dab-tool name
+  'dab-tools-dabbers',        // Keep: dab-tools
+
+  // Additional duplicates
+  'spoons',                   // Keep: hand-pipes
+
   // Wholesale/display (may need review)
   'wholesale-pipes',          // Review - might be needed
   'grinders-in-retail-bulk-display', // Keep if bulk business

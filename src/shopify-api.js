@@ -236,6 +236,26 @@ export async function updateInventoryItem(inventoryItemId, data) {
   );
 }
 
+// Redirect methods
+export async function getRedirects(limit = 250) {
+  return rateLimitedRequest(`${BASE_URL}/redirects.json?limit=${limit}`);
+}
+
+export async function createRedirect(path, target) {
+  return rateLimitedRequest(
+    `${BASE_URL}/redirects.json`,
+    'POST',
+    { redirect: { path, target } }
+  );
+}
+
+export async function deleteRedirect(redirectId) {
+  return rateLimitedRequest(
+    `${BASE_URL}/redirects/${redirectId}.json`,
+    'DELETE'
+  );
+}
+
 export default {
   getProducts,
   getProduct,
@@ -253,4 +273,7 @@ export default {
   post,
   getInventoryItem,
   updateInventoryItem,
+  getRedirects,
+  createRedirect,
+  deleteRedirect,
 };
