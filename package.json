@@ -41,7 +41,9 @@
     "descriptions": "node src/update-collection-descriptions.js",
     "descriptions:report": "node src/update-collection-descriptions.js --report",
     "descriptions:execute": "node src/update-collection-descriptions.js --execute",
-    "descriptions:single": "node src/update-collection-descriptions.js --execute --collection="
+    "descriptions:single": "node src/update-collection-descriptions.js --execute --collection=",
+    "min-order": "node src/add-minimum-order.js",
+    "min-order:execute": "node src/add-minimum-order.js --execute"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
