@@ -1,0 +1,81 @@
+name: Add Minimum Order Amount
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run         # Preview changes without modifying the theme
+          - execute         # Apply minimum order amount to the live theme
+
+jobs:
+  minimum-order:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Apply Minimum Order Amount
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "Applying $20 minimum order amount to theme..."
+            node src/add-minimum-order.js --execute
+          else
+            echo "Dry run - previewing minimum order changes..."
+            node src/add-minimum-order.js
+          fi
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Minimum Order Amount Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Minimum Amount:** \$20.00" >> $GITHUB_STEP_SUMMARY
+          echo "**Theme ID:** 140853018904" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "### Changes Applied" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- **Cart template** updated with minimum order check" >> $GITHUB_STEP_SUMMARY
+            echo "- **CSS** added for warning message and disabled checkout button" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### What Customers Will See" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- Warning banner showing how much more they need to add" >> $GITHUB_STEP_SUMMARY
+            echo "- Progress bar toward the \$20 minimum" >> $GITHUB_STEP_SUMMARY
+            echo "- Checkout button disabled until minimum is met" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "This was a **dry run**. No changes were made to the theme." >> $GITHUB_STEP_SUMMARY
+            echo "Run again with \`execute\` to apply the minimum order amount." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Verification" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Add items under \$20 to the cart" >> $GITHUB_STEP_SUMMARY
+          echo "2. Confirm the warning message and disabled checkout button appear" >> $GITHUB_STEP_SUMMARY
+          echo "3. Add more items to exceed \$20 and confirm checkout is enabled" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Theme Editor](https://oil-slick-pad.myshopify.com/admin/themes/140853018904/editor)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Store Cart Page](https://oil-slick-pad.myshopify.com/cart)" >> $GITHUB_STEP_SUMMARY
