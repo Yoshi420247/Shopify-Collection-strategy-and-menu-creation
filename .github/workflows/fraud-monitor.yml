@@ -1,0 +1,90 @@
+name: Fraud Monitor
+
+on:
+  # Run automatically every 2 hours
+  schedule:
+    - cron: '0 */2 * * *'
+
+  # Manual trigger with options
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run        # Report only (no changes)
+          - tag-only       # Tag fraud orders but don't cancel
+          - execute        # Cancel + tag fraud orders
+      lookback:
+        description: 'How far back to check'
+        required: true
+        default: '24h'
+        type: choice
+        options:
+          - 6h
+          - 12h
+          - 24h
+          - 48h
+          - 7d
+      threshold:
+        description: 'Minimum fraud score to act on (default 3)'
+        required: false
+        default: '3'
+
+jobs:
+  fraud-monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Fraud Monitor
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          LOOKBACK="${{ inputs.lookback || '24h' }}"
+          THRESHOLD="${{ inputs.threshold || '3' }}"
+          ACTION="${{ inputs.action || 'dry-run' }}"
+
+          FLAGS="--since=${LOOKBACK} --threshold=${THRESHOLD}"
+
+          if [ "$ACTION" == "execute" ]; then
+            echo "Cancelling and tagging fraud orders..."
+            node src/fraud-monitor.js --execute $FLAGS
+          elif [ "$ACTION" == "tag-only" ]; then
+            echo "Tagging fraud orders (no cancellation)..."
+            node src/fraud-monitor.js --execute --tag-only $FLAGS
+          else
+            echo "Dry run - scanning for fraud..."
+            node src/fraud-monitor.js $FLAGS
+          fi
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Fraud Monitor Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action || 'dry-run (scheduled)' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Lookback:** \`${{ inputs.lookback || '24h' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Threshold:** \`${{ inputs.threshold || '3' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "Fraud orders have been cancelled and tagged." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "tag-only" ]; then
+            echo "Fraud orders have been tagged for manual review." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "This was a **dry run**. No changes were made." >> $GITHUB_STEP_SUMMARY
+          fi

@@ -18,6 +18,8 @@ on:
           - update-menus               # Update navigation menus
           - create-collections         # Create/update all collections from config
           - update-descriptions        # Push SEO descriptions to all collections
+          - scan-fraud                 # Scan for fraudulent orders (report only)
+          - cancel-fraud               # Cancel + tag fraudulent orders
           - full-update                # Execute ALL updates (be careful!)
 
 jobs:
@@ -120,6 +122,24 @@ jobs:
         run: |
           echo "Updating SEO descriptions for all collections..."
           node src/update-collection-descriptions.js --execute
+
+      - name: Scan for Fraud Orders
+        if: ${{ inputs.action == 'scan-fraud' || inputs.action == 'full-update' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Scanning orders for card-testing fraud..."
+          node src/fraud-monitor.js --since=24h
+
+      - name: Cancel Fraud Orders
+        if: ${{ inputs.action == 'cancel-fraud' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Cancelling and tagging fraud orders..."
+          node src/fraud-monitor.js --execute --since=24h
 
       - name: Fix Dead-End Collection Redirects
         if: ${{ inputs.action == 'fix-redirects' || inputs.action == 'full-update' }}
