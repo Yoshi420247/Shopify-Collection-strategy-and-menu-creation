@@ -48,6 +48,11 @@
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix",
     "format": "prettier --write 'src/**/*.js' 'tests/**/*.js'",
+    "fraud": "node src/fraud-monitor.js",
+    "fraud:execute": "node src/fraud-monitor.js --execute",
+    "fraud:tag": "node src/fraud-monitor.js --execute --tag-only",
+    "fraud:week": "node src/fraud-monitor.js --since=7d",
+    "fraud:week:execute": "node src/fraud-monitor.js --execute --since=7d",
     "format:check": "prettier --check 'src/**/*.js' 'tests/**/*.js'"
   },
   "dependencies": {
