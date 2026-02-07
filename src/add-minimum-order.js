@@ -3,13 +3,12 @@
  * Add Minimum Order Amount ($20) to Cart
  *
  * This script modifies the Shopify theme to enforce a $20 minimum order amount.
- * It updates:
- *   1. sections/cart-template.liquid - Adds minimum order check logic
- *   2. assets/filter-enhancements.css - Adds styling for the minimum order message
+ * It injects Liquid + inline CSS + JS directly into sections/cart-template.liquid.
  *
  * Usage:
  *   node src/add-minimum-order.js           # Dry run (preview changes)
  *   node src/add-minimum-order.js --execute # Apply changes to theme
+ *   node src/add-minimum-order.js --execute --force # Strip old code and re-apply
  */
 
 import 'dotenv/config';
@@ -23,6 +22,7 @@ const THEME_ID = '140853018904';
 const BASE_URL = `https://${STORE_URL}/admin/api/${API_VERSION}`;
 
 const EXECUTE = process.argv.includes('--execute');
+const FORCE = process.argv.includes('--force');
 const MINIMUM_AMOUNT_CENTS = 2000; // $20.00
 const MINIMUM_AMOUNT_DISPLAY = '$20.00';
 
@@ -33,14 +33,22 @@ function curlRequest(url, method = 'GET', bodyFile = null) {
   if (bodyFile) {
     cmd += `-d @${bodyFile}`;
   }
-  const result = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
-  return JSON.parse(result);
+  try {
+    const result = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
+    if (!result || !result.trim()) {
+      console.error('   Empty response from API');
+      return {};
+    }
+    return JSON.parse(result);
+  } catch (err) {
+    console.error('   curl/parse error:', err.message);
+    return {};
+  }
 }
 
 function getThemeAsset(key) {
-  const encoded = encodeURIComponent(key);
   return curlRequest(
-    `${BASE_URL}/themes/${THEME_ID}/assets.json?asset%5Bkey%5D=${encoded}`
+    `${BASE_URL}/themes/${THEME_ID}/assets.json?asset%5Bkey%5D=${key}`
   );
 }
 
@@ -55,100 +63,129 @@ function putThemeAsset(key, value) {
 }
 
 // -----------------------------------------------------------------
-// Liquid snippet to inject into the cart template
+// Self-contained Liquid snippet with INLINE styles (no external CSS needed)
 // -----------------------------------------------------------------
-const MINIMUM_ORDER_LIQUID = `
-{% comment %} Minimum Order Amount Check - $20 minimum {% endcomment %}
+const MINIMUM_ORDER_SNIPPET = `
+{% comment %} ======= MINIMUM ORDER AMOUNT - START ======= {% endcomment %}
 {% assign minimum_order_amount = ${MINIMUM_AMOUNT_CENTS} %}
 {% assign cart_total = cart.total_price %}
 {% assign amount_remaining = minimum_order_amount | minus: cart_total %}
 
-{% if cart_total < minimum_order_amount %}
-  <div class="minimum-order-message">
-    <div class="minimum-order-icon">&#9888;</div>
-    <p><strong>Minimum order of ${MINIMUM_AMOUNT_DISPLAY} required</strong></p>
-    <p>You are <strong>{{ amount_remaining | money }}</strong> away from the minimum order amount.</p>
-    <div class="minimum-order-progress">
-      <div class="minimum-order-progress-bar" style="width: {{ cart_total | times: 100 | divided_by: minimum_order_amount }}%;"></div>
-    </div>
+{% if cart.item_count > 0 and cart_total < minimum_order_amount %}
+<style>
+  .minimum-order-message {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 18px 24px;
+    margin: 20px 0;
+    text-align: center;
+    color: #856404;
+    font-family: inherit;
+  }
+  .minimum-order-message .minimum-order-icon { font-size: 28px; margin-bottom: 8px; }
+  .minimum-order-message p { margin: 6px 0; font-size: 14px; line-height: 1.5; }
+  .minimum-order-message p:first-of-type { font-size: 17px; }
+  .minimum-order-progress { width: 100%; height: 10px; background: #e9ecef; border-radius: 5px; margin-top: 12px; overflow: hidden; }
+  .minimum-order-progress-bar { height: 100%; background: linear-gradient(90deg, #ffc107, #28a745); border-radius: 5px; transition: width 0.3s ease; }
+  .minimum-order-checkout-disabled { opacity: 0.45; pointer-events: none; cursor: not-allowed; }
+</style>
+<div class="minimum-order-message">
+  <div class="minimum-order-icon">&#9888;</div>
+  <p><strong>Minimum order of ${MINIMUM_AMOUNT_DISPLAY} required</strong></p>
+  <p>You are <strong>{{ amount_remaining | money }}</strong> away from the minimum. Add more items to checkout.</p>
+  <div class="minimum-order-progress">
+    <div class="minimum-order-progress-bar" style="width: {{ cart_total | times: 100 | divided_by: minimum_order_amount }}%;"></div>
   </div>
-{% endif %}`;
+</div>
+<script>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      var btns = document.querySelectorAll('[name="checkout"], [type="submit"], .cart__checkout, input[name="checkout"], button[name="checkout"]');
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].disabled = true;
+        btns[i].style.opacity = '0.45';
+        btns[i].style.pointerEvents = 'none';
+        btns[i].style.cursor = 'not-allowed';
+        var wrap = btns[i].parentElement;
+        if (wrap) { wrap.style.position = 'relative'; }
+      }
+      var dynBtns = document.querySelectorAll('.shopify-payment-button, .dynamic-checkout__buttons, [data-shopify="dynamic-checkout-cart"]');
+      for (var j = 0; j < dynBtns.length; j++) {
+        dynBtns[j].style.opacity = '0.45';
+        dynBtns[j].style.pointerEvents = 'none';
+        dynBtns[j].style.cursor = 'not-allowed';
+      }
+      var forms = document.querySelectorAll('form[action="/cart"]');
+      for (var k = 0; k < forms.length; k++) {
+        forms[k].addEventListener('submit', function(e) {
+          var sub = e.submitter;
+          if (sub && (sub.name === 'checkout' || sub.formAction && sub.formAction.includes('checkout'))) {
+            e.preventDefault();
+            alert('Minimum order of ${MINIMUM_AMOUNT_DISPLAY} required. Please add more items to your cart.');
+          }
+        });
+      }
+    });
+  })();
+</script>
+{% endif %}
+{% comment %} ======= MINIMUM ORDER AMOUNT - END ======= {% endcomment %}`;
 
-// -----------------------------------------------------------------
-// CSS for the minimum order message and disabled checkout
-// -----------------------------------------------------------------
-const MINIMUM_ORDER_CSS = `
-/* =====================================================
-   Minimum Order Amount ($20) - Cart Page
-   ===================================================== */
-.minimum-order-message {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 6px;
-  padding: 16px 20px;
-  margin: 15px 0;
-  text-align: center;
-  color: #856404;
-}
+// Markers used to find and strip old injected code
+const START_MARKER = '{% comment %} ======= MINIMUM ORDER AMOUNT - START ======= {% endcomment %}';
+const END_MARKER = '{% comment %} ======= MINIMUM ORDER AMOUNT - END ======= {% endcomment %}';
 
-.minimum-order-message .minimum-order-icon {
-  font-size: 24px;
-  margin-bottom: 6px;
-}
+function stripOldMinimumOrderCode(template) {
+  // Remove the new marker-based block
+  const startIdx = template.indexOf(START_MARKER);
+  const endIdx = template.indexOf(END_MARKER);
+  if (startIdx !== -1 && endIdx !== -1) {
+    template = template.substring(0, startIdx) + template.substring(endIdx + END_MARKER.length);
+    console.log('   Stripped marker-based minimum order block.');
+  }
 
-.minimum-order-message p {
-  margin: 4px 0;
-  font-size: 14px;
-  line-height: 1.5;
-}
+  // Also remove old-style code from the first version (without markers)
+  // Look for the old comment style
+  const oldStart = '{% comment %} Minimum Order Amount Check - $20 minimum {% endcomment %}';
+  const oldStartIdx = template.indexOf(oldStart);
+  if (oldStartIdx !== -1) {
+    // Find the end of the old injection - look for the end of the conditional blocks
+    // The old code ends at a {% endif %} that's part of the minimum order logic
+    // We need to find all the old injected content. It's tricky, so look for known patterns.
+    const patternsToRemove = [
+      /{% comment %} Minimum Order Amount Check[^]*?{% endif %}\s*/g,
+      /{% assign minimum_order_amount = \d+ %}\s*/g,
+      /{% assign cart_total = cart\.total_price %}\s*/g,
+      /{% assign amount_remaining = minimum_order_amount \| minus: cart_total %}\s*/g,
+      /<div class="minimum-order-message">[^]*?<\/div>\s*<\/div>\s*<\/div>\s*/g,
+      /{% if cart_total < minimum_order_amount %}[\s\S]*?{% endif %}\s*/g,
+      /<div class="cart__checkout-button-disabled">\s*/g,
+    ];
 
-.minimum-order-message p:first-of-type {
-  font-size: 16px;
-}
+    for (const pattern of patternsToRemove) {
+      const before = template.length;
+      template = template.replace(pattern, '');
+      if (template.length !== before) {
+        console.log(`   Stripped old pattern: ${pattern.source.substring(0, 50)}...`);
+      }
+    }
+  }
 
-.minimum-order-progress {
-  width: 100%;
-  height: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  margin-top: 10px;
-  overflow: hidden;
-}
+  // Clean up any double blank lines left behind
+  template = template.replace(/\n{3,}/g, '\n\n');
 
-.minimum-order-progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #ffc107, #28a745);
-  border-radius: 4px;
-  transition: width 0.3s ease;
+  return template;
 }
-
-/* Disable checkout button when below minimum */
-.cart__checkout-button-disabled {
-  opacity: 0.5;
-  pointer-events: none;
-  cursor: not-allowed;
-  position: relative;
-}
-
-.cart__checkout-button-disabled::after {
-  content: 'Minimum order: ${MINIMUM_AMOUNT_DISPLAY}';
-  position: absolute;
-  bottom: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 11px;
-  color: #856404;
-  white-space: nowrap;
-}
-`;
 
 // -----------------------------------------------------------------
 // Main
 // -----------------------------------------------------------------
 async function main() {
-  console.log('=== ADD MINIMUM ORDER AMOUNT ($20) ===\n');
-  console.log(`Mode: ${EXECUTE ? 'EXECUTE (will modify theme)' : 'DRY RUN (preview only)'}`);
+  console.log('=== ADD MINIMUM ORDER AMOUNT ($20) v2 ===\n');
+  console.log(`Mode: ${EXECUTE ? 'EXECUTE' : 'DRY RUN'}${FORCE ? ' + FORCE' : ''}`);
   console.log(`Theme ID: ${THEME_ID}`);
+  console.log(`Store: ${STORE_URL}`);
   console.log(`Minimum: ${MINIMUM_AMOUNT_DISPLAY}\n`);
 
   // ---------------------------------------------------------------
@@ -164,212 +201,65 @@ async function main() {
   let cartTemplate = cartResponse.asset.value;
   console.log(`   Fetched (${cartTemplate.length} chars)`);
 
-  // Check if already modified
-  if (cartTemplate.includes('minimum-order-message')) {
-    console.log('   NOTE: Cart template already contains minimum order logic.');
-    console.log('   Skipping cart template modification.\n');
+  const hasExistingCode = cartTemplate.includes('minimum-order-message') ||
+                          cartTemplate.includes('minimum_order_amount') ||
+                          cartTemplate.includes('Minimum Order Amount');
+
+  if (hasExistingCode && !FORCE) {
+    console.log('   Cart template already contains minimum order logic.');
+    console.log('   Use --force to strip old code and re-apply.');
+    console.log('   Skipping.\n');
   } else {
     // ---------------------------------------------------------------
-    // Step 2: Inject minimum order logic into cart template
+    // Step 2: Strip old code if present, then inject new code
     // ---------------------------------------------------------------
-    console.log('\n2. Injecting minimum order check into cart template...');
-
-    // Strategy: Insert the minimum order message above the checkout button area,
-    // and wrap the checkout button in a conditional to disable it when below minimum.
-    //
-    // We look for common patterns in Shopify cart templates:
-    //   - A checkout button (input/button with type="submit" name="checkout")
-    //   - Or an element with class containing "checkout"
-    //
-    // We insert:
-    //   a) The warning message block above the checkout area
-    //   b) A Liquid conditional to add a "disabled" class to the checkout button wrapper
-
-    let modified = false;
-
-    // Pattern 1: Look for the checkout button/input
-    // Common patterns: <input type="submit" name="checkout"
-    //                   <button type="submit" name="checkout"
-    const checkoutButtonPattern = /(<(?:input|button)[^>]*name\s*=\s*["']checkout["'][^>]*>)/i;
-    const checkoutButtonMatch = cartTemplate.match(checkoutButtonPattern);
-
-    if (checkoutButtonMatch) {
-      console.log('   Found checkout button pattern.');
-
-      // Find the containing div/wrapper for the checkout button area
-      // Insert the message before the checkout button and wrap button in conditional class
-      const buttonHtml = checkoutButtonMatch[1];
-      const buttonIndex = cartTemplate.indexOf(buttonHtml);
-
-      // Insert minimum order message just before the checkout button
-      const injection = `${MINIMUM_ORDER_LIQUID}
-
-{% if cart_total < minimum_order_amount %}
-  <div class="cart__checkout-button-disabled">
-    ${buttonHtml}
-  </div>
-{% else %}
-  ${buttonHtml}
-{% endif %}`;
-
-      cartTemplate = cartTemplate.substring(0, buttonIndex) + injection + cartTemplate.substring(buttonIndex + buttonHtml.length);
-      modified = true;
+    if (hasExistingCode) {
+      console.log('\n2. Stripping old minimum order code (--force)...');
+      cartTemplate = stripOldMinimumOrderCode(cartTemplate);
+      console.log(`   After strip: ${cartTemplate.length} chars`);
     }
 
-    // Pattern 2: Look for additional checkout buttons (dynamic checkout / Shop Pay)
-    if (!modified) {
-      // Try looking for cart__buttons, cart-buttons, or similar wrapper
-      const cartButtonsPattern = /(<div[^>]*class\s*=\s*["'][^"']*cart[_-]?buttons[^"']*["'][^>]*>)/i;
-      const cartButtonsMatch = cartTemplate.match(cartButtonsPattern);
+    console.log('\n3. Injecting minimum order snippet...');
 
-      if (cartButtonsMatch) {
-        console.log('   Found cart buttons wrapper pattern.');
-        const wrapperHtml = cartButtonsMatch[1];
-        const wrapperIndex = cartTemplate.indexOf(wrapperHtml);
+    // Strategy: Insert the self-contained snippet right after the opening
+    // of the cart form, so it appears prominently at the top of the cart.
+    // Look for the {% schema %} tag and insert just before it.
+    const schemaPattern = /\{%-?\s*schema\s*-?%\}/;
+    const schemaMatch = cartTemplate.match(schemaPattern);
 
-        const injection = `${MINIMUM_ORDER_LIQUID}
-
-{% if cart_total < minimum_order_amount %}
-${wrapperHtml.replace(/class\s*=\s*["']([^"']*)["']/, 'class="$1 cart__checkout-button-disabled"')}
-{% else %}
-${wrapperHtml}
-{% endif %}`;
-
-        cartTemplate = cartTemplate.substring(0, wrapperIndex) + injection + cartTemplate.substring(wrapperIndex + wrapperHtml.length);
-        modified = true;
-      }
+    if (schemaMatch) {
+      const schemaIndex = cartTemplate.indexOf(schemaMatch[0]);
+      cartTemplate = cartTemplate.substring(0, schemaIndex) +
+        MINIMUM_ORDER_SNIPPET + '\n\n' +
+        cartTemplate.substring(schemaIndex);
+      console.log('   Inserted before {% schema %} tag.');
+    } else {
+      // Fallback: append to end
+      cartTemplate += '\n' + MINIMUM_ORDER_SNIPPET;
+      console.log('   Appended to end of template.');
     }
 
-    // Pattern 3: Fallback - look for any checkout-related form action
-    if (!modified) {
-      // Look for form action="/cart" or action="/checkout"
-      const formPattern = /(<form[^>]*action\s*=\s*["']\/cart["'][^>]*>)/i;
-      const formMatch = cartTemplate.match(formPattern);
-
-      if (formMatch) {
-        console.log('   Found cart form pattern. Inserting after form open tag.');
-        const formTag = formMatch[1];
-        const formIndex = cartTemplate.indexOf(formTag) + formTag.length;
-
-        const injection = `
-${MINIMUM_ORDER_LIQUID}`;
-
-        cartTemplate = cartTemplate.substring(0, formIndex) + injection + cartTemplate.substring(formIndex);
-
-        // Also try to disable the submit button
-        const submitPattern = /(<(?:input|button)[^>]*type\s*=\s*["']submit["'][^>]*>)/i;
-        const submitMatch = cartTemplate.match(submitPattern);
-        if (submitMatch) {
-          const submitBtn = submitMatch[1];
-          const submitIndex = cartTemplate.indexOf(submitBtn);
-
-          const submitInjection = `{% if cart_total < minimum_order_amount %}
-  <div class="cart__checkout-button-disabled">
-    ${submitBtn}
-  </div>
-{% else %}
-  ${submitBtn}
-{% endif %}`;
-
-          cartTemplate = cartTemplate.substring(0, submitIndex) + submitInjection + cartTemplate.substring(submitIndex + submitBtn.length);
-        }
-
-        modified = true;
-      }
-    }
-
-    // Pattern 4: Last resort - prepend the message to the template and use JS
-    if (!modified) {
-      console.log('   Could not find a specific checkout button pattern.');
-      console.log('   Appending minimum order logic with JS-based button disabling.');
-
-      const jsDisableSnippet = `
-${MINIMUM_ORDER_LIQUID}
-
-{% if cart_total < minimum_order_amount %}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Disable all checkout buttons
-    var checkoutBtns = document.querySelectorAll('[name="checkout"], [href*="checkout"], .cart__checkout, .cart__submit, [type="submit"]');
-    checkoutBtns.forEach(function(btn) {
-      btn.closest('div') && btn.closest('div').classList.add('cart__checkout-button-disabled');
-      btn.disabled = true;
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        alert('Minimum order of ${MINIMUM_AMOUNT_DISPLAY} required. Please add more items to your cart.');
-      });
-    });
-  });
-</script>
-{% endif %}`;
-
-      // Insert before the closing {% endschema %} or at end of template
-      const schemaPattern = /\{%\s*schema\s*%\}/;
-      const schemaMatch = cartTemplate.match(schemaPattern);
-
-      if (schemaMatch) {
-        const schemaIndex = cartTemplate.indexOf(schemaMatch[0]);
-        cartTemplate = cartTemplate.substring(0, schemaIndex) + jsDisableSnippet + '\n\n' + cartTemplate.substring(schemaIndex);
-      } else {
-        cartTemplate += jsDisableSnippet;
-      }
-
-      modified = true;
-    }
-
-    if (modified) {
-      console.log('   Minimum order logic injected successfully.');
-      console.log(`   New template size: ${cartTemplate.length} chars`);
-    }
+    console.log(`   New template size: ${cartTemplate.length} chars`);
 
     // ---------------------------------------------------------------
     // Step 3: Push modified cart template
     // ---------------------------------------------------------------
     if (EXECUTE) {
-      console.log('\n3. Pushing modified cart template to Shopify...');
+      console.log('\n4. Pushing modified cart template to Shopify...');
       const updateResult = putThemeAsset('sections/cart-template.liquid', cartTemplate);
       if (updateResult.asset) {
-        console.log('   SUCCESS: Cart template updated.');
+        console.log('   SUCCESS: Cart template updated!');
+        console.log(`   Updated at: ${updateResult.asset.updated_at || 'unknown'}`);
       } else {
         console.error('   ERROR:', JSON.stringify(updateResult, null, 2));
         return;
       }
     } else {
-      console.log('\n3. [DRY RUN] Would push modified cart template to Shopify.');
-    }
-  }
-
-  // ---------------------------------------------------------------
-  // Step 4: Update CSS file
-  // ---------------------------------------------------------------
-  console.log('\n4. Fetching assets/filter-enhancements.css...');
-  const cssResponse = getThemeAsset('assets/filter-enhancements.css');
-  let cssContent = '';
-
-  if (cssResponse.asset) {
-    cssContent = cssResponse.asset.value;
-    console.log(`   Fetched (${cssContent.length} chars)`);
-  } else {
-    console.log('   File not found, will create it.');
-  }
-
-  if (cssContent.includes('minimum-order-message')) {
-    console.log('   NOTE: CSS already contains minimum order styles. Skipping.');
-  } else {
-    cssContent += '\n' + MINIMUM_ORDER_CSS;
-    console.log(`   Added minimum order CSS (${MINIMUM_ORDER_CSS.length} chars)`);
-
-    if (EXECUTE) {
-      console.log('   Pushing updated CSS to Shopify...');
-      const cssUpdateResult = putThemeAsset('assets/filter-enhancements.css', cssContent);
-      if (cssUpdateResult.asset) {
-        console.log('   SUCCESS: CSS updated.');
-      } else {
-        console.error('   ERROR:', JSON.stringify(cssUpdateResult, null, 2));
-        return;
-      }
-    } else {
-      console.log('   [DRY RUN] Would push updated CSS to Shopify.');
+      console.log('\n4. [DRY RUN] Would push modified cart template.');
+      console.log('   Preview of injected snippet:');
+      console.log('   ---');
+      console.log(MINIMUM_ORDER_SNIPPET.split('\n').slice(0, 10).join('\n'));
+      console.log('   ... (truncated)');
     }
   }
 
@@ -378,15 +268,16 @@ ${MINIMUM_ORDER_LIQUID}
   // ---------------------------------------------------------------
   console.log('\n=== COMPLETE ===');
   if (EXECUTE) {
-    console.log('Minimum order amount ($20) has been added to the cart.');
-    console.log('\nVerification:');
-    console.log('  1. Visit the store and add items under $20 to cart');
-    console.log('  2. You should see a warning message with a progress bar');
-    console.log('  3. The checkout button should be disabled');
-    console.log('  4. Add more items to reach $20+ and the warning should disappear');
+    console.log('Minimum order amount ($20) is now active on the cart page.');
+    console.log('\nHow it works:');
+    console.log('  - Customers with items under $20 see a warning banner');
+    console.log('  - Progress bar shows how close they are to $20');
+    console.log('  - Checkout button is disabled (grayed out + unclickable)');
+    console.log('  - Dynamic checkout buttons (Shop Pay etc.) are also disabled');
+    console.log('  - Once cart reaches $20+, everything returns to normal');
   } else {
-    console.log('This was a dry run. Re-run with --execute to apply changes:');
-    console.log('  node src/add-minimum-order.js --execute');
+    console.log('This was a dry run. To apply:');
+    console.log('  node src/add-minimum-order.js --execute --force');
   }
 }
 

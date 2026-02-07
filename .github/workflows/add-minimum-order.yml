@@ -34,11 +34,11 @@ jobs:
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
         run: |
           if [ "${{ inputs.action }}" == "execute" ]; then
-            echo "Applying $20 minimum order amount to theme..."
-            node src/add-minimum-order.js --execute
+            echo "Applying minimum order amount to theme (with --force to replace old code)..."
+            node src/add-minimum-order.js --execute --force
           else
             echo "Dry run - previewing minimum order changes..."
-            node src/add-minimum-order.js
+            node src/add-minimum-order.js --force
           fi
 
       - name: Generate Summary
