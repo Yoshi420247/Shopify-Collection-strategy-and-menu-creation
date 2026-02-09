@@ -43,7 +43,9 @@
     "descriptions:execute": "node src/update-collection-descriptions.js --execute",
     "descriptions:single": "node src/update-collection-descriptions.js --execute --collection=",
     "min-order": "node src/add-minimum-order.js",
-    "min-order:execute": "node src/add-minimum-order.js --execute"
+    "min-order:execute": "node src/add-minimum-order.js --execute --force",
+    "cancel-under-min": "node src/auto-cancel-under-minimum.js",
+    "cancel-under-min:execute": "node src/auto-cancel-under-minimum.js --execute"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",

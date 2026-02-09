@@ -1,0 +1,65 @@
+name: Auto-Cancel Orders Under Minimum
+
+on:
+  # Run every 15 minutes automatically
+  schedule:
+    - cron: '*/15 * * * *'
+  # Also allow manual runs
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'report'
+        type: choice
+        options:
+          - report          # Report orders under $20 (no changes)
+          - execute         # Cancel orders under $20
+
+jobs:
+  auto-cancel:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check and Cancel Under-Minimum Orders
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            echo "Scheduled run: auto-cancelling orders under minimum..."
+            node src/auto-cancel-under-minimum.js --execute
+          elif [ "${{ inputs.action }}" == "execute" ]; then
+            echo "Manual run: cancelling orders under minimum..."
+            node src/auto-cancel-under-minimum.js --execute
+          else
+            echo "Report only: checking for orders under minimum..."
+            node src/auto-cancel-under-minimum.js
+          fi
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Order Minimum Enforcement Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** \`${{ github.event_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Minimum Amount:** \$20.00" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the workflow logs above for details on which orders were found and cancelled." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Orders](https://oil-slick-pad.myshopify.com/admin/orders)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Fraud](https://oil-slick-pad.myshopify.com/admin/orders?status=open&risk_level=high)" >> $GITHUB_STEP_SUMMARY
