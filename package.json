@@ -45,7 +45,10 @@
     "min-order": "node src/add-minimum-order.js",
     "min-order:execute": "node src/add-minimum-order.js --execute --force",
     "cancel-under-min": "node src/auto-cancel-under-minimum.js",
-    "cancel-under-min:execute": "node src/auto-cancel-under-minimum.js --execute"
+    "cancel-under-min:execute": "node src/auto-cancel-under-minimum.js --execute",
+    "guard:install": "node src/install-checkout-guard.js --execute",
+    "guard:remove": "node src/install-checkout-guard.js --remove --execute",
+    "guard:status": "node src/install-checkout-guard.js"
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",
