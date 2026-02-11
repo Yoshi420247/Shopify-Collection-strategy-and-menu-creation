@@ -37,7 +37,13 @@
     "dedup:execute": "node src/fix-duplicate-listings.js --execute",
     "redirects": "node src/fix-redirects.js",
     "redirects:execute": "node src/fix-redirects.js --execute",
-    "redirects:audit": "node src/fix-redirects.js --audit"
+    "redirects:audit": "node src/fix-redirects.js --audit",
+    "prices": "node src/price-manager.js",
+    "prices:snapshot": "node src/price-manager.js --snapshot",
+    "prices:audit": "node src/price-manager.js --audit",
+    "prices:oilslick": "node src/price-manager.js --vendor \"Oil Slick\"",
+    "prices:wyn": "node src/price-manager.js --vendor \"What You Need\"",
+    "prices:yhs": "node src/price-manager.js --vendor \"Cloud YHS\""
   },
   "dependencies": {
     "@shopify/shopify-api": "^9.0.0",

@@ -1,0 +1,182 @@
+name: Price Manager - Snapshot & Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'snapshot-all'
+        type: choice
+        options:
+          - snapshot-all              # Save all current prices to artifact
+          - snapshot-oilslick         # Save Oil Slick prices to artifact
+          - snapshot-whatyouneed      # Save What You Need prices to artifact
+          - snapshot-cloudyhs         # Save Cloud YHS prices to artifact
+          - audit                     # Show recent price change events
+          - diff                      # Compare current prices against uploaded snapshot
+          - rollback                  # Dry run rollback from snapshot artifact
+          - rollback-execute          # EXECUTE rollback from snapshot artifact
+      snapshot_run_id:
+        description: 'Run ID of snapshot to use for diff/rollback (from a previous snapshot run)'
+        required: false
+        type: string
+
+jobs:
+  price-manager:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download snapshot artifact (for diff/rollback)
+        if: ${{ contains(fromJSON('["diff", "rollback", "rollback-execute"]'), inputs.action) && inputs.snapshot_run_id != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: price-snapshot
+          path: ./snapshots/
+          run-id: ${{ inputs.snapshot_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Snapshot All Vendors
+        if: ${{ inputs.action == 'snapshot-all' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Taking price snapshot of ALL vendors..."
+          node src/price-manager.js --snapshot
+
+      - name: Snapshot Oil Slick
+        if: ${{ inputs.action == 'snapshot-oilslick' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Taking price snapshot of Oil Slick products..."
+          node src/price-manager.js --snapshot --vendor "Oil Slick"
+
+      - name: Snapshot What You Need
+        if: ${{ inputs.action == 'snapshot-whatyouneed' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Taking price snapshot of What You Need products..."
+          node src/price-manager.js --snapshot --vendor "What You Need"
+
+      - name: Snapshot Cloud YHS
+        if: ${{ inputs.action == 'snapshot-cloudyhs' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Taking price snapshot of Cloud YHS products..."
+          node src/price-manager.js --snapshot --vendor "Cloud YHS"
+
+      - name: Audit Price Changes
+        if: ${{ inputs.action == 'audit' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Auditing recent price change events..."
+          node src/price-manager.js --audit
+
+      - name: Diff Against Snapshot
+        if: ${{ inputs.action == 'diff' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          SNAPSHOT_FILE=$(ls snapshots/price-snapshot-*.json 2>/dev/null | head -1)
+          if [ -z "$SNAPSHOT_FILE" ]; then
+            echo "ERROR: No snapshot file found. Provide a snapshot_run_id from a previous snapshot run."
+            exit 1
+          fi
+          echo "Comparing current prices against: $SNAPSHOT_FILE"
+          node src/price-manager.js --diff "$SNAPSHOT_FILE"
+
+      - name: Rollback Prices (Dry Run)
+        if: ${{ inputs.action == 'rollback' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          SNAPSHOT_FILE=$(ls snapshots/price-snapshot-*.json 2>/dev/null | head -1)
+          if [ -z "$SNAPSHOT_FILE" ]; then
+            echo "ERROR: No snapshot file found. Provide a snapshot_run_id from a previous snapshot run."
+            exit 1
+          fi
+          echo "DRY RUN - Previewing price rollback from: $SNAPSHOT_FILE"
+          node src/price-manager.js --rollback "$SNAPSHOT_FILE"
+
+      - name: Rollback Prices (EXECUTE)
+        if: ${{ inputs.action == 'rollback-execute' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          SNAPSHOT_FILE=$(ls snapshots/price-snapshot-*.json 2>/dev/null | head -1)
+          if [ -z "$SNAPSHOT_FILE" ]; then
+            echo "ERROR: No snapshot file found. Provide a snapshot_run_id from a previous snapshot run."
+            exit 1
+          fi
+          echo "EXECUTING price rollback from: $SNAPSHOT_FILE"
+          node src/price-manager.js --rollback "$SNAPSHOT_FILE" --execute
+
+      - name: Upload snapshot artifact
+        if: ${{ startsWith(inputs.action, 'snapshot') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: price-snapshot
+          path: price-snapshot-*.json
+          retention-days: 90
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Price Manager Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ inputs.action }}" == snapshot* ]]; then
+            echo "### Snapshot Saved" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Price snapshot has been saved as a workflow artifact." >> $GITHUB_STEP_SUMMARY
+            echo "Use this run's ID for future diff/rollback operations." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Run ID for reference:** \`${{ github.run_id }}\`" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "rollback-execute" ]; then
+            echo "### Prices Rolled Back" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Prices have been reverted to the snapshot values." >> $GITHUB_STEP_SUMMARY
+            echo "Check the workflow logs for details on which products were updated." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "rollback" ]; then
+            echo "### Dry Run Complete" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "This was a **dry run**. No prices were changed." >> $GITHUB_STEP_SUMMARY
+            echo "Run again with \`rollback-execute\` to apply the changes." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### How to Use" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Take a snapshot** before making price changes" >> $GITHUB_STEP_SUMMARY
+          echo "2. **Diff** current prices against a snapshot to see what changed" >> $GITHUB_STEP_SUMMARY
+          echo "3. **Rollback** to restore prices from a snapshot" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Products](https://oil-slick-pad.myshopify.com/admin/products)" >> $GITHUB_STEP_SUMMARY
