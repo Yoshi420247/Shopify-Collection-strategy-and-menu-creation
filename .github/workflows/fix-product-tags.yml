@@ -1,0 +1,74 @@
+name: Fix Product Tags
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run         # Preview tag changes without applying
+          - execute         # Apply tag fixes to products in Shopify
+
+jobs:
+  fix-tags:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Fix Product Tags
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "Applying product tag fixes..."
+            node src/collection-cleanup.js --execute --fix-tags --validate
+          else
+            echo "Dry run - previewing tag changes..."
+            node src/collection-cleanup.js --fix-tags --validate
+          fi
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Product Tag Fix Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "### Tags Applied" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Product tags have been updated based on title-matching rules." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**What was fixed:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Added missing \`family:\` tags (e.g. family:glass-bong, family:grinder)" >> $GITHUB_STEP_SUMMARY
+            echo "- Added missing \`material:\` tags (e.g. material:silicone, material:quartz)" >> $GITHUB_STEP_SUMMARY
+            echo "- Added missing \`pillar:\` tags (smokeshop-device vs accessory)" >> $GITHUB_STEP_SUMMARY
+            echo "- Added missing \`use:\` tags (dabbing, flower-smoking, rolling, etc.)" >> $GITHUB_STEP_SUMMARY
+            echo "- Removed incorrect tags (e.g. rolling-paper tag on silicone products)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "This was a **dry run**. No changes were made." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Run again with \`execute\` to apply the tag fixes." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Products](https://oil-slick-pad.myshopify.com/admin/products)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Collections](https://oil-slick-pad.myshopify.com/admin/collections)" >> $GITHUB_STEP_SUMMARY
