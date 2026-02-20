@@ -185,6 +185,9 @@ const DUPLICATE_COLLECTIONS_TO_DELETE = [
   // Wholesale/display (may need review)
   'wholesale-pipes',          // Review - might be needed
   'grinders-in-retail-bulk-display', // Keep if bulk business
+
+  // Cloud YHS is a vendor tag, not a collection
+  'cloud-yhs',               // Products belong in category collections, not vendor collection
 ];
 
 // Collections to KEEP but may need cleanup
