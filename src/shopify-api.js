@@ -2,6 +2,10 @@
 import { config } from './config.js';
 import { execSync } from 'child_process';
 
+if (!config.shopify.storeUrl) {
+  throw new Error('SHOPIFY_STORE_URL environment variable is not set. Set it to your store domain (e.g. "my-store.myshopify.com").');
+}
+
 const BASE_URL = `https://${config.shopify.storeUrl}/admin/api/${config.shopify.apiVersion}`;
 const GRAPHQL_URL = `${BASE_URL}/graphql.json`;
 

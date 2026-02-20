@@ -306,6 +306,10 @@ async function main() {
     console.error('ERROR: Either ANTHROPIC_API_KEY or GEMINI_API_KEY/GOOGLE_API_KEY is required');
     process.exit(1);
   }
+  if (!config.shopify.storeUrl) {
+    console.error('ERROR: SHOPIFY_STORE_URL environment variable is required (e.g. "my-store.myshopify.com")');
+    process.exit(1);
+  }
   if (!config.shopify.accessToken) {
     console.error('ERROR: SHOPIFY_ACCESS_TOKEN environment variable is required');
     process.exit(1);
