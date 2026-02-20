@@ -11,10 +11,19 @@ const GRAPHQL_URL = `${BASE_URL}/graphql.json`;
 
 // Rate limiting
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 550;
+const MIN_REQUEST_INTERVAL = 500; // ~2 req/sec for Shopify REST
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Serialized request queue - ensures REST API requests are properly spaced
+// even when called from multiple concurrent paginateAll() calls.
+let _nextRequestSlot = Promise.resolve();
+function acquireRequestSlot() {
+  const slot = _nextRequestSlot.then(() => sleep(MIN_REQUEST_INTERVAL));
+  _nextRequestSlot = slot.catch(() => {});
+  return slot;
 }
 
 async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3) {
@@ -159,12 +168,8 @@ export async function paginateAll(endpoint, resourceKey, params = {}, { pageLimi
   while (url && page < pageLimit) {
     page++;
 
-    const now = Date.now();
-    const timeSinceLastRequest = now - lastRequestTime;
-    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-      await sleep(MIN_REQUEST_INTERVAL - timeSinceLastRequest);
-    }
-    lastRequestTime = Date.now();
+    // Serialize with other concurrent paginateAll calls
+    await acquireRequestSlot();
 
     let lastError;
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -226,6 +231,25 @@ export async function graphqlQuery(query, variables = {}) {
     'POST',
     { query, variables }
   );
+}
+
+// Direct GraphQL fetch via native fetch - bypasses REST rate limiter.
+// Used for high-throughput mutations where cost-based throttling applies.
+// Returns full response including extensions.cost for caller to manage rate.
+export async function graphqlFetch(query, variables = {}) {
+  const response = await fetch(GRAPHQL_URL, {
+    method: 'POST',
+    headers: {
+      'X-Shopify-Access-Token': config.shopify.accessToken,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`GraphQL HTTP ${response.status}: ${text.substring(0, 300)}`);
+  }
+  return response.json();
 }
 
 // Get menus via GraphQL
@@ -430,6 +454,7 @@ export default {
   getAllProductsByVendor,
   paginateAll,
   graphqlQuery,
+  graphqlFetch,
   getMenus,
   createMenu,
   get,

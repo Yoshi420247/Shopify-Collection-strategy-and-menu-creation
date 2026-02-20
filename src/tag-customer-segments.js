@@ -31,7 +31,7 @@
  */
 
 import { config } from './config.js';
-import { updateCustomer, getCustomers } from './shopify-api.js';
+import { updateCustomer, getCustomers, graphqlFetch } from './shopify-api.js';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -365,30 +365,115 @@ async function main() {
     return;
   }
 
-  // ─── Execute updates ──────────────────────────────────────────────
-  console.log('━━━ PUSHING TAGS TO SHOPIFY ━━━');
+  // ─── Execute updates via batched GraphQL mutations ───────────────
+  // Uses Shopify's GraphQL API which has a separate, more generous rate limit
+  // (1000 cost points, 50/sec restore) vs REST (40 bucket, 2/sec).
+  // Batches 10 customerUpdate mutations per query with concurrent workers.
+  console.log('━━━ PUSHING TAGS TO SHOPIFY (GraphQL batched) ━━━');
 
+  const BATCH_SIZE = 10;
+  const CONCURRENCY = 3;
+
+  // Split updates into batches
+  const batches = [];
+  for (let i = 0; i < updates.length; i += BATCH_SIZE) {
+    batches.push(updates.slice(i, i + BATCH_SIZE));
+  }
+  console.log(`  ${updates.length} customers → ${batches.length} batches of ${BATCH_SIZE} × ${CONCURRENCY} workers`);
+
+  let batchIndex = 0;
   let success = 0;
   let errors = 0;
   const errorLog = [];
+  const startTime = Date.now();
 
-  for (let i = 0; i < updates.length; i++) {
-    const u = updates[i];
+  async function tagWorker(workerId) {
+    while (true) {
+      const idx = batchIndex++;
+      if (idx >= batches.length) break;
 
-    try {
-      await updateCustomer(u.id, { id: u.id, tags: u.newTags });
-      success++;
+      const batch = batches[idx];
 
-      if ((i + 1) % 25 === 0 || i === updates.length - 1) {
-        const pct = ((i + 1) / updates.length * 100).toFixed(1);
-        console.log(`  Progress: ${i + 1}/${updates.length} (${pct}%) - ${success} ok, ${errors} errors`);
+      // Build batched GraphQL mutation
+      const mutations = batch.map((u, j) => {
+        const gid = `gid://shopify/Customer/${u.id}`;
+        const tagArray = u.newTags.split(', ').filter(Boolean);
+        const tagsStr = tagArray.map(t => JSON.stringify(t)).join(', ');
+        return `c${j}: customerUpdate(input: {id: "${gid}", tags: [${tagsStr}]}) {
+      customer { id }
+      userErrors { field message }
+    }`;
+      });
+
+      const query = `mutation {\n  ${mutations.join('\n  ')}\n}`;
+
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const result = await graphqlFetch(query);
+
+          // Handle throttling at the response level
+          if (result.errors?.some(e => e.extensions?.code === 'THROTTLED')) {
+            const wait = 2000 * attempt;
+            await new Promise(r => setTimeout(r, wait));
+            if (attempt < 3) continue;
+          }
+
+          // Process individual results
+          for (let j = 0; j < batch.length; j++) {
+            const res = result.data?.[`c${j}`];
+            if (res?.userErrors?.length > 0) {
+              errors++;
+              errorLog.push({
+                email: batch[j].email,
+                id: batch[j].id,
+                error: res.userErrors.map(e => e.message).join('; '),
+              });
+            } else {
+              success++;
+            }
+          }
+
+          // Cost-based rate limiting using Shopify's throttle feedback
+          const available = result.extensions?.cost?.throttleStatus?.currentlyAvailable;
+          if (available !== undefined) {
+            if (available < 100) await new Promise(r => setTimeout(r, 3000));
+            else if (available < 200) await new Promise(r => setTimeout(r, 1000));
+            else if (available < 400) await new Promise(r => setTimeout(r, 200));
+          }
+
+          break; // Success
+        } catch (err) {
+          if (attempt >= 3) {
+            errors += batch.length;
+            for (const u of batch) {
+              errorLog.push({ email: u.email, id: u.id, error: err.message });
+            }
+            console.log(`  ✗ Batch failed: ${err.message}`);
+          } else {
+            await new Promise(r => setTimeout(r, 2000 * attempt));
+          }
+        }
       }
-    } catch (err) {
-      errors++;
-      errorLog.push({ email: u.email, id: u.id, error: err.message });
-      console.log(`  ✗ Failed: ${u.email} - ${err.message}`);
+
+      // Progress reporting
+      const processed = Math.min((idx + 1) * BATCH_SIZE, updates.length);
+      if (processed % 500 === 0 || processed >= updates.length || idx === 0) {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
+        const rate = (processed / elapsed * 60).toFixed(0);
+        const pct = (processed / updates.length * 100).toFixed(1);
+        console.log(`  Progress: ${processed}/${updates.length} (${pct}%) - ${success} ok, ${errors} errors [${elapsed}s, ~${rate}/min]`);
+      }
     }
   }
+
+  // Launch concurrent workers
+  await Promise.all(
+    Array.from({ length: CONCURRENCY }, (_, i) => tagWorker(i))
+  );
+
+  const totalElapsed = ((Date.now() - startTime) / 1000).toFixed(0);
+  console.log(`  Completed in ${totalElapsed}s (${(success / totalElapsed * 60).toFixed(0)} customers/min)`);
+  console.log('');
 
   // ─── Results ──────────────────────────────────────────────────────
   console.log('');
