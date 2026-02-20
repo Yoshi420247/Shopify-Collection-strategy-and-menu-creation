@@ -67,7 +67,7 @@ function printBanner(options) {
   console.log(`  Confidence threshold: ${options.confidenceThreshold}`);
   console.log(`  Batch size:          ${options.batchSize}`);
   console.log(`  Workers:             ${options.workers}`);
-  const hasGemini = !!process.env.GEMINI_API_KEY;
+  const hasGemini = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
   const modelNames = { gemini: 'Gemini Flash ($0.10/M)', sonnet: 'Claude Sonnet ($3/M)', auto: 'Gemini Flash → Sonnet escalation' };
   const requestedModel = modelNames[options.analysisModel] || options.analysisModel;
   if ((options.analysisModel === 'gemini' || options.analysisModel === 'auto') && !hasGemini) {
