@@ -9,8 +9,9 @@
 //
 // Cost-saving flags:
 //   --from-report=<path>   Apply a previous dry-run report (ZERO AI cost)
-//   --screen               Use cheap Gemini Flash screening before Sonnet (~50% savings)
+//   --screen               Use cheap Gemini Flash screening before analysis (~50% savings)
 //   --skip-existing        Skip products that already have color variants
+//   --analysis-model=X     gemini (default, cheapest), sonnet (most accurate), auto (gemini + escalate)
 //
 // Performance:
 //   --workers=N            Process N products in parallel (default: 5)
@@ -29,9 +30,10 @@ const DEFAULTS = {
   mode: 'dry-run',
   productIds: null,
   fromReport: null,        // Path to a dry-run report to reuse (skips AI entirely)
-  screen: false,           // Use cheap Gemini screening before expensive Sonnet analysis
+  screen: false,           // Use cheap Gemini screening before analysis
   skipExisting: false,     // Skip products that already have color variants
   workers: 5,              // Parallel workers for processing products concurrently
+  analysisModel: 'gemini', // gemini (cheapest), sonnet (accurate), auto (gemini + escalate)
 };
 
 function parseArgs() {
@@ -50,6 +52,7 @@ function parseArgs() {
     else if (arg.startsWith('--product-ids=')) options.productIds = arg.split('=')[1].split(',').map(Number);
     else if (arg.startsWith('--from-report=')) options.fromReport = arg.split('=')[1];
     else if (arg.startsWith('--workers=')) options.workers = Math.max(1, parseInt(arg.split('=')[1], 10));
+    else if (arg.startsWith('--analysis-model=')) options.analysisModel = arg.split('=')[1];
   }
 
   return options;
@@ -64,6 +67,8 @@ function printBanner(options) {
   console.log(`  Confidence threshold: ${options.confidenceThreshold}`);
   console.log(`  Batch size:          ${options.batchSize}`);
   console.log(`  Workers:             ${options.workers}`);
+  const modelNames = { gemini: 'Gemini Flash ($0.10/M)', sonnet: 'Claude Sonnet ($3/M)', auto: 'Gemini Flash → Sonnet escalation' };
+  console.log(`  Analysis model:      ${modelNames[options.analysisModel] || options.analysisModel}`);
   if (options.screen) {
     const screenModel = process.env.GEMINI_API_KEY ? 'Gemini Flash' : 'Haiku';
     console.log(`  Screening:           ENABLED (${screenModel})`);
@@ -110,6 +115,10 @@ function createCostTracker() {
 
 function trackUsage(costTracker, usage) {
   if (!usage || !usage.model) return;
+  // Handle escalation: if this was an auto-escalated call, track both models
+  if (usage.escalatedFrom) {
+    trackUsage(costTracker, usage.escalatedFrom);
+  }
   const bucket = costTracker[usage.model];
   if (!bucket) return;
   bucket.inputTokens += usage.inputTokens || 0;
@@ -183,8 +192,9 @@ async function processProduct(product, idx, total, options) {
     L(`    SCREEN (${screenResult.model}): ${screenResult.reason} — proceeding to full analysis`);
   }
 
-  // ── Full AI Analysis (Sonnet) ────────────────────────────────────
+  // ── Full AI Analysis ────────────────────────────────────────────
   const analysis = await analyzeProduct(product, {
+    analysisModel: options.analysisModel,
     confidenceThreshold: options.confidenceThreshold,
   });
   entry.analysis = analysis;

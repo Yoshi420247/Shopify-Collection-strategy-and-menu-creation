@@ -21,6 +21,15 @@ on:
         required: false
         default: true
         type: boolean
+      analysis_model:
+        description: 'Analysis model: gemini (cheapest), sonnet (most accurate), auto (gemini + escalate)'
+        required: false
+        default: 'gemini'
+        type: choice
+        options:
+          - gemini
+          - auto
+          - sonnet
       workers:
         description: 'Parallel workers (higher = faster but more API pressure)'
         required: false
@@ -95,6 +104,7 @@ jobs:
           fi
 
           ARGS="$ARGS --workers=${{ inputs.workers }}"
+          ARGS="$ARGS --analysis-model=${{ inputs.analysis_model }}"
 
           echo "=== Running AI Variant Analysis ==="
           echo "Mode: ${{ inputs.mode }}"
