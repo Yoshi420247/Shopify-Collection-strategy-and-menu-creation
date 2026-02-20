@@ -68,7 +68,14 @@
     "customers:tag:clear": "node src/tag-customer-segments.js --clear",
     "customers:tag:clear:execute": "node src/tag-customer-segments.js --clear --execute",
     "customers:opt-in": "node src/tag-customer-segments.js --opt-in-all",
-    "customers:opt-in:execute": "node src/tag-customer-segments.js --opt-in-all --execute"
+    "customers:opt-in:execute": "node src/tag-customer-segments.js --opt-in-all --execute",
+    "cart-recovery": "node src/abandoned-cart-engine.js",
+    "cart-recovery:execute": "node src/abandoned-cart-engine.js --execute",
+    "cart-recovery:report": "node src/abandoned-cart-engine.js --report",
+    "cart-recovery:verbose": "node src/abandoned-cart-engine.js --verbose",
+    "cart-recovery:test": "node src/abandoned-cart-engine.js --max=5 --verbose",
+    "cart-recovery:setup": "node src/setup-cart-recovery-flows.js",
+    "cart-recovery:setup:create": "node src/setup-cart-recovery-flows.js --create"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -81,7 +88,10 @@
     "shopify",
     "collections",
     "menu",
-    "navigation"
+    "navigation",
+    "abandoned-cart",
+    "recovery",
+    "automation"
   ],
   "author": "",
   "license": "MIT"

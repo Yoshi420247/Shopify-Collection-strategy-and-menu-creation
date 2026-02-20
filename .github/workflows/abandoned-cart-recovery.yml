@@ -1,0 +1,81 @@
+name: Abandoned Cart Recovery
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - execute
+          - report
+      max_checkouts:
+        description: 'Max checkouts to process (0 = all)'
+        required: false
+        default: '0'
+        type: string
+  schedule:
+    # Run every 6 hours to process new abandoned carts
+    - cron: '0 */6 * * *'
+
+env:
+  SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+  SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+jobs:
+  recover-carts:
+    name: Process Abandoned Carts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Always run setup first — idempotent, skips definitions that already exist
+      - name: Ensure metafield definitions exist
+        run: node src/setup-cart-recovery-flows.js --create
+
+      # Run the cart recovery engine
+      - name: Run abandoned cart recovery
+        run: |
+          MODE="${{ github.event.inputs.mode || 'dry-run' }}"
+          MAX="${{ github.event.inputs.max_checkouts || '0' }}"
+
+          ARGS=""
+          if [ "$MODE" = "execute" ]; then
+            ARGS="--execute"
+          elif [ "$MODE" = "report" ]; then
+            ARGS="--report"
+          fi
+
+          if [ "$MAX" != "0" ]; then
+            ARGS="$ARGS --max=$MAX"
+          fi
+
+          ARGS="$ARGS --verbose"
+
+          echo "Running: node src/abandoned-cart-engine.js $ARGS"
+          node src/abandoned-cart-engine.js $ARGS
+
+      - name: Upload run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cart-recovery-run-${{ github.run_number }}
+          path: |
+            *.log
+            *.json
+          retention-days: 30
