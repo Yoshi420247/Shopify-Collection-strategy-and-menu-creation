@@ -1,0 +1,62 @@
+name: Set Stock Quantity
+
+on:
+  workflow_dispatch:
+    inputs:
+      quantity:
+        description: 'Quantity to set for all WYN products'
+        required: true
+        type: number
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run       # Preview changes (no updates)
+          - execute        # Apply inventory changes
+
+jobs:
+  set-stock:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Set Stock Quantity
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "🔄 Setting all 'What You Need' products to ${{ inputs.quantity }} units..."
+            node src/set-stock-quantity.js --qty=${{ inputs.quantity }} --execute
+          else
+            echo "👀 Dry run - showing what would change..."
+            node src/set-stock-quantity.js --qty=${{ inputs.quantity }}
+          fi
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## 📦 Set Stock Quantity Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Target quantity:** ${{ inputs.quantity }} units" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            echo "All 'What You Need' product variants have been set to **${{ inputs.quantity }}** units." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "This was a **dry run**. No changes were made." >> $GITHUB_STEP_SUMMARY
+            echo "Run again with \`execute\` to apply changes." >> $GITHUB_STEP_SUMMARY
+          fi
