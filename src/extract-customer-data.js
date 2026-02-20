@@ -487,7 +487,189 @@ function processData(customers, orders, abandonedCheckouts, productMap) {
     });
   }
 
-  console.log(`✓ Processed ${customerRecords.length} customer records`);
+  console.log(`✓ Processed ${customerRecords.length} customer account records`);
+
+  // ─── Second pass: capture guest checkout emails from orders ─────────
+  // Customers who checked out as guests don't appear in /customers.json.
+  // We scan all orders for emails not already in the customer set.
+  const knownEmails = new Set(customerRecords.map(c => c.email));
+  const guestOrdersByEmail = {};
+
+  for (const order of orders) {
+    const email = (order.email || order.customer?.email || '').toLowerCase().trim();
+    if (!email || knownEmails.has(email)) continue;
+    if (!guestOrdersByEmail[email]) guestOrdersByEmail[email] = [];
+    guestOrdersByEmail[email].push(order);
+  }
+
+  const guestEmails = Object.keys(guestOrdersByEmail);
+  console.log(`  Found ${guestEmails.length} additional guest checkout emails not in customer accounts`);
+
+  for (const email of guestEmails) {
+    const guestOrders = guestOrdersByEmail[email];
+
+    let totalSpent = 0;
+    let lastOrderDate = null;
+    let firstOrderDate = null;
+    const productsPurchased = new Set();
+    const categoriesPurchased = new Set();
+    const vendorsPurchased = new Set();
+    let smokeshopOrderCount = 0;
+    let smokeshopSpend = 0;
+    const smokeshopProductsBought = new Set();
+    const allLineItems = [];
+
+    // Pull name/address from the most recent order's customer or shipping info
+    const latestOrder = guestOrders.reduce((a, b) =>
+      new Date(a.created_at) > new Date(b.created_at) ? a : b
+    );
+    const guestCustomer = latestOrder.customer || {};
+    const guestAddr = guestCustomer.default_address || {};
+
+    for (const order of guestOrders) {
+      const orderDate = new Date(order.created_at);
+      if (!lastOrderDate || orderDate > lastOrderDate) lastOrderDate = orderDate;
+      if (!firstOrderDate || orderDate < firstOrderDate) firstOrderDate = orderDate;
+      totalSpent += parseFloat(order.total_price) || 0;
+
+      let orderHasSmokeshop = false;
+
+      for (const item of (order.line_items || [])) {
+        const productId = item.product_id;
+        const productInfo = productMap[productId] || {};
+
+        productsPurchased.add(item.title);
+        if (item.vendor) vendorsPurchased.add(item.vendor);
+        if (productInfo.product_type) categoriesPurchased.add(productInfo.product_type);
+
+        const isSmokeshop = productInfo.is_smokeshop || isSmokeshopProduct(item);
+
+        if (isSmokeshop) {
+          orderHasSmokeshop = true;
+          smokeshopProductsBought.add(item.title);
+          smokeshopSpend += parseFloat(item.price) * (item.quantity || 1);
+        }
+
+        allLineItems.push({
+          product_id: productId,
+          title: item.title,
+          variant_title: item.variant_title,
+          vendor: item.vendor,
+          product_type: productInfo.product_type || '',
+          price: item.price,
+          quantity: item.quantity,
+          is_smokeshop: isSmokeshop,
+          order_date: order.created_at,
+        });
+      }
+
+      if (orderHasSmokeshop) smokeshopOrderCount++;
+    }
+
+    const orderCount = guestOrders.length;
+    const daysSinceLastOrder = lastOrderDate
+      ? Math.floor((now - lastOrderDate) / (1000 * 60 * 60 * 24))
+      : null;
+    const daysSinceFirstOrder = firstOrderDate
+      ? Math.floor((now - firstOrderDate) / (1000 * 60 * 60 * 24))
+      : null;
+    const avgOrderValue = orderCount > 0 ? (totalSpent / orderCount) : 0;
+
+    let recencyScore = 0;
+    if (daysSinceLastOrder !== null) {
+      if (daysSinceLastOrder <= 30) recencyScore = 5;
+      else if (daysSinceLastOrder <= 90) recencyScore = 4;
+      else if (daysSinceLastOrder <= 180) recencyScore = 3;
+      else if (daysSinceLastOrder <= 365) recencyScore = 2;
+      else recencyScore = 1;
+    }
+
+    let frequencyScore = 0;
+    if (orderCount >= 10) frequencyScore = 5;
+    else if (orderCount >= 5) frequencyScore = 4;
+    else if (orderCount >= 3) frequencyScore = 3;
+    else if (orderCount >= 2) frequencyScore = 2;
+    else if (orderCount >= 1) frequencyScore = 1;
+
+    let monetaryScore = 0;
+    if (totalSpent >= 500) monetaryScore = 5;
+    else if (totalSpent >= 200) monetaryScore = 4;
+    else if (totalSpent >= 100) monetaryScore = 3;
+    else if (totalSpent >= 50) monetaryScore = 2;
+    else if (totalSpent > 0) monetaryScore = 1;
+
+    const rfmScore = recencyScore + frequencyScore + monetaryScore;
+
+    const segments = ['guest_checkout'];
+    if (orderCount > 0) segments.push('purchaser');
+    if (orderCount >= 3) segments.push('repeat_buyer');
+    if (orderCount === 1) segments.push('one_time_buyer');
+    if (rfmScore >= 12) segments.push('vip');
+    if (totalSpent >= 200) segments.push('high_value');
+    if (daysSinceLastOrder !== null && daysSinceLastOrder <= 30) segments.push('recent_30d');
+    if (daysSinceLastOrder !== null && daysSinceLastOrder <= 60) segments.push('recent_60d');
+    if (daysSinceLastOrder !== null && daysSinceLastOrder <= 90) segments.push('recent_90d');
+    if (daysSinceLastOrder !== null && daysSinceLastOrder > 180) segments.push('lapsed_6mo');
+    if (daysSinceLastOrder !== null && daysSinceLastOrder > 365) segments.push('lapsed_1yr');
+    if (smokeshopOrderCount > 0) segments.push('smokeshop_buyer');
+    if (smokeshopProductsBought.size > 0) segments.push('smokeshop_interest');
+
+    customerRecords.push({
+      shopify_customer_id: guestCustomer.id || '',
+      email,
+      first_name: guestCustomer.first_name || '',
+      last_name: guestCustomer.last_name || '',
+      phone: guestCustomer.phone || guestAddr.phone || '',
+
+      address1: guestAddr.address1 || '',
+      address2: guestAddr.address2 || '',
+      city: guestAddr.city || '',
+      province: guestAddr.province || '',
+      province_code: guestAddr.province_code || '',
+      zip: guestAddr.zip || '',
+      country: guestAddr.country || '',
+      country_code: guestAddr.country_code || '',
+
+      order_count: orderCount,
+      total_spent: totalSpent.toFixed(2),
+      avg_order_value: avgOrderValue.toFixed(2),
+      first_order_date: firstOrderDate ? firstOrderDate.toISOString().split('T')[0] : '',
+      last_order_date: lastOrderDate ? lastOrderDate.toISOString().split('T')[0] : '',
+      days_since_last_order: daysSinceLastOrder !== null ? daysSinceLastOrder : '',
+      customer_lifetime_days: daysSinceFirstOrder !== null ? daysSinceFirstOrder : '',
+
+      recency_score: recencyScore,
+      frequency_score: frequencyScore,
+      monetary_score: monetaryScore,
+      rfm_total: rfmScore,
+
+      smokeshop_order_count: smokeshopOrderCount,
+      smokeshop_spend: smokeshopSpend.toFixed(2),
+      smokeshop_products: [...smokeshopProductsBought].join(' | '),
+      bought_smokeshop: smokeshopOrderCount > 0 ? 'yes' : 'no',
+
+      products_purchased: [...productsPurchased].join(' | '),
+      categories_purchased: [...categoriesPurchased].join(' | '),
+      vendors_purchased: [...vendorsPurchased].join(' | '),
+      unique_products_count: productsPurchased.size,
+
+      marketing_consent: 'unknown',
+      sms_consent: 'unknown',
+      accepts_marketing: 'no',
+      account_state: 'guest',
+      customer_tags: '',
+      customer_note: '',
+
+      customer_created: '',
+      customer_updated: '',
+
+      segments: segments.join(', '),
+      source: guestOrders[0]?.source_name || 'guest_checkout',
+      _line_items: allLineItems,
+    });
+  }
+
+  console.log(`✓ Total records: ${customerRecords.length} (${customerRecords.length - guestEmails.length} accounts + ${guestEmails.length} guest checkouts)`);
 
   // ─── Process abandoned checkouts ──────────────────────────────────────
   const abandonedRecords = [];

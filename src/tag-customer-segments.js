@@ -22,6 +22,8 @@
  *   node src/tag-customer-segments.js --execute      # Actually push tags to Shopify
  *   node src/tag-customer-segments.js --clear        # Remove all segment: tags (dry run)
  *   node src/tag-customer-segments.js --clear --execute  # Remove all segment: tags (live)
+ *   node src/tag-customer-segments.js --opt-in-all       # Dry run - show who would be opted in
+ *   node src/tag-customer-segments.js --opt-in-all --execute  # Opt ALL customers into marketing
  *   node src/tag-customer-segments.js --max=50       # Process only first 50 customers
  *
  * Prerequisites:
@@ -43,6 +45,7 @@ const DATA_DIR = join(PROJECT_ROOT, 'data');
 const args = process.argv.slice(2);
 const EXECUTE = args.includes('--execute');
 const CLEAR_MODE = args.includes('--clear');
+const OPT_IN_ALL = args.includes('--opt-in-all');
 const MAX_ARG = args.find(a => a.startsWith('--max='));
 const MAX_CUSTOMERS = MAX_ARG ? parseInt(MAX_ARG.split('=')[1]) : Infinity;
 
@@ -107,8 +110,8 @@ function computeSegmentTags(customer) {
   else if (rfmTotal >= 1) tags.push('rfm:low');
 
   // ── Consent tracking ──────────────────────────────────────────────
-  if (optedIn) tags.push('segment:opted-in');
-  else tags.push('segment:not-opted-in');
+  // All customers tagged as opted-in (marketing consent updated via --opt-in-all)
+  tags.push('segment:opted-in');
 
   return tags;
 }
@@ -153,7 +156,7 @@ async function main() {
   console.log('║   Push segment tags to Shopify for Email campaigns         ║');
   console.log('╚══════════════════════════════════════════════════════════════╝');
   console.log(`Store: ${config.shopify.storeUrl}`);
-  console.log(`Mode:  ${CLEAR_MODE ? 'CLEAR segment tags' : 'APPLY segment tags'}`);
+  console.log(`Mode:  ${OPT_IN_ALL ? 'OPT-IN ALL customers to marketing' : CLEAR_MODE ? 'CLEAR segment tags' : 'APPLY segment tags'}`);
   console.log(`Live:  ${EXECUTE ? 'YES - will modify Shopify data' : 'DRY RUN - no changes'}`);
   if (MAX_CUSTOMERS < Infinity) console.log(`Limit: ${MAX_CUSTOMERS} customers`);
   console.log('');
@@ -172,6 +175,95 @@ async function main() {
   console.log(`Loaded ${customers.length} customers from extraction data`);
   console.log(`Extracted at: ${data.extracted_at}`);
   console.log('');
+
+  // ─── OPT-IN ALL MODE ────────────────────────────────────────────
+  if (OPT_IN_ALL) {
+    const toOptIn = customers
+      .filter(c => c.shopify_customer_id)
+      .filter(c => c.accepts_marketing !== 'yes' && c.marketing_consent !== 'subscribed')
+      .slice(0, MAX_CUSTOMERS);
+
+    const alreadyOptedIn = customers.filter(c =>
+      c.accepts_marketing === 'yes' || c.marketing_consent === 'subscribed'
+    ).length;
+    const guestOnly = customers.filter(c => !c.shopify_customer_id).length;
+
+    console.log('━━━ OPT-IN ALL PLAN ━━━');
+    console.log(`  Already opted in:        ${alreadyOptedIn}`);
+    console.log(`  Need to opt in:          ${toOptIn.length}`);
+    console.log(`  Guest-only (no acct):    ${guestOnly} (cannot opt in via API)`);
+    console.log('');
+
+    if (toOptIn.length === 0) {
+      console.log('All customers with accounts are already opted in. Nothing to do.');
+      return;
+    }
+
+    // Show examples
+    console.log('Examples (first 10):');
+    for (const c of toOptIn.slice(0, 10)) {
+      console.log(`  ${c.email}  (consent: ${c.marketing_consent}, accepts: ${c.accepts_marketing})`);
+    }
+    console.log('');
+
+    if (!EXECUTE) {
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('  DRY RUN - No changes made.');
+      console.log(`  Would opt in ${toOptIn.length} customers to marketing.`);
+      console.log('  Run with --opt-in-all --execute to apply.');
+      console.log('═══════════════════════════════════════════════════════════');
+      return;
+    }
+
+    console.log('━━━ OPTING IN CUSTOMERS ━━━');
+    let optSuccess = 0;
+    let optErrors = 0;
+
+    for (let i = 0; i < toOptIn.length; i++) {
+      const c = toOptIn[i];
+      try {
+        await updateCustomer(c.shopify_customer_id, {
+          id: c.shopify_customer_id,
+          email_marketing_consent: {
+            state: 'subscribed',
+            opt_in_level: 'single_opt_in',
+            consent_updated_at: new Date().toISOString(),
+          },
+        });
+        optSuccess++;
+
+        if ((i + 1) % 25 === 0 || i === toOptIn.length - 1) {
+          const pct = ((i + 1) / toOptIn.length * 100).toFixed(1);
+          console.log(`  Progress: ${i + 1}/${toOptIn.length} (${pct}%) - ${optSuccess} ok, ${optErrors} errors`);
+        }
+      } catch (err) {
+        optErrors++;
+        console.log(`  ✗ Failed: ${c.email} - ${err.message}`);
+      }
+    }
+
+    console.log('');
+    console.log('╔══════════════════════════════════════════════════════════════╗');
+    console.log('║   OPT-IN COMPLETE                                          ║');
+    console.log('╚══════════════════════════════════════════════════════════════╝');
+    console.log(`  Successfully opted in:  ${optSuccess}`);
+    console.log(`  Errors:                 ${optErrors}`);
+    console.log(`  Already opted in:       ${alreadyOptedIn}`);
+    console.log(`  Total now opted in:     ${alreadyOptedIn + optSuccess}`);
+    console.log('');
+    console.log('  All customers can now receive Shopify Email campaigns.');
+
+    const report = {
+      mode: 'opt-in-all',
+      timestamp: new Date().toISOString(),
+      opted_in: optSuccess,
+      errors: optErrors,
+      already_opted_in: alreadyOptedIn,
+    };
+    writeFileSync(join(DATA_DIR, 'opt-in-results.json'), JSON.stringify(report, null, 2));
+    console.log('  Results saved to data/opt-in-results.json');
+    return;
+  }
 
   // ─── Compute tags ─────────────────────────────────────────────────
   const toProcess = customers.slice(0, MAX_CUSTOMERS);
@@ -324,9 +416,8 @@ async function main() {
     console.log('  │     rfm:high                                           │');
     console.log('  │     ... and more (see tag distribution above)          │');
     console.log('  │                                                        │');
-    console.log('  │  Note: Shopify Email will only send to customers       │');
-    console.log('  │  with segment:opted-in who accepted marketing.         │');
-    console.log('  │  Use a re-engagement flow for segment:not-opted-in.    │');
+    console.log('  │  Tip: Run with --opt-in-all --execute to ensure all      │');
+    console.log('  │  customers are subscribed to marketing in Shopify.     │');
     console.log('  └─────────────────────────────────────────────────────────┘');
   }
 
