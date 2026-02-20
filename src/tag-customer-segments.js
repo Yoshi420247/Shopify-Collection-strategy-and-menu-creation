@@ -110,8 +110,8 @@ function computeSegmentTags(customer) {
   else if (rfmTotal >= 1) tags.push('rfm:low');
 
   // ── Consent tracking ──────────────────────────────────────────────
-  // All customers tagged as opted-in (marketing consent updated via --opt-in-all)
-  tags.push('segment:opted-in');
+  if (optedIn) tags.push('segment:opted-in');
+  else tags.push('segment:not-opted-in');
 
   return tags;
 }

@@ -25,13 +25,10 @@
 
 import { config } from './config.js';
 import {
-  getCustomers,
   getCustomerCount,
-  getOrders,
   getOrderCount,
-  getAbandonedCheckouts,
   getAbandonedCheckoutCount,
-  getProducts,
+  paginateAll,
   graphqlQuery,
 } from './shopify-api.js';
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
@@ -103,39 +100,20 @@ async function fetchAllCustomers() {
     console.log('Could not fetch customer count, will paginate until exhausted.');
   }
 
-  const allCustomers = [];
-  let page = 0;
-  let sinceId = 0;
-  let hasMore = true;
-
-  while (hasMore && page < PAGE_LIMIT) {
-    page++;
-    // Fetch ALL customers starting from the very first one created
-    const params = {
-      limit: 250,
-      created_at_min: '2010-01-01T00:00:00-00:00', // Go back far enough for any store
-    };
-    if (sinceId > 0) params.since_id = sinceId;
-
-    const data = await getCustomers(params);
-    const batch = data.customers || [];
-
-    if (batch.length === 0) {
-      hasMore = false;
-    } else {
-      allCustomers.push(...batch);
-      sinceId = batch[batch.length - 1].id;
-      console.log(`  Page ${page}: fetched ${batch.length} (total: ${allCustomers.length})`);
-
-      if (batch.length < 250) hasMore = false;
-    }
-  }
+  // Use Link-header cursor pagination (since_id is unreliable on large stores)
+  const allCustomers = await paginateAll('customers.json', 'customers', {
+    limit: 250,
+  }, { pageLimit: PAGE_LIMIT });
 
   console.log(`✓ Fetched ${allCustomers.length} customers via REST API`);
 
+  // Warn if significantly fewer than expected
+  if (countData?.count && allCustomers.length < countData.count * 0.9) {
+    console.log(`  ⚠ WARNING: Fetched ${allCustomers.length} vs expected ~${countData.count}`);
+    console.log('    Some customers may require additional API scopes.');
+  }
+
   // ─── GraphQL fallback: catch any customers REST might miss ────────
-  // Shopify's GraphQL API can surface customers that REST pagination
-  // sometimes skips, especially on very old stores.
   try {
     console.log('  Checking for additional customers via GraphQL...');
     const restIds = new Set(allCustomers.map(c => c.id));
@@ -159,9 +137,8 @@ async function fetchAllCustomers() {
               state
               tags
               note
-              ordersCount
-              totalSpent
-              acceptsMarketing
+              numberOfOrders
+              amountSpent { amount currencyCode }
               emailMarketingConsent { marketingState }
               smsMarketingConsent { marketingState }
               createdAt
@@ -191,13 +168,12 @@ async function fetchAllCustomers() {
       for (const edge of edges) {
         cursor = edge.cursor;
         const node = edge.node;
-        // Extract numeric ID from GraphQL global ID (gid://shopify/Customer/12345)
         const numericId = parseInt(node.id.replace(/\D/g, ''));
 
         if (!restIds.has(numericId)) {
           gqlFound++;
-          // Convert GraphQL format to REST format so processData works uniformly
           const addr = node.defaultAddress || {};
+          const marketingState = node.emailMarketingConsent?.marketingState?.toLowerCase() || 'unknown';
           allCustomers.push({
             id: numericId,
             email: node.email,
@@ -207,12 +183,10 @@ async function fetchAllCustomers() {
             state: node.state || '',
             tags: (node.tags || []).join(', '),
             note: node.note || '',
-            orders_count: node.ordersCount || 0,
-            total_spent: node.totalSpent || '0.00',
-            accepts_marketing: node.acceptsMarketing || false,
-            email_marketing_consent: {
-              state: node.emailMarketingConsent?.marketingState?.toLowerCase() || 'unknown',
-            },
+            orders_count: node.numberOfOrders || 0,
+            total_spent: node.amountSpent?.amount || '0.00',
+            accepts_marketing: marketingState === 'subscribed',
+            email_marketing_consent: { state: marketingState },
             sms_marketing_consent: {
               state: node.smsMarketingConsent?.marketingState?.toLowerCase() || 'unknown',
             },
@@ -270,35 +244,13 @@ async function fetchAllOrders() {
     console.log('  Could not fetch order count, will paginate until exhausted.');
   }
 
-  const allOrders = [];
-  let page = 0;
-  let sinceId = 0;
-  let hasMore = true;
-
-  while (hasMore && page < PAGE_LIMIT) {
-    page++;
-    const params = {
-      limit: 250,
-      status: 'any',
-      // Critical: request orders all the way back to store founding
-      created_at_min: '2010-01-01T00:00:00-00:00',
-      fields: 'id,customer,email,line_items,created_at,total_price,financial_status,fulfillment_status,tags,note,currency,subtotal_price,total_discounts,total_tax,source_name',
-    };
-    if (sinceId > 0) params.since_id = sinceId;
-
-    const data = await getOrders(params);
-    const batch = data.orders || [];
-
-    if (batch.length === 0) {
-      hasMore = false;
-    } else {
-      allOrders.push(...batch);
-      sinceId = batch[batch.length - 1].id;
-      console.log(`  Page ${page}: fetched ${batch.length} (total: ${allOrders.length})`);
-
-      if (batch.length < 250) hasMore = false;
-    }
-  }
+  // Use Link-header cursor pagination for reliable full extraction
+  const allOrders = await paginateAll('orders.json', 'orders', {
+    limit: 250,
+    status: 'any',
+    created_at_min: '2010-01-01T00:00:00-00:00',
+    fields: 'id,customer,email,line_items,created_at,total_price,financial_status,fulfillment_status,tags,note,currency,subtotal_price,total_discounts,total_tax,source_name',
+  }, { pageLimit: PAGE_LIMIT });
 
   // Warn if we got suspiciously few orders for a 10+ year store
   if (countData?.count && allOrders.length < countData.count * 0.9) {
@@ -327,37 +279,17 @@ async function fetchAllAbandonedCheckouts() {
     console.log('Could not fetch checkout count (may need read_checkouts scope).');
   }
 
-  const allCheckouts = [];
-  let page = 0;
-  let sinceId = 0;
-  let hasMore = true;
-
-  while (hasMore && page < PAGE_LIMIT) {
-    page++;
-    const params = {
+  let allCheckouts;
+  try {
+    // Use Link-header cursor pagination
+    allCheckouts = await paginateAll('checkouts.json', 'checkouts', {
       limit: 250,
       created_at_min: '2010-01-01T00:00:00-00:00',
-    };
-    if (sinceId > 0) params.since_id = sinceId;
-
-    try {
-      const data = await getAbandonedCheckouts(params);
-      const batch = data.checkouts || [];
-
-      if (batch.length === 0) {
-        hasMore = false;
-      } else {
-        allCheckouts.push(...batch);
-        sinceId = batch[batch.length - 1].id;
-        console.log(`  Page ${page}: fetched ${batch.length} (total: ${allCheckouts.length})`);
-
-        if (batch.length < 250) hasMore = false;
-      }
-    } catch (e) {
-      console.log(`  ⚠ Abandoned checkouts fetch failed: ${e.message}`);
-      console.log('  This may require the read_checkouts scope on your API token.');
-      hasMore = false;
-    }
+    }, { pageLimit: PAGE_LIMIT });
+  } catch (e) {
+    console.log(`  ⚠ Abandoned checkouts fetch failed: ${e.message}`);
+    console.log('  This may require the read_checkouts scope on your API token.');
+    allCheckouts = [];
   }
 
   console.log(`✓ Fetched ${allCheckouts.length} abandoned checkouts total`);
@@ -368,32 +300,10 @@ async function fetchAllAbandonedCheckouts() {
 async function fetchProductCatalog() {
   console.log('\n━━━ FETCHING PRODUCT CATALOG ━━━');
 
-  const allProducts = [];
-  let page = 0;
-  let sinceId = 0;
-  let hasMore = true;
-
-  while (hasMore && page < PAGE_LIMIT) {
-    page++;
-    const params = {
-      limit: 250,
-      fields: 'id,title,vendor,product_type,tags',
-    };
-    if (sinceId > 0) params.since_id = sinceId;
-
-    const data = await getProducts(params);
-    const batch = data.products || [];
-
-    if (batch.length === 0) {
-      hasMore = false;
-    } else {
-      allProducts.push(...batch);
-      sinceId = batch[batch.length - 1].id;
-      console.log(`  Page ${page}: fetched ${batch.length} (total: ${allProducts.length})`);
-
-      if (batch.length < 250) hasMore = false;
-    }
-  }
+  const allProducts = await paginateAll('products.json', 'products', {
+    limit: 250,
+    fields: 'id,title,vendor,product_type,tags',
+  }, { pageLimit: PAGE_LIMIT });
 
   // Build product lookup by ID
   const productMap = {};
