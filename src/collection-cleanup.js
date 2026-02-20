@@ -185,6 +185,9 @@ const DUPLICATE_COLLECTIONS_TO_DELETE = [
   // Wholesale/display (may need review)
   'wholesale-pipes',          // Review - might be needed
   'grinders-in-retail-bulk-display', // Keep if bulk business
+
+  // Cloud YHS is a vendor tag, not a collection
+  'cloud-yhs',               // Products belong in category collections, not vendor collection
 ];
 
 // Collections to KEEP but may need cleanup
@@ -743,18 +746,35 @@ async function analyzeCollections(collections) {
     toReview: [],
   };
 
-  // Check for broken collections
+  // Check for broken collections (dynamically verify if rules match the fix)
   for (const [handle, fixInfo] of Object.entries(BROKEN_COLLECTIONS)) {
     if (collections[handle]) {
-      issues.broken.push({
-        handle,
-        id: collections[handle].id,
-        title: collections[handle].title,
-        currentRules: collections[handle].rules,
-        issue: fixInfo.issue,
-        fix: fixInfo.fix,
-      });
-      log(`  BROKEN: ${handle} - ${fixInfo.issue}`, 'red');
+      const currentRules = collections[handle].rules || [];
+      const expectedRules = fixInfo.fix.rules;
+
+      // Compare current rules to expected fix rules
+      const rulesMatch = expectedRules.length === currentRules.length &&
+        expectedRules.every(expected =>
+          currentRules.some(current =>
+            current.column === expected.column &&
+            current.relation === expected.relation &&
+            current.condition === expected.condition
+          )
+        );
+
+      if (rulesMatch) {
+        log(`  FIXED: ${handle} - Rules already correct`, 'green');
+      } else {
+        issues.broken.push({
+          handle,
+          id: collections[handle].id,
+          title: collections[handle].title,
+          currentRules,
+          issue: fixInfo.issue,
+          fix: fixInfo.fix,
+        });
+        log(`  BROKEN: ${handle} - ${fixInfo.issue}`, 'red');
+      }
     }
   }
 

@@ -503,6 +503,8 @@ export const config = {
       'large-pipes-and-rigs', 'medium-pipes-and-rigs', 'small-pipes-rigs',
       // Seasonal / misc
       'spooky-haloween-sale', 'custom', 'other',
+      // Cloud YHS is a vendor tag, not a collection - products belong in category collections
+      'cloud-yhs',
     ],
   },
 
@@ -755,6 +757,12 @@ export const config = {
     // Legacy "grinder" singular → "grinders" plural
     // =====================================================
     { from: '/collections/grinder', to: '/collections/grinders' },
+
+    // =====================================================
+    // Cloud YHS vendor collection → all products
+    // Cloud YHS is a vendor tag, not a browsing collection
+    // =====================================================
+    { from: '/collections/cloud-yhs', to: '/collections/all' },
   ],
 
   tagsToRemove: [
