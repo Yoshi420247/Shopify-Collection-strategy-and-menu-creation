@@ -18,16 +18,13 @@
 
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:28px 24px;text-align:center;">
-      <h2 id="popup-headline" style="color:#fff;margin:0;font-size:22px;font-weight:700;line-height:1.3;">Don't lose your cart!</h2>
+      <h2 id="popup-headline" style="color:#fff;margin:0;font-size:22px;font-weight:700;line-height:1.3;">Wait — don't lose your cart!</h2>
     </div>
 
     <!-- Body -->
     <div style="padding:24px;">
       <p id="popup-body" style="color:#555;font-size:15px;text-align:center;margin:0 0 20px;line-height:1.5;">
-        Enter your email and we'll save your items.
-        <span id="popup-discount-text" style="display:none;font-weight:600;color:#e94560;">
-          Plus get <span id="popup-discount-percent">10</span>% off your order today!
-        </span>
+        Enter your email and we'll send you a link to your saved cart so you can come back anytime.
       </p>
 
       <!-- Email capture form -->
@@ -56,9 +53,9 @@
       <!-- Success state -->
       <div id="exit-intent-success" style="display:none;text-align:center;padding:16px 0;">
         <div style="font-size:48px;margin-bottom:12px;">✅</div>
-        <h3 style="color:#333;margin:0 0 8px;">Cart saved!</h3>
-        <p id="success-discount-msg" style="color:#666;font-size:14px;margin:0 0 16px;"></p>
-        <a href="/cart" style="display:inline-block;padding:12px 32px;background:#e94560;color:#fff;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none;">Complete Your Order</a>
+        <h3 style="color:#333;margin:0 0 8px;">Cart link saved!</h3>
+        <p id="success-msg" style="color:#666;font-size:14px;margin:0 0 16px;">We'll email you a link to your cart so you can finish your order anytime.</p>
+        <a href="/cart" style="display:inline-block;padding:12px 32px;background:#e94560;color:#fff;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none;">Complete Your Order Now</a>
       </div>
 
       <!-- Free shipping progress bar (shown if close to threshold) -->
@@ -110,7 +107,7 @@
   var cartTotal = {{ cart.total_price | divided_by: 100.0 }};
   var cartItemCount = {{ cart.item_count }};
 
-  // Determine product category from cart for discount calculation
+  // Determine product category from cart (used for tagging the lead)
   var cartCategory = 'unknown';
   {% for item in cart.items %}
     {% if item.vendor == 'Oil Slick' %}
@@ -119,16 +116,6 @@
       cartCategory = 'smokeshop';
     {% endif %}
   {% endfor %}
-
-  // Discount rules by category
-  var discountPercent = 0;
-  if (cartCategory === 'oilSlick') {
-    discountPercent = 5; // Conservative for low-margin products
-  } else if (cartCategory === 'smokeshop') {
-    discountPercent = 10; // More generous for higher-margin products
-  } else {
-    discountPercent = 5; // Default conservative
-  }
 
   // Check if popup should show
   function shouldShowPopup() {
@@ -155,12 +142,6 @@
 
     var overlay = document.getElementById('exit-intent-overlay');
     if (!overlay) return;
-
-    // Set discount text
-    if (discountPercent > 0) {
-      document.getElementById('popup-discount-percent').textContent = discountPercent;
-      document.getElementById('popup-discount-text').style.display = 'inline';
-    }
 
     // Show free shipping progress if close to threshold
     if (cartTotal >= FREE_SHIPPING_THRESHOLD * 0.5 && cartTotal < FREE_SHIPPING_THRESHOLD) {
@@ -220,40 +201,47 @@
     }
   });
 
-  // Form submission
+  // Form submission — tags customer in Shopify for the recovery engine to pick up
   window.handleExitFormSubmit = function(e) {
     e.preventDefault();
 
     var email = document.getElementById('exit-intent-email').value;
     if (!email) return false;
 
-    // Send to Shopify customer API or marketing platform
-    // This would integrate with Klaviyo, Omnisend, or Shopify's customer marketing API
-    var payload = {
-      email: email,
-      cart_total: cartTotal,
-      cart_category: cartCategory,
-      discount_percent: discountPercent,
-      source: 'exit_intent_popup',
-      timestamp: new Date().toISOString()
-    };
+    // Disable form while submitting
+    var submitBtn = document.querySelector('#exit-intent-form button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+    }
 
-    // Store locally for the abandoned cart engine to pick up
+    // Use Shopify's customer create/update endpoint to register the email
+    // This ensures the abandoned cart engine can find and email them
+    fetch('/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'form_type=customer&utf8=%E2%9C%93&customer%5Bemail%5D=' + encodeURIComponent(email) +
+            '&customer%5Btags%5D=exit-intent-capture%2Ccart-category-' + encodeURIComponent(cartCategory)
+    }).catch(function() { /* ignore — best effort */ });
+
+    // Also store locally as backup for analytics
     try {
       var stored = JSON.parse(localStorage.getItem('osp_exit_captures') || '[]');
-      stored.push(payload);
+      stored.push({
+        email: email,
+        cart_total: cartTotal,
+        cart_category: cartCategory,
+        source: 'exit_intent_popup',
+        timestamp: new Date().toISOString()
+      });
       localStorage.setItem('osp_exit_captures', JSON.stringify(stored));
     } catch(err) { /* ignore storage errors */ }
 
     // Show success state
     document.getElementById('exit-intent-form').style.display = 'none';
     document.getElementById('exit-intent-success').style.display = 'block';
-
-    var successMsg = 'We\'ve saved your cart and sent a link to ' + email + '.';
-    if (discountPercent > 0) {
-      successMsg += ' Your ' + discountPercent + '% discount will be applied at checkout!';
-    }
-    document.getElementById('success-discount-msg').textContent = successMsg;
+    document.getElementById('success-msg').textContent =
+      'We\'ll send a cart link to ' + email + ' so you can finish your order anytime.';
 
     return false;
   };

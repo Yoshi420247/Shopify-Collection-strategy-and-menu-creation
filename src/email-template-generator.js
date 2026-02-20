@@ -111,7 +111,6 @@ export class EmailTemplateGenerator {
       first_name: checkout.customer?.first_name || 'there',
       product_name: this.getPrimaryProductName(cartAnalysis),
       discount_percent: discountDecision.discountPercent || '',
-      review_count: '500+',
       store_name: 'Oil Slick Pad',
     });
   }
@@ -201,41 +200,42 @@ export class EmailTemplateGenerator {
   buildSocialProof(cartAnalysis, abVariants) {
     const category = cartAnalysis.dominantCategory;
 
-    // Category-specific review highlights
-    const reviewData = {
+    // Category-specific social proof (value propositions, not fake reviews)
+    const proofData = {
       oilSlick: {
-        headline: 'Trusted by extraction professionals',
-        reviews: [
-          { text: 'Best non-stick pads in the industry. Never going back to parchment paper.', author: 'Mike R.', rating: 5 },
-          { text: 'Fast shipping and exactly as described. Quality product.', author: 'Sarah L.', rating: 5 },
-          { text: 'We use these in our lab daily. Consistent quality every time.', author: 'David K.', rating: 5 },
+        headline: 'Why professionals choose Oil Slick',
+        points: [
+          { icon: '🏭', text: 'Medical-grade PTFE — lab-tested, non-stick, solvent-resistant' },
+          { icon: '📦', text: 'Trusted by extraction labs and processors nationwide' },
+          { icon: '🚚', text: 'Most orders ship same day from Colorado' },
         ],
-        statsLine: 'Join 10,000+ extraction professionals who trust Oil Slick Pad',
+        statsLine: 'Serving the extraction industry since 2012',
       },
       smokeshop: {
-        headline: 'Customers love their pieces',
-        reviews: [
-          { text: 'Incredible quality for the price. This rig hits smooth every time.', author: 'Jason T.', rating: 5 },
-          { text: 'Beautiful glass, well-packed shipping. Arrived in perfect condition.', author: 'Amanda W.', rating: 5 },
-          { text: 'Way better than what I paid 3x for at my local shop.', author: 'Chris M.', rating: 5 },
+        headline: 'Why shop with Oil Slick Pad',
+        points: [
+          { icon: '✅', text: 'Curated selection — every piece hand-picked for quality' },
+          { icon: '📦', text: 'Discreet, well-padded shipping — arrives in perfect condition' },
+          { icon: '💰', text: 'Wholesale prices direct to you — skip the headshop markup' },
         ],
-        statsLine: 'Over 5,000 happy customers and counting',
+        statsLine: 'Top-rated smoke shop with fast, discreet shipping',
       },
       unknown: {
-        headline: 'Our customers love Oil Slick Pad',
-        reviews: [
-          { text: 'Great selection and fast shipping. Will definitely order again.', author: 'Pat D.', rating: 5 },
+        headline: 'Why shop with Oil Slick Pad',
+        points: [
+          { icon: '⭐', text: 'Premium products at competitive prices' },
+          { icon: '🚚', text: 'Fast shipping on every order' },
+          { icon: '↩️', text: 'Easy returns if you\'re not 100% satisfied' },
         ],
-        statsLine: 'Thousands of satisfied customers',
+        statsLine: 'Quality products, fast shipping, happy customers',
       },
     };
 
-    const data = reviewData[category] || reviewData.unknown;
-    const stars = '★★★★★';
+    const data = proofData[category] || proofData.unknown;
 
     const text = [
       `\n${data.headline}`,
-      ...data.reviews.map(r => `  ${stars} "${r.text}" — ${r.author}`),
+      ...data.points.map(p => `  ${p.icon} ${p.text}`),
       data.statsLine,
       '',
     ].join('\n');
@@ -243,14 +243,13 @@ export class EmailTemplateGenerator {
     const html = `
       <div style="background:#fafafa;border-radius:8px;padding:24px;margin:20px 0;">
         <h3 style="color:#333;margin:0 0 16px;font-size:18px;">${data.headline}</h3>
-        ${data.reviews.map(r => `
-          <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #eee;">
-            <div style="color:#f5a623;font-size:16px;margin-bottom:4px;">${stars}</div>
-            <p style="font-size:14px;color:#333;margin:4px 0;font-style:italic;">"${r.text}"</p>
-            <p style="font-size:12px;color:#888;margin:4px 0;">— ${r.author}</p>
+        ${data.points.map(p => `
+          <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+            <span style="font-size:20px;line-height:1;">${p.icon}</span>
+            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;">${p.text}</p>
           </div>
         `).join('')}
-        <p style="font-size:13px;color:#666;text-align:center;margin:0;">${data.statsLine}</p>
+        <p style="font-size:13px;color:#666;text-align:center;margin:12px 0 0;padding-top:12px;border-top:1px solid #eee;">${data.statsLine}</p>
       </div>
     `;
 
@@ -346,19 +345,39 @@ export class EmailTemplateGenerator {
   }
 
   buildCrossSells(cartAnalysis) {
-    const text = '\n--- YOU MIGHT ALSO LIKE ---\nCheck out accessories that pair perfectly with your cart items.\n---\n';
+    const category = cartAnalysis.dominantCategory;
+
+    // Category-specific collection links instead of static placeholders
+    const crossSellData = {
+      oilSlick: {
+        headline: 'Complete Your Extraction Setup',
+        description: 'Essential accessories that pair with your Oil Slick products:',
+        link: 'https://oilslickpad.com/collections/oil-slick',
+        linkText: 'Browse Oil Slick Accessories',
+      },
+      smokeshop: {
+        headline: 'Upgrade Your Experience',
+        description: 'Must-have accessories for your new piece:',
+        link: 'https://oilslickpad.com/collections/all',
+        linkText: 'Browse Accessories',
+      },
+      unknown: {
+        headline: 'You Might Also Like',
+        description: 'Check out our best sellers:',
+        link: 'https://oilslickpad.com/collections/all',
+        linkText: 'Browse All Products',
+      },
+    };
+
+    const data = crossSellData[category] || crossSellData.unknown;
+
+    const text = `\n--- ${data.headline.toUpperCase()} ---\n${data.description}\n${data.link}\n---\n`;
 
     const html = `
-      <div style="margin:24px 0;">
-        <h3 style="color:#333;font-size:16px;margin:0 0 12px;">Complete Your Setup</h3>
-        <p style="color:#666;font-size:14px;margin:0 0 16px;">Accessories that pair perfectly with your cart items:</p>
-        <div style="display:flex;gap:12px;overflow-x:auto;">
-          <!-- Dynamic product recommendations inserted by email platform -->
-          <div style="background:#f8f8f8;border-radius:8px;padding:16px;text-align:center;min-width:140px;">
-            <div style="font-size:13px;color:#333;font-weight:600;">Recommended accessories</div>
-            <div style="font-size:12px;color:#888;margin-top:4px;">Based on your cart</div>
-          </div>
-        </div>
+      <div style="margin:24px 0;text-align:center;">
+        <h3 style="color:#333;font-size:16px;margin:0 0 8px;">${data.headline}</h3>
+        <p style="color:#666;font-size:14px;margin:0 0 16px;">${data.description}</p>
+        <a href="${data.link}" style="display:inline-block;padding:10px 24px;background:#f8f8f8;border:1px solid #ddd;border-radius:8px;color:#333;font-size:14px;font-weight:600;text-decoration:none;">${data.linkText} &rarr;</a>
       </div>
     `;
 
@@ -380,17 +399,16 @@ export class EmailTemplateGenerator {
   }
 
   buildFeedbackRequest(checkout) {
-    const text = '\nWhy didn\'t you complete your order? We\'d love to know so we can improve.\n• Too expensive\n• Found it elsewhere\n• Just browsing\n• Shipping costs\n• Other\n';
+    // Link to contact page (which exists on all Shopify stores) instead of a nonexistent /pages/feedback
+    const contactUrl = 'https://oilslickpad.com/pages/contact';
+
+    const text = `\nWe'd love to hear from you — what could we do better?\nReply to this email or reach out: ${contactUrl}\n`;
 
     const html = `
-      <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:20px 0;">
-        <h3 style="color:#333;font-size:16px;margin:0 0 12px;">Quick question — why didn't you complete your order?</h3>
-        <p style="color:#666;font-size:13px;margin:0 0 12px;">Your feedback helps us improve. Click one:</p>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          ${['Too expensive', 'Found it elsewhere', 'Just browsing', 'Shipping costs', 'Other'].map(reason => `
-            <a href="https://oilslickpad.com/pages/feedback?reason=${encodeURIComponent(reason)}" style="display:inline-block;padding:8px 16px;background:#fff;border:1px solid #ddd;border-radius:20px;color:#333;font-size:12px;text-decoration:none;">${reason}</a>
-          `).join('')}
-        </div>
+      <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+        <h3 style="color:#333;font-size:16px;margin:0 0 12px;">We'd love your feedback</h3>
+        <p style="color:#666;font-size:13px;margin:0 0 16px;">What could we do better? Your input helps us improve.</p>
+        <a href="${contactUrl}" style="display:inline-block;padding:10px 24px;background:#fff;border:2px solid #e94560;border-radius:8px;color:#e94560;font-size:13px;font-weight:600;text-decoration:none;">Share Your Thoughts</a>
       </div>
     `;
 
@@ -423,8 +441,8 @@ export class EmailTemplateGenerator {
       'Oil Slick Pad — oilslickpad.com',
       'Premium extraction supplies & smokeshop',
       '',
-      'You\'re receiving this because you left items in your cart.',
-      'Unsubscribe: {{unsubscribe_url}}',
+      'You\'re receiving this because you left items in your cart at oilslickpad.com.',
+      'Manage your email preferences in your Oil Slick Pad account.',
     ].join('\n');
 
     const html = `
@@ -432,7 +450,8 @@ export class EmailTemplateGenerator {
         <p style="font-size:14px;font-weight:600;color:#333;margin:0 0 4px;">Oil Slick Pad</p>
         <p style="font-size:12px;color:#888;margin:0 0 12px;">Premium extraction supplies & smokeshop</p>
         <p style="font-size:11px;color:#aaa;margin:0;">You're receiving this because you left items in your cart at oilslickpad.com.<br>
-        <a href="{{unsubscribe_url}}" style="color:#aaa;">Unsubscribe</a> | <a href="https://oilslickpad.com/pages/privacy" style="color:#aaa;">Privacy Policy</a></p>
+        Sent via Shopify Email — manage preferences in your account.<br>
+        <a href="https://oilslickpad.com/policies/privacy-policy" style="color:#aaa;">Privacy Policy</a></p>
       </div>
     `;
 

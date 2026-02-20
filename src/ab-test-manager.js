@@ -253,6 +253,37 @@ export class ABTestManager {
   }
 
   /**
+   * Loads persisted A/B test results from Supabase (or any external store).
+   * Hydrates the in-memory results Map so stats accumulate across engine runs.
+   *
+   * @param {Object} persistedResults - { testId: { variantId: { impressions, opens, clicks, conversions, revenue } } }
+   */
+  loadResults(persistedResults) {
+    if (!persistedResults || typeof persistedResults !== 'object') return;
+
+    for (const [testId, variants] of Object.entries(persistedResults)) {
+      if (!this.results.has(testId)) {
+        this.results.set(testId, new Map());
+      }
+      const testMap = this.results.get(testId);
+
+      for (const [variantId, data] of Object.entries(variants)) {
+        if (!testMap.has(variantId)) {
+          testMap.set(variantId, {
+            impressions: 0, opens: 0, clicks: 0, conversions: 0, revenue: 0,
+          });
+        }
+        const existing = testMap.get(variantId);
+        existing.impressions += data.impressions || 0;
+        existing.opens += data.opens || 0;
+        existing.clicks += data.clicks || 0;
+        existing.conversions += data.conversions || 0;
+        existing.revenue += data.revenue || 0;
+      }
+    }
+  }
+
+  /**
    * Generates a summary report of all A/B tests.
    */
   generateReport() {
