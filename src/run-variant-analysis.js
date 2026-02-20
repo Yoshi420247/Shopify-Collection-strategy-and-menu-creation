@@ -2,16 +2,21 @@
 // Main orchestrator for AI-powered Shopify variant analysis and creation
 //
 // Usage:
-//   node src/run-variant-analysis.js --dry-run          # Analyze and report only
-//   node src/run-variant-analysis.js --apply             # Analyze AND create variants
-//   node src/run-variant-analysis.js --dry-run --max=10  # Test with 10 products
-//   node src/run-variant-analysis.js --product-ids=123,456  # Specific products
+//   node src/run-variant-analysis.js --dry-run                     # Analyze and report only
+//   node src/run-variant-analysis.js --apply                       # Analyze AND create variants
+//   node src/run-variant-analysis.js --dry-run --max=10            # Test with 10 products
+//   node src/run-variant-analysis.js --product-ids=123,456         # Specific products
+//
+// Cost-saving flags:
+//   --from-report=<path>   Apply a previous dry-run report (ZERO AI cost)
+//   --screen               Use cheap Haiku screening before Sonnet (~50% savings)
+//   --skip-existing        Skip products that already have color variants
 //
 import { config } from './config.js';
 import { getAllProductsByVendor, getProduct } from './shopify-api.js';
-import { analyzeProduct } from './variant-analyzer.js';
+import { analyzeProduct, screenProduct, productAlreadyHasColorVariants } from './variant-analyzer.js';
 import { buildVariantPlan, applyVariantPlan } from './variant-creator.js';
-import { writeFileSync, appendFileSync } from 'fs';
+import { writeFileSync, appendFileSync, readFileSync, existsSync } from 'fs';
 
 const DEFAULTS = {
   batchSize: 20,
@@ -20,6 +25,9 @@ const DEFAULTS = {
   confidenceThreshold: 0.7,
   mode: 'dry-run',
   productIds: null,
+  fromReport: null,        // Path to a dry-run report to reuse (skips AI entirely)
+  screen: false,           // Use cheap Haiku screening before expensive Sonnet analysis
+  skipExisting: false,     // Skip products that already have color variants
 };
 
 function parseArgs() {
@@ -29,11 +37,14 @@ function parseArgs() {
   for (const arg of args) {
     if (arg === '--apply') options.mode = 'apply';
     else if (arg === '--dry-run') options.mode = 'dry-run';
+    else if (arg === '--screen') options.screen = true;
+    else if (arg === '--skip-existing') options.skipExisting = true;
     else if (arg.startsWith('--batch-size=')) options.batchSize = parseInt(arg.split('=')[1], 10);
     else if (arg.startsWith('--offset=')) options.offset = parseInt(arg.split('=')[1], 10);
     else if (arg.startsWith('--max=')) options.maxProducts = parseInt(arg.split('=')[1], 10);
     else if (arg.startsWith('--confidence=')) options.confidenceThreshold = parseFloat(arg.split('=')[1]);
     else if (arg.startsWith('--product-ids=')) options.productIds = arg.split('=')[1].split(',').map(Number);
+    else if (arg.startsWith('--from-report=')) options.fromReport = arg.split('=')[1];
   }
 
   return options;
@@ -47,6 +58,9 @@ function printBanner(options) {
   console.log(`  Mode:                ${options.mode.toUpperCase()}`);
   console.log(`  Confidence threshold: ${options.confidenceThreshold}`);
   console.log(`  Batch size:          ${options.batchSize}`);
+  if (options.screen) console.log(`  Haiku screening:     ENABLED (saves ~50% on AI costs)`);
+  if (options.skipExisting) console.log(`  Skip existing:       ENABLED`);
+  if (options.fromReport) console.log(`  From report:         ${options.fromReport} (no AI cost)`);
   if (options.offset > 0) console.log(`  Starting offset:     ${options.offset}`);
   if (options.maxProducts > 0) console.log(`  Max products:        ${options.maxProducts}`);
   if (options.productIds) console.log(`  Specific products:   ${options.productIds.join(', ')}`);
@@ -130,6 +144,11 @@ async function main() {
   const options = parseArgs();
   printBanner(options);
 
+  // ── FROM-REPORT MODE: apply a previous dry-run without re-running AI ──
+  if (options.fromReport) {
+    return await applyFromReport(options);
+  }
+
   // Validate required environment variables
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error('ERROR: ANTHROPIC_API_KEY environment variable is required');
@@ -166,6 +185,7 @@ async function main() {
     needsUpdates: 0,
     correct: 0,
     skipped: 0,
+    screened: 0,
     errors: 0,
     applied: 0,
     products: [],
@@ -191,7 +211,29 @@ async function main() {
       console.log(`\n  [${idx}/${products.length}] ${product.title}`);
       console.log(`    ID: ${product.id} | Variants: ${product.variants?.length || 0} | Images: ${product.images?.length || 0}`);
 
-      // ── Step 1: AI Analysis ──────────────────────────────────────────
+      // ── Pre-filter: skip products that already have color variants ──
+      if (options.skipExisting && productAlreadyHasColorVariants(product)) {
+        console.log(`    SKIP: Already has color variants set up`);
+        results.skipped++;
+        results.products.push({ id: product.id, title: product.title, status: 'skipped_existing', analysis: null, plan: null, result: null });
+        continue;
+      }
+
+      // ── Haiku screening: cheap check before expensive Sonnet call ───
+      if (options.screen) {
+        console.log(`    Screening with Haiku...`);
+        const screenResult = await screenProduct(product);
+        if (!screenResult.needsAnalysis) {
+          console.log(`    SCREEN: ${screenResult.reason} — skipping full analysis`);
+          results.screened++;
+          results.skipped++;
+          results.products.push({ id: product.id, title: product.title, status: 'screened_out', screen: screenResult, analysis: null, plan: null, result: null });
+          continue;
+        }
+        console.log(`    SCREEN: ${screenResult.reason} — proceeding to full analysis`);
+      }
+
+      // ── Step 1: Full AI Analysis (Sonnet) ──────────────────────────
       const analysis = await analyzeProduct(product, {
         confidenceThreshold: options.confidenceThreshold,
       });
@@ -272,6 +314,97 @@ async function main() {
   }
 
   // ── Final summary ──────────────────────────────────────────────────────
+  printSummary(results, options, reportPath);
+}
+
+/**
+ * Apply variant changes from a previously saved dry-run report.
+ * Skips ALL AI analysis — zero Claude API cost.
+ */
+async function applyFromReport(options) {
+  const reportFile = options.fromReport;
+  if (!existsSync(reportFile)) {
+    console.error(`ERROR: Report file not found: ${reportFile}`);
+    process.exit(1);
+  }
+  if (!config.shopify.accessToken) {
+    console.error('ERROR: SHOPIFY_ACCESS_TOKEN environment variable is required');
+    process.exit(1);
+  }
+
+  console.log(`Loading previous analysis from: ${reportFile}`);
+  const report = JSON.parse(readFileSync(reportFile, 'utf8'));
+
+  // Find products that need changes
+  const actionable = report.products.filter(
+    p => p.status === 'create_variants' || p.status === 'update_variants'
+  );
+
+  console.log(`Found ${actionable.length} products with pending variant changes`);
+  console.log(`(Original analysis: ${report.analyzed} products on ${report.timestamp})\n`);
+
+  if (actionable.length === 0) {
+    console.log('Nothing to apply. Exiting.');
+    return;
+  }
+
+  const results = {
+    timestamp: new Date().toISOString(),
+    mode: 'apply-from-report',
+    sourceReport: reportFile,
+    totalProducts: actionable.length,
+    analyzed: 0,
+    needsVariants: 0,
+    needsUpdates: 0,
+    correct: 0,
+    skipped: 0,
+    screened: 0,
+    errors: 0,
+    applied: 0,
+    products: [],
+  };
+
+  for (let i = 0; i < actionable.length; i++) {
+    const entry = actionable[i];
+    results.analyzed++;
+    console.log(`\n  [${i + 1}/${actionable.length}] ${entry.title} (ID: ${entry.id})`);
+    console.log(`    Cached plan: ${entry.plan.action} — ${entry.plan.reason}`);
+
+    // Re-fetch product to get current state (variants may have changed since dry-run)
+    let product;
+    try {
+      const data = await getProduct(entry.id);
+      product = data.product;
+      if (!product) throw new Error('Product not found');
+    } catch (err) {
+      console.log(`    ERROR: Could not fetch product: ${err.message}`);
+      results.errors++;
+      results.products.push({ ...entry, result: { success: false, message: err.message } });
+      continue;
+    }
+
+    // Re-build plan with fresh product data but cached analysis
+    const plan = buildVariantPlan(product, entry.analysis);
+    if (plan.action === 'skip') {
+      console.log(`    SKIP (product may have been updated since dry-run): ${plan.reason}`);
+      results.correct++;
+      results.products.push({ ...entry, plan, result: null });
+      continue;
+    }
+
+    const applyResult = await applyVariantPlan(product, plan);
+    console.log(`    Result: ${applyResult.success ? 'SUCCESS' : 'FAILED'} — ${applyResult.message}`);
+    if (applyResult.success) results.applied++;
+    else results.errors++;
+
+    results.products.push({ ...entry, plan, result: applyResult });
+  }
+
+  const reportPath = `variant-analysis-report-${Date.now()}.json`;
+  printSummary(results, options, reportPath);
+}
+
+function printSummary(results, options, reportPath) {
   console.log(`\n\n${'═'.repeat(60)}`);
   console.log('  SUMMARY');
   console.log(`${'═'.repeat(60)}`);
@@ -280,8 +413,11 @@ async function main() {
   console.log(`  Needs variant updates: ${results.needsUpdates}`);
   console.log(`  Already correct:      ${results.correct}`);
   console.log(`  Skipped/low conf:     ${results.skipped}`);
+  if (results.screened > 0) {
+    console.log(`  Screened out (Haiku): ${results.screened}`);
+  }
   console.log(`  Errors:               ${results.errors}`);
-  if (options.mode === 'apply') {
+  if (results.mode !== 'dry-run') {
     console.log(`  Successfully applied: ${results.applied}`);
   }
   console.log(`${'═'.repeat(60)}`);
@@ -298,7 +434,7 @@ async function main() {
   }
 
   // Exit with error code if there were failures in apply mode
-  if (options.mode === 'apply' && results.errors > 0) {
+  if (results.mode !== 'dry-run' && results.errors > 0) {
     process.exit(1);
   }
 }

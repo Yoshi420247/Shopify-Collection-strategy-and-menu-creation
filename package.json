@@ -44,8 +44,10 @@
     "descriptions:single": "node src/update-collection-descriptions.js --execute --collection=",
     "min-order": "node src/add-minimum-order.js",
     "min-order:execute": "node src/add-minimum-order.js --execute",
-    "variants": "node src/run-variant-analysis.js --dry-run",
-    "variants:apply": "node src/run-variant-analysis.js --apply",
+    "variants": "node src/run-variant-analysis.js --dry-run --screen --skip-existing",
+    "variants:full": "node src/run-variant-analysis.js --dry-run",
+    "variants:apply": "node src/run-variant-analysis.js --apply --from-report=",
+    "variants:apply-live": "node src/run-variant-analysis.js --apply --screen --skip-existing",
     "variants:test": "node src/run-variant-analysis.js --dry-run --max=5",
     "variants:product": "node src/run-variant-analysis.js --dry-run --product-ids="
   },
