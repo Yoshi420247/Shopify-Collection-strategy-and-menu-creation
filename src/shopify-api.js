@@ -301,6 +301,52 @@ export async function deleteRedirect(redirectId) {
   );
 }
 
+// Customer methods
+export async function getCustomers(params = {}) {
+  const queryParams = new URLSearchParams(params);
+  return rateLimitedRequest(`${BASE_URL}/customers.json?${queryParams}`);
+}
+
+export async function getCustomerCount(params = {}) {
+  const queryParams = new URLSearchParams(params);
+  return rateLimitedRequest(`${BASE_URL}/customers/count.json?${queryParams}`);
+}
+
+export async function getCustomerOrders(customerId, params = {}) {
+  const queryParams = new URLSearchParams(params);
+  return rateLimitedRequest(`${BASE_URL}/customers/${customerId}/orders.json?${queryParams}`);
+}
+
+// Order methods
+export async function getOrders(params = {}) {
+  const queryParams = new URLSearchParams(params);
+  return rateLimitedRequest(`${BASE_URL}/orders.json?${queryParams}`);
+}
+
+export async function getOrderCount(params = {}) {
+  const queryParams = new URLSearchParams(params);
+  return rateLimitedRequest(`${BASE_URL}/orders/count.json?${queryParams}`);
+}
+
+// Abandoned checkout methods
+export async function getAbandonedCheckouts(params = {}) {
+  const queryParams = new URLSearchParams(params);
+  return rateLimitedRequest(`${BASE_URL}/checkouts.json?${queryParams}`);
+}
+
+export async function getAbandonedCheckoutCount(params = {}) {
+  const queryParams = new URLSearchParams(params);
+  return rateLimitedRequest(`${BASE_URL}/checkouts/count.json?${queryParams}`);
+}
+
+export async function updateCustomer(customerId, data) {
+  return rateLimitedRequest(
+    `${BASE_URL}/customers/${customerId}.json`,
+    'PUT',
+    { customer: data }
+  );
+}
+
 export default {
   getProducts,
   getProduct,
@@ -327,4 +373,12 @@ export default {
   getRedirects,
   createRedirect,
   deleteRedirect,
+  getCustomers,
+  getCustomerCount,
+  getCustomerOrders,
+  getOrders,
+  getOrderCount,
+  getAbandonedCheckouts,
+  getAbandonedCheckoutCount,
+  updateCustomer,
 };
