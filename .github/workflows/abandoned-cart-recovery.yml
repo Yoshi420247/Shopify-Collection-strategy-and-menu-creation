@@ -11,7 +11,6 @@ on:
           - dry-run
           - execute
           - report
-          - setup
       max_checkouts:
         description: 'Max checkouts to process (0 = all)'
         required: false
@@ -45,12 +44,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup metafield definitions (one-time)
-        if: github.event.inputs.mode == 'setup'
+      # Always run setup first — idempotent, skips definitions that already exist
+      - name: Ensure metafield definitions exist
         run: node src/setup-cart-recovery-flows.js --create
 
+      # Run the cart recovery engine
       - name: Run abandoned cart recovery
-        if: github.event.inputs.mode != 'setup'
         run: |
           MODE="${{ github.event.inputs.mode || 'dry-run' }}"
           MAX="${{ github.event.inputs.max_checkouts || '0' }}"
