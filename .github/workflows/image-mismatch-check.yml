@@ -1,0 +1,90 @@
+name: Image Mismatch Detection
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_products:
+        description: 'Max products to check (empty = all)'
+        required: false
+        default: ''
+        type: string
+      min_images:
+        description: 'Minimum images per product to check'
+        required: false
+        default: '2'
+        type: string
+      tag_suspects:
+        description: 'Tag suspect products with image-mismatch-suspect'
+        required: false
+        default: false
+        type: boolean
+      product_ids:
+        description: 'Specific product IDs to check (comma-separated)'
+        required: false
+        default: ''
+        type: string
+      analysis_model:
+        description: 'AI model to use'
+        required: true
+        default: 'gemini'
+        type: choice
+        options:
+          - gemini
+          - sonnet
+
+jobs:
+  check-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Image Mismatch Detection
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          ARGS=""
+
+          if [ -n "${{ inputs.max_products }}" ]; then
+            ARGS="$ARGS --max=${{ inputs.max_products }}"
+          fi
+
+          if [ -n "${{ inputs.min_images }}" ]; then
+            ARGS="$ARGS --min-images=${{ inputs.min_images }}"
+          fi
+
+          if [ "${{ inputs.tag_suspects }}" = "true" ]; then
+            ARGS="$ARGS --tag-suspects"
+          fi
+
+          if [ -n "${{ inputs.product_ids }}" ]; then
+            ARGS="$ARGS --product-ids=${{ inputs.product_ids }}"
+          fi
+
+          ARGS="$ARGS --analysis-model=${{ inputs.analysis_model }}"
+
+          echo "Running: node src/run-image-mismatch-check.js $ARGS"
+          eval node src/run-image-mismatch-check.js $ARGS
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-mismatch-report-${{ github.run_number }}
+          path: image-mismatch-report-*.json
+          retention-days: 90
+          if-no-files-found: ignore
