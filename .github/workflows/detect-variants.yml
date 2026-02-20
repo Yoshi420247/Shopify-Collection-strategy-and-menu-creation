@@ -1,0 +1,268 @@
+name: AI Variant Detection
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'analyze'
+        type: choice
+        options:
+          - analyze          # Analyze only - generates report, no changes
+          - apply            # Analyze + auto-apply high-confidence variants
+          - apply-report     # Apply from a previous report artifact
+      threshold:
+        description: 'Confidence threshold for auto-apply (0-100)'
+        required: false
+        default: '85'
+        type: string
+      vendor:
+        description: 'Filter by vendor (leave empty for all)'
+        required: false
+        default: ''
+        type: string
+      product_id:
+        description: 'Single product ID to analyze (leave empty for batch)'
+        required: false
+        default: ''
+        type: string
+      limit:
+        description: 'Max products to process (empty = all)'
+        required: false
+        default: ''
+        type: string
+      apply_all:
+        description: 'Apply ALL variants including low-confidence'
+        required: false
+        default: false
+        type: boolean
+      report_artifact:
+        description: 'Report artifact name (for apply-report mode)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  detect-variants:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 hours max for large catalogues
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      # ── ANALYZE MODE ──
+      - name: Run Analysis (analyze mode)
+        if: ${{ inputs.mode == 'analyze' }}
+        env:
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          echo "=== AI Variant Detection - ANALYZE MODE ==="
+          echo "Threshold: ${{ inputs.threshold }}%"
+          echo ""
+
+          ARGS="--analyze --threshold ${{ inputs.threshold }}"
+
+          if [ -n "${{ inputs.vendor }}" ]; then
+            ARGS="$ARGS --vendor '${{ inputs.vendor }}'"
+          fi
+
+          if [ -n "${{ inputs.product_id }}" ]; then
+            ARGS="$ARGS --product-id ${{ inputs.product_id }}"
+          fi
+
+          if [ -n "${{ inputs.limit }}" ]; then
+            ARGS="$ARGS --limit ${{ inputs.limit }}"
+          fi
+
+          ARGS="$ARGS --output variant_report.json"
+
+          eval python tools/ai_variant_detector.py $ARGS
+
+      # ── APPLY MODE ──
+      - name: Run Analysis + Apply (apply mode)
+        if: ${{ inputs.mode == 'apply' }}
+        env:
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          echo "=== AI Variant Detection - APPLY MODE ==="
+          echo "Threshold: ${{ inputs.threshold }}%"
+          echo "Apply all: ${{ inputs.apply_all }}"
+          echo ""
+
+          ARGS="--apply --threshold ${{ inputs.threshold }}"
+
+          if [ "${{ inputs.apply_all }}" = "true" ]; then
+            ARGS="$ARGS --apply-all"
+          fi
+
+          if [ -n "${{ inputs.vendor }}" ]; then
+            ARGS="$ARGS --vendor '${{ inputs.vendor }}'"
+          fi
+
+          if [ -n "${{ inputs.product_id }}" ]; then
+            ARGS="$ARGS --product-id ${{ inputs.product_id }}"
+          fi
+
+          if [ -n "${{ inputs.limit }}" ]; then
+            ARGS="$ARGS --limit ${{ inputs.limit }}"
+          fi
+
+          ARGS="$ARGS --output variant_report.json"
+
+          eval python tools/ai_variant_detector.py $ARGS
+
+      # ── APPLY-REPORT MODE ──
+      - name: Download previous report
+        if: ${{ inputs.mode == 'apply-report' && inputs.report_artifact != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.report_artifact }}
+          path: ./
+
+      - name: Apply from report
+        if: ${{ inputs.mode == 'apply-report' }}
+        env:
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=== AI Variant Detection - APPLY FROM REPORT ==="
+
+          REPORT_FILE=$(ls -t variant_report*.json 2>/dev/null | head -1)
+          if [ -z "$REPORT_FILE" ]; then
+            echo "ERROR: No report file found. Upload a report artifact or run analyze first."
+            exit 1
+          fi
+
+          echo "Using report: $REPORT_FILE"
+
+          ARGS="--apply-report $REPORT_FILE"
+          if [ "${{ inputs.apply_all }}" = "true" ]; then
+            ARGS="$ARGS --apply-all"
+          fi
+
+          eval python tools/ai_variant_detector.py $ARGS
+
+      # ── UPLOAD ARTIFACTS ──
+      - name: Upload variant report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: variant-report-${{ github.run_number }}
+          path: |
+            variant_report*.json
+            variant_applied*.json
+            variant_detection_progress.json
+          retention-days: 90
+          if-no-files-found: ignore
+
+      # ── SUMMARY ──
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## AI Variant Detection Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** ${{ inputs.mode }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Threshold:** ${{ inputs.threshold }}%" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ inputs.vendor }}" ]; then
+            echo "**Vendor:** ${{ inputs.vendor }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -n "${{ inputs.product_id }}" ]; then
+            echo "**Product ID:** ${{ inputs.product_id }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Parse report JSON if it exists
+          REPORT_FILE=$(ls -t variant_report*.json 2>/dev/null | head -1)
+          if [ -n "$REPORT_FILE" ] && [ -f "$REPORT_FILE" ]; then
+            echo "### Report Summary" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            python3 -c "
+          import json
+          with open('$REPORT_FILE') as f:
+              r = json.load(f)
+          s = r.get('summary', {})
+          print(json.dumps(s, indent=2))
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Could not parse report" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Auto-Apply Queue" >> $GITHUB_STEP_SUMMARY
+
+            python3 -c "
+          import json
+          with open('$REPORT_FILE') as f:
+              r = json.load(f)
+          items = r.get('auto_apply', [])
+          if not items:
+              print('No products in auto-apply queue.')
+          else:
+              print('| Confidence | Product | Type | Variants |')
+              print('|---|---|---|---|')
+              for item in items:
+                  conf = item.get('confidence', 0)
+                  title = item.get('title', 'Unknown')[:40]
+                  vtype = item.get('variant_type', '?')
+                  n = len(item.get('variants', []))
+                  print(f'| {conf}% | {title} | {vtype} | {n} |')
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Could not parse auto-apply queue" >> $GITHUB_STEP_SUMMARY
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Needs Review" >> $GITHUB_STEP_SUMMARY
+
+            python3 -c "
+          import json
+          with open('$REPORT_FILE') as f:
+              r = json.load(f)
+          items = r.get('needs_review', [])
+          if not items:
+              print('No products need review.')
+          else:
+              print('| Confidence | Product | Type | Reason |')
+              print('|---|---|---|---|')
+              for item in items:
+                  conf = item.get('confidence', 0)
+                  title = item.get('title', 'Unknown')[:40]
+                  vtype = item.get('variant_type', '?')
+                  reason = item.get('reasoning', '')[:50]
+                  print(f'| {conf}% | {title} | {vtype} | {reason} |')
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Could not parse review queue" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No report file found." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Application results
+          APPLY_FILE=$(ls -t variant_applied*.json 2>/dev/null | head -1)
+          if [ -n "$APPLY_FILE" ] && [ -f "$APPLY_FILE" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Application Results" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            python3 -c "
+          import json
+          with open('$APPLY_FILE') as f:
+              r = json.load(f)
+          print(f\"Applied: {r.get('applied', 0)}\")
+          print(f\"Failed: {r.get('failed', 0)}\")
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Could not parse results" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Reports are saved as workflow artifacts for 90 days.*" >> $GITHUB_STEP_SUMMARY
