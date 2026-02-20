@@ -475,146 +475,146 @@ The following Shopify Flow automations need to be created in your admin.
 Go to: Shopify Admin > Apps > Shopify Flow > Create workflow
 
 Each flow below maps to the message templates in src/postsales-messages.js.
-Connect these flows to Omnisend actions for email/SMS delivery.
+Use "Send marketing email" and "Send SMS" actions (Shopify native) for delivery.
 
 FLOW 1: Order Confirmation
   Trigger: Order created
-  Action: Send Omnisend email (template: orderConfirmation.email)
-  Action: Send Omnisend SMS (template: orderConfirmation.sms)
+  Action: Send Shopify Email (template: orderConfirmation.email)
+  Action: Send Shopify SMS (template: orderConfirmation.sms)
   Delay: None (immediate)
 
 FLOW 2: Shipping Confirmation
   Trigger: Order fulfilled
-  Action: Send Omnisend email (template: shippingConfirmation.email)
-  Action: Send Omnisend SMS (template: shippingConfirmation.sms)
+  Action: Send Shopify Email (template: shippingConfirmation.email)
+  Action: Send Shopify SMS (template: shippingConfirmation.sms)
   Delay: None (immediate)
 
 FLOW 3: Delivery Follow-Up
   Trigger: Order fulfilled
   Delay: Wait 5 days (accounts for shipping time)
-  Action: Send Omnisend email (template: deliveryFollowUp.email)
+  Action: Send Shopify Email (template: deliveryFollowUp.email)
 
 FLOW 4: Review Request
   Trigger: Order fulfilled
   Delay: Wait 10 days (7 days post-estimated-delivery)
   Condition: Customer has not left a review
-  Action: Send Omnisend email (template: reviewRequest.email)
+  Action: Send Shopify Email (template: reviewRequest.email)
   Delay: Wait 1 day
-  Action: Send Omnisend SMS (template: reviewRequest.sms)
+  Action: Send Shopify SMS (template: reviewRequest.sms)
 
 FLOW 5: Cross-Sell (Bong Buyer)
   Trigger: Order fulfilled
   Delay: Wait 17 days
   Condition: Order contains product tagged "glass-bong"
-  Action: Send Omnisend email (template: crossSell.bongBuyer.email)
+  Action: Send Shopify Email (template: crossSell.bongBuyer.email)
 
 FLOW 6: Cross-Sell (Dab Rig Buyer)
   Trigger: Order fulfilled
   Delay: Wait 17 days
   Condition: Order contains product tagged "glass-rig" OR "silicone-rig"
-  Action: Send Omnisend email (template: crossSell.dabRigBuyer.email)
+  Action: Send Shopify Email (template: crossSell.dabRigBuyer.email)
 
 FLOW 7: Cross-Sell (Hand Pipe Buyer)
   Trigger: Order fulfilled
   Delay: Wait 17 days
   Condition: Order contains product tagged "spoon-pipe"
-  Action: Send Omnisend email (template: crossSell.handPipeBuyer.email)
+  Action: Send Shopify Email (template: crossSell.handPipeBuyer.email)
 
 FLOW 8: Cross-Sell (Rolling Buyer)
   Trigger: Order fulfilled
   Delay: Wait 17 days
   Condition: Order contains product tagged "rolling-paper"
-  Action: Send Omnisend email (template: crossSell.rollingBuyer.email)
+  Action: Send Shopify Email (template: crossSell.rollingBuyer.email)
 
 FLOW 9: Restock Reminder
   Trigger: Order fulfilled
   Delay: Wait 45 days
   Condition: Order contains product tagged "rolling-paper" OR "cleaning-supply" OR "screen" OR "torch" OR "lighter"
-  Action: Send Omnisend email (template: restockReminder.email)
-  Action: Send Omnisend SMS (template: restockReminder.sms)
+  Action: Send Shopify Email (template: restockReminder.email)
+  Action: Send Shopify SMS (template: restockReminder.sms)
 
 FLOW 10: Abandoned Cart — 1 Hour
   Trigger: Checkout abandoned
   Delay: Wait 1 hour
   Condition: Checkout not completed
-  Action: Send Omnisend email (template: abandonedCart.reminder1.email)
-  Action: Send Omnisend SMS (template: abandonedCart.reminder1.sms)
+  Action: Send Shopify Email (template: abandonedCart.reminder1.email)
+  Action: Send Shopify SMS (template: abandonedCart.reminder1.sms)
 
 FLOW 11: Abandoned Cart — 24 Hours
   Trigger: Checkout abandoned
   Delay: Wait 24 hours
   Condition: Checkout not completed
-  Action: Send Omnisend email (template: abandonedCart.reminder2.email)
+  Action: Send Shopify Email (template: abandonedCart.reminder2.email)
 
 FLOW 12: Abandoned Cart — 72 Hours (with discount)
   Trigger: Checkout abandoned
   Delay: Wait 72 hours
   Condition: Checkout not completed
-  Action: Send Omnisend email (template: abandonedCart.reminder3.email)
-  Action: Send Omnisend SMS (template: abandonedCart.reminder3.sms)
+  Action: Send Shopify Email (template: abandonedCart.reminder3.email)
+  Action: Send Shopify SMS (template: abandonedCart.reminder3.sms)
 
 FLOW 13: Welcome Series — Immediate
   Trigger: Customer created (via email signup)
   Condition: Customer has 0 orders
-  Action: Send Omnisend email (template: welcomeSeries.welcome.email)
-  Action: Send Omnisend SMS (template: welcomeSeries.welcome.sms)
+  Action: Send Shopify Email (template: welcomeSeries.welcome.email)
+  Action: Send Shopify SMS (template: welcomeSeries.welcome.sms)
 
 FLOW 14: Welcome Series — Best Sellers (Day 3)
   Trigger: Customer created
   Delay: Wait 3 days
   Condition: Customer has 0 orders
-  Action: Send Omnisend email (template: welcomeSeries.bestSellers.email)
+  Action: Send Shopify Email (template: welcomeSeries.bestSellers.email)
 
 FLOW 15: Welcome Series — Trust Builder (Day 7)
   Trigger: Customer created
   Delay: Wait 7 days
   Condition: Customer has 0 orders
-  Action: Send Omnisend email (template: welcomeSeries.trustBuilder.email)
+  Action: Send Shopify Email (template: welcomeSeries.trustBuilder.email)
 
 FLOW 16: Win-Back — 30 Days
   Trigger: Scheduled (daily check)
   Condition: Last order > 30 days ago, < 60 days ago
-  Action: Send Omnisend email (template: winBack.gentle.email)
+  Action: Send Shopify Email (template: winBack.gentle.email)
 
 FLOW 17: Win-Back — 60 Days
   Trigger: Scheduled (daily check)
   Condition: Last order > 60 days ago, < 90 days ago
-  Action: Send Omnisend email (template: winBack.nudge.email)
+  Action: Send Shopify Email (template: winBack.nudge.email)
 
 FLOW 18: Win-Back — 90 Days (Last Chance)
   Trigger: Scheduled (daily check)
   Condition: Last order > 90 days ago, < 120 days ago
-  Action: Send Omnisend email (template: winBack.lastChance.email)
-  Action: Send Omnisend SMS (template: winBack.lastChance.sms)
+  Action: Send Shopify Email (template: winBack.lastChance.email)
+  Action: Send Shopify SMS (template: winBack.lastChance.sms)
 
 FLOW 19: Sunset — 120 Days
   Trigger: Scheduled (daily check)
   Condition: Last order > 120 days ago, no email opens in 30 days
-  Action: Send Omnisend email (template: sunsetFlow.email)
+  Action: Send Shopify Email (template: sunsetFlow.email)
   Post-action: Remove from marketing list after 7 days if no click
 
 FLOW 20: VIP Recognition
   Trigger: Order created
   Condition: Customer order count >= 3 OR lifetime spend >= $200
-  Action: Send Omnisend email (template: vipRecognition.email)
-  Action: Send Omnisend SMS (template: vipRecognition.sms)
+  Action: Send Shopify Email (template: vipRecognition.email)
+  Action: Send Shopify SMS (template: vipRecognition.sms)
 
 FLOW 21: Birthday
   Trigger: Scheduled (daily check)
   Condition: Customer birthday matches today
-  Action: Send Omnisend email (template: birthday.email)
-  Action: Send Omnisend SMS (template: birthday.sms)
+  Action: Send Shopify Email (template: birthday.email)
+  Action: Send Shopify SMS (template: birthday.sms)
 
 FLOW 22: Referral Nudge
   Trigger: Order fulfilled (first order only)
   Delay: Wait 30 days
   Condition: Customer has exactly 1 order, has not received referral email
-  Action: Send Omnisend email (template: referral.email)
+  Action: Send Shopify Email (template: referral.email)
 
 FLOW 23: Wholesale Follow-Up
   Trigger: Order created
   Condition: Order total >= $500 OR customer tagged "wholesale"
-  Action: Send Omnisend email (template: wholesaleFollowUp.email)
+  Action: Send Shopify Email (template: wholesaleFollowUp.email)
 `);
 
   return true;
@@ -785,8 +785,11 @@ async function main() {
     console.log('  node src/deploy-postsales.js --execute');
   } else {
     console.log('\n  All API changes have been pushed live.');
-    console.log('  Next step: Build Shopify Flow automations in the admin');
-    console.log('  using the flow guide printed above.');
+    console.log('  Next steps:');
+    console.log('  1. Build Shopify Flow automations in admin using the guide above');
+    console.log('  2. Create Shopify Email templates matching src/postsales-messages.js');
+    console.log('  3. Connect each Flow to the corresponding Shopify Email template');
+    console.log('  4. All email + SMS stays 100% inside Shopify — no third-party apps needed');
   }
 }
 

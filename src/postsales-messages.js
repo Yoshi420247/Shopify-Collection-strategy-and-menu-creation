@@ -1,7 +1,8 @@
 // =============================================================================
 // Post-Sales Messaging System for Oil Slick (oilslickpad.com)
 //
-// Complete email + SMS automation templates for Omnisend / Shopify Flow
+// Complete email + SMS automation templates for Shopify Email + Shopify Flow
+// All marketing handled natively through Shopify — no third-party tools needed
 // Brand voice: casual, knowledgeable, direct — like talking to someone
 // who actually works at a smokeshop and gives a damn about your order
 //
@@ -909,7 +910,7 @@ Oil Slick / oilslickpad.com
 // =============================================================================
 // FLOW CONFIGURATION
 // Defines timing, triggers, and conditions for each message
-// Compatible with Omnisend, Klaviyo, Shopify Flow, or custom automation
+// Designed for Shopify Email + Shopify Flow (fully native, no third-party apps)
 // =============================================================================
 
 const flowConfig = {
@@ -1206,8 +1207,8 @@ const smsCompliance = {
 
 
 // =============================================================================
-// OMNISEND CHAT WIDGET UPDATE
-// Updated greeting message for the Omnisend live chat integration
+// SHOPIFY INBOX CHAT WIDGET
+// Updated greeting message for the Shopify Inbox live chat integration
 // =============================================================================
 
 const chatWidgetConfig = {

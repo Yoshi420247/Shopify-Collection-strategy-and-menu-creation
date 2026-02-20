@@ -68,6 +68,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "1. Go to **Shopify Admin > Apps > Shopify Flow**" >> $GITHUB_STEP_SUMMARY
           echo "2. Create each workflow listed in the deployment output" >> $GITHUB_STEP_SUMMARY
-          echo "3. Connect Omnisend email/SMS actions to each flow" >> $GITHUB_STEP_SUMMARY
-          echo "4. Copy message templates from \`src/postsales-messages.js\` into Omnisend" >> $GITHUB_STEP_SUMMARY
+          echo "3. Create Shopify Email templates from \`src/postsales-messages.js\`" >> $GITHUB_STEP_SUMMARY
+          echo "4. Connect each Flow to the matching Shopify Email template (no third-party apps needed)" >> $GITHUB_STEP_SUMMARY
           echo "5. Test each flow with a test order before enabling for all customers" >> $GITHUB_STEP_SUMMARY
