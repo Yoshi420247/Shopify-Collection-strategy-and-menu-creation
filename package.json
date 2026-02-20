@@ -33,6 +33,8 @@
     "import:list": "python3 tools/pdf_product_importer.py --list",
     "restock": "node src/restock-sold-out.js",
     "restock:execute": "node src/restock-sold-out.js --execute",
+    "set-stock": "node src/set-stock-quantity.js --qty=",
+    "set-stock:execute": "node src/set-stock-quantity.js --execute --qty=",
     "dedup": "node src/fix-duplicate-listings.js",
     "dedup:execute": "node src/fix-duplicate-listings.js --execute",
     "redirects": "node src/fix-redirects.js",
