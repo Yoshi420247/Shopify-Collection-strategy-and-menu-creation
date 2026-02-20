@@ -53,6 +53,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
+    "@google/generative-ai": "^0.24.1",
     "@shopify/shopify-api": "^9.0.0",
     "dotenv": "^16.3.1",
     "xlsx": "^0.18.5"

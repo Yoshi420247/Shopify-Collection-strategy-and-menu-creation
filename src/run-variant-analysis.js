@@ -219,18 +219,19 @@ async function main() {
         continue;
       }
 
-      // ── Haiku screening: cheap check before expensive Sonnet call ───
+      // ── Screening: cheap check before expensive Sonnet call ──────────
       if (options.screen) {
-        console.log(`    Screening with Haiku...`);
+        const screenModel = process.env.GEMINI_API_KEY ? 'Gemini Flash' : 'Haiku';
+        console.log(`    Screening with ${screenModel}...`);
         const screenResult = await screenProduct(product);
         if (!screenResult.needsAnalysis) {
-          console.log(`    SCREEN: ${screenResult.reason} — skipping full analysis`);
+          console.log(`    SCREEN (${screenResult.model}): ${screenResult.reason} — skipping full analysis`);
           results.screened++;
           results.skipped++;
           results.products.push({ id: product.id, title: product.title, status: 'screened_out', screen: screenResult, analysis: null, plan: null, result: null });
           continue;
         }
-        console.log(`    SCREEN: ${screenResult.reason} — proceeding to full analysis`);
+        console.log(`    SCREEN (${screenResult.model}): ${screenResult.reason} — proceeding to full analysis`);
       }
 
       // ── Step 1: Full AI Analysis (Sonnet) ──────────────────────────

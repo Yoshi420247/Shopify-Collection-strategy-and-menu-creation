@@ -1,9 +1,12 @@
 // AI-powered product variant analyzer using Claude Vision
 // Analyzes product images and text to detect color, size, and style variants
+// Screening uses Gemini Flash (~10x cheaper) with Haiku fallback
 import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
-const SCREENING_MODEL = 'claude-haiku-4-5-20251001';
+const HAIKU_SCREENING_MODEL = 'claude-haiku-4-5-20251001';
+const GEMINI_SCREENING_MODEL = 'gemini-2.0-flash';
 const MAX_IMAGES_PER_PRODUCT = 5;
 const AI_RATE_LIMIT_MS = 1200; // ~50 requests/minute
 
@@ -254,69 +257,106 @@ export async function analyzeProduct(product, options = {}) {
   }
 }
 
+const SCREEN_PROMPT = `How many distinct individual product items are visible in this image? Count only separate physical items of the same type shown in different colors or styles. Do NOT count accessories, backgrounds, or the same item from different angles. Respond with ONLY a JSON object: {"count": <number>, "multiple_colors": true/false}`;
+
 /**
- * Quick screening pass using Haiku — checks if the main product image shows
- * multiple distinct items (suggesting color/style variants). ~12x cheaper than
- * a full Sonnet analysis. Returns true if the product likely has variants.
+ * Quick screening pass — checks if the main product image shows multiple
+ * distinct items (suggesting color/style variants).
+ *
+ * Uses Gemini Flash by default (~$0.15/1000 products) with automatic
+ * fallback to Haiku (~$1.75/1000 products) if no GEMINI_API_KEY is set.
  */
 export async function screenProduct(product, options = {}) {
-  const {
-    apiKey = process.env.ANTHROPIC_API_KEY,
-  } = options;
+  const geminiKey = options.geminiApiKey || process.env.GEMINI_API_KEY;
+  const anthropicKey = options.apiKey || process.env.ANTHROPIC_API_KEY;
 
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is required');
+  if (!geminiKey && !anthropicKey) {
+    throw new Error('Either GEMINI_API_KEY or ANTHROPIC_API_KEY is required for screening');
+  }
 
   const images = (product.images || []);
   if (images.length === 0) {
-    return { needsAnalysis: false, reason: 'no images', itemCount: 0 };
+    return { needsAnalysis: false, reason: 'no images', itemCount: 0, model: 'none' };
   }
 
   // Download only the FIRST image (main product photo)
   const imgData = await downloadImageAsBase64(images[0].src);
   if (!imgData) {
-    return { needsAnalysis: false, reason: 'image download failed', itemCount: 0 };
+    return { needsAnalysis: false, reason: 'image download failed', itemCount: 0, model: 'none' };
   }
 
+  // Try Gemini Flash first (10x cheaper), fall back to Haiku
+  if (geminiKey) {
+    try {
+      return await screenWithGemini(imgData, geminiKey);
+    } catch (err) {
+      console.log(`    Gemini screen failed (${err.message}), falling back to Haiku`);
+      if (anthropicKey) {
+        return await screenWithHaiku(imgData, anthropicKey);
+      }
+      return { needsAnalysis: true, reason: `screen error: ${err.message}`, itemCount: 0, model: 'gemini-error' };
+    }
+  }
+
+  return await screenWithHaiku(imgData, anthropicKey);
+}
+
+async function screenWithGemini(imgData, apiKey) {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: GEMINI_SCREENING_MODEL });
+
+  const result = await model.generateContent([
+    SCREEN_PROMPT,
+    {
+      inlineData: {
+        mimeType: imgData.mediaType,
+        data: imgData.base64,
+      },
+    },
+  ]);
+
+  const text = result.response.text();
+  return parseScreenResponse(text, 'gemini-flash');
+}
+
+async function screenWithHaiku(imgData, apiKey) {
   const anthropic = new Anthropic({ apiKey });
   await aiRateLimit();
 
-  try {
-    const response = await anthropic.messages.create({
-      model: SCREENING_MODEL,
-      max_tokens: 150,
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'image',
-            source: { type: 'base64', media_type: imgData.mediaType, data: imgData.base64 },
-          },
-          {
-            type: 'text',
-            text: `How many distinct individual product items are visible in this image? Count only separate physical items of the same type shown in different colors or styles. Do NOT count accessories, backgrounds, or the same item from different angles. Respond with ONLY a JSON object: {"count": <number>, "multiple_colors": true/false}`,
-          },
-        ],
-      }],
-    });
+  const response = await anthropic.messages.create({
+    model: HAIKU_SCREENING_MODEL,
+    max_tokens: 150,
+    messages: [{
+      role: 'user',
+      content: [
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: imgData.mediaType, data: imgData.base64 },
+        },
+        { type: 'text', text: SCREEN_PROMPT },
+      ],
+    }],
+  });
 
-    const text = response.content[0]?.text || '';
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) {
-      const parsed = JSON.parse(match[0]);
-      const count = Number(parsed.count) || 1;
-      const multiColor = !!parsed.multiple_colors;
-      return {
-        needsAnalysis: count > 1 || multiColor,
-        reason: count > 1 ? `${count} items detected` : 'single item',
-        itemCount: count,
-      };
-    }
-    // Couldn't parse — be safe, send to full analysis
-    return { needsAnalysis: true, reason: 'screen parse failed', itemCount: 0 };
-  } catch (err) {
-    // On error, be safe — send to full analysis
-    return { needsAnalysis: true, reason: `screen error: ${err.message}`, itemCount: 0 };
+  const text = response.content[0]?.text || '';
+  return parseScreenResponse(text, 'haiku');
+}
+
+function parseScreenResponse(text, modelUsed) {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (match) {
+    const parsed = JSON.parse(match[0]);
+    const count = Number(parsed.count) || 1;
+    const multiColor = !!parsed.multiple_colors;
+    return {
+      needsAnalysis: count > 1 || multiColor,
+      reason: count > 1 ? `${count} items detected` : 'single item',
+      itemCount: count,
+      model: modelUsed,
+    };
   }
+  // Couldn't parse — be safe, send to full analysis
+  return { needsAnalysis: true, reason: 'screen parse failed', itemCount: 0, model: modelUsed };
 }
 
 /**
