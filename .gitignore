@@ -26,3 +26,6 @@ pdf_extracted_images/
 __pycache__/
 *.pyc
 *.pyo
+
+# Variant analysis reports (generated at runtime)
+variant-analysis-report-*.json

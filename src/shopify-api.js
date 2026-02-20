@@ -236,6 +236,47 @@ export async function updateInventoryItem(inventoryItemId, data) {
   );
 }
 
+// Variant methods
+export async function getProductVariants(productId) {
+  return rateLimitedRequest(`${BASE_URL}/products/${productId}/variants.json`);
+}
+
+export async function createProductVariant(productId, variantData) {
+  return rateLimitedRequest(
+    `${BASE_URL}/products/${productId}/variants.json`,
+    'POST',
+    { variant: variantData }
+  );
+}
+
+export async function updateProductVariant(variantId, variantData) {
+  return rateLimitedRequest(
+    `${BASE_URL}/variants/${variantId}.json`,
+    'PUT',
+    { variant: variantData }
+  );
+}
+
+export async function deleteProductVariant(productId, variantId) {
+  return rateLimitedRequest(
+    `${BASE_URL}/products/${productId}/variants/${variantId}.json`,
+    'DELETE'
+  );
+}
+
+// Location methods (needed for inventory operations)
+export async function getLocations() {
+  return rateLimitedRequest(`${BASE_URL}/locations.json`);
+}
+
+export async function setInventoryLevel(inventoryItemId, locationId, available) {
+  return rateLimitedRequest(
+    `${BASE_URL}/inventory_levels/set.json`,
+    'POST',
+    { location_id: locationId, inventory_item_id: inventoryItemId, available }
+  );
+}
+
 // Redirect methods
 export async function getRedirects(limit = 250) {
   return rateLimitedRequest(`${BASE_URL}/redirects.json?limit=${limit}`);
@@ -273,6 +314,12 @@ export default {
   post,
   getInventoryItem,
   updateInventoryItem,
+  getProductVariants,
+  createProductVariant,
+  updateProductVariant,
+  deleteProductVariant,
+  getLocations,
+  setInventoryLevel,
   getRedirects,
   createRedirect,
   deleteRedirect,
