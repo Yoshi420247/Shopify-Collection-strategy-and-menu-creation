@@ -62,7 +62,11 @@
     "customers": "node src/extract-customer-data.js",
     "customers:quick": "node src/extract-customer-data.js --customers-only",
     "customers:resegment": "node src/extract-customer-data.js --segment-only",
-    "customers:test": "node src/extract-customer-data.js --max-pages=2"
+    "customers:test": "node src/extract-customer-data.js --max-pages=2",
+    "customers:tag": "node src/tag-customer-segments.js",
+    "customers:tag:execute": "node src/tag-customer-segments.js --execute",
+    "customers:tag:clear": "node src/tag-customer-segments.js --clear",
+    "customers:tag:clear:execute": "node src/tag-customer-segments.js --clear --execute"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

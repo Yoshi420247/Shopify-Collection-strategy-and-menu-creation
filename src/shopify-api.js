@@ -339,6 +339,14 @@ export async function getAbandonedCheckoutCount(params = {}) {
   return rateLimitedRequest(`${BASE_URL}/checkouts/count.json?${queryParams}`);
 }
 
+export async function updateCustomer(customerId, data) {
+  return rateLimitedRequest(
+    `${BASE_URL}/customers/${customerId}.json`,
+    'PUT',
+    { customer: data }
+  );
+}
+
 export default {
   getProducts,
   getProduct,
@@ -372,4 +380,5 @@ export default {
   getOrderCount,
   getAbandonedCheckouts,
   getAbandonedCheckoutCount,
+  updateCustomer,
 };

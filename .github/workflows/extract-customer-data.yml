@@ -15,6 +15,14 @@ on:
         description: 'Max pages per endpoint (leave empty for all)'
         required: false
         type: string
+      tag_customers:
+        description: 'Push segment tags to Shopify after extraction?'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+          - 'no'
+          - 'yes'
 
 jobs:
   extract:
@@ -47,6 +55,13 @@ jobs:
           fi
           node src/extract-customer-data.js $ARGS
 
+      - name: Tag customers in Shopify
+        if: inputs.tag_customers == 'yes'
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: node src/tag-customer-segments.js --execute
+
       - name: Upload extraction results
         uses: actions/upload-artifact@v4
         with:
@@ -59,6 +74,7 @@ jobs:
             data/master-email-list.csv
             data/extraction-report.json
             data/segments/
+            data/tagging-results.json
           retention-days: 90
 
       - name: Generate summary
