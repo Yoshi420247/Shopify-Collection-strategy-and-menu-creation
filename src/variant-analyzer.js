@@ -1,26 +1,20 @@
-// AI-powered product variant analyzer using Claude Vision
-// Analyzes product images and text to detect color, size, and style variants
+// AI-powered product variant analyzer
+// Default: Gemini Flash for both screening and analysis (~$0.50/1000 products)
+// Escalates to Sonnet only for low-confidence results
 import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
-const SCREENING_MODEL = 'claude-haiku-4-5-20251001';
+const SONNET_MODEL = 'claude-sonnet-4-5-20250929';
+const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
+const GEMINI_MODEL = 'gemini-2.0-flash';
 const MAX_IMAGES_PER_PRODUCT = 5;
-const AI_RATE_LIMIT_MS = 1200; // ~50 requests/minute
 
-let lastAiRequestTime = 0;
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function aiRateLimit() {
-  const now = Date.now();
-  const elapsed = now - lastAiRequestTime;
-  if (elapsed < AI_RATE_LIMIT_MS) {
-    await sleep(AI_RATE_LIMIT_MS - elapsed);
-  }
-  lastAiRequestTime = Date.now();
-}
+// Per-token pricing (USD) — used for cost tracking in reports
+export const PRICING = {
+  'gemini-flash': { input: 0.10 / 1_000_000, output: 0.40 / 1_000_000 },
+  'haiku':        { input: 1.00 / 1_000_000, output: 5.00 / 1_000_000 },
+  'sonnet':       { input: 3.00 / 1_000_000, output: 15.00 / 1_000_000 },
+};
 
 function stripHtml(html) {
   if (!html) return '';
@@ -29,11 +23,9 @@ function stripHtml(html) {
 
 async function downloadImageAsBase64(url) {
   try {
-    // Use Shopify's image resize to keep tokens reasonable (~800px)
     const resizedUrl = url.replace(/\.([a-z]+)(\?.*)?$/i, '_800x800.$1$2');
     const response = await fetch(resizedUrl, { signal: AbortSignal.timeout(15000) });
     if (!response.ok) {
-      // Fallback to original URL
       const fallback = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (!fallback.ok) return null;
       const buffer = await fallback.arrayBuffer();
@@ -46,9 +38,18 @@ async function downloadImageAsBase64(url) {
     const contentType = response.headers.get('content-type') || 'image/jpeg';
     return { base64, mediaType: contentType.split(';')[0] };
   } catch (err) {
-    console.log(`    Warning: Failed to download image: ${err.message}`);
     return null;
   }
+}
+
+async function downloadProductImages(product) {
+  const images = (product.images || []).slice(0, MAX_IMAGES_PER_PRODUCT);
+  const downloaded = [];
+  for (const img of images) {
+    const imgData = await downloadImageAsBase64(img.src);
+    if (imgData) downloaded.push(imgData);
+  }
+  return downloaded;
 }
 
 function buildAnalysisPrompt(product) {
@@ -118,211 +119,299 @@ Respond with ONLY valid JSON (no markdown fences, no explanation outside JSON):
 }`;
 }
 
-/**
- * Analyze a product's images and text to detect variants using Claude Vision.
- * @param {Object} product - Shopify product object (must include images array)
- * @param {Object} options - { model, apiKey, confidenceThreshold }
- * @returns {Object} Analysis result with detected variants
- */
-export async function analyzeProduct(product, options = {}) {
-  const {
-    model = process.env.CLAUDE_MODEL || DEFAULT_MODEL,
-    apiKey = process.env.ANTHROPIC_API_KEY,
-  } = options;
+function makeSkipResult(product, reasoning, extra = {}) {
+  return {
+    productId: product.id,
+    productTitle: product.title,
+    has_variants: false,
+    confidence: 0,
+    reasoning,
+    detected_variants: { color: null, size: null, style: null },
+    item_count: 0,
+    variant_source: null,
+    skipped: true,
+    usage: null,
+    ...extra,
+  };
+}
 
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY environment variable is required');
-  }
+function normalizeAnalysis(product, raw, usage) {
+  return {
+    productId: product.id,
+    productTitle: product.title,
+    has_variants: !!raw.has_variants,
+    confidence: Math.min(1, Math.max(0, Number(raw.confidence) || 0)),
+    reasoning: String(raw.reasoning || ''),
+    detected_variants: {
+      color: Array.isArray(raw.detected_variants?.color) ? raw.detected_variants.color : null,
+      size: Array.isArray(raw.detected_variants?.size) ? raw.detected_variants.size : null,
+      style: Array.isArray(raw.detected_variants?.style) ? raw.detected_variants.style : null,
+    },
+    item_count: Number(raw.item_count) || 0,
+    variant_source: raw.variant_source || null,
+    usage,
+  };
+}
 
+function parseJsonResponse(text) {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('No JSON object found in response');
+  return JSON.parse(match[0]);
+}
+
+// ── Gemini Flash analysis ─────────────────────────────────────────────────────
+
+async function analyzeWithGemini(product, imageData, apiKey) {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+
+  const parts = [
+    ...imageData.map(img => ({
+      inlineData: { mimeType: img.mediaType, data: img.base64 },
+    })),
+    { text: buildAnalysisPrompt(product) },
+  ];
+
+  const result = await model.generateContent(parts);
+  const text = result.response.text();
+  const meta = result.response.usageMetadata;
+  const usage = {
+    model: 'gemini-flash',
+    inputTokens: meta?.promptTokenCount || 0,
+    outputTokens: meta?.candidatesTokenCount || 0,
+  };
+  usage.cost = usage.inputTokens * PRICING['gemini-flash'].input + usage.outputTokens * PRICING['gemini-flash'].output;
+
+  const raw = parseJsonResponse(text);
+  return normalizeAnalysis(product, raw, usage);
+}
+
+// ── Sonnet analysis ───────────────────────────────────────────────────────────
+
+async function analyzeWithSonnet(product, imageData, apiKey) {
   const anthropic = new Anthropic({ apiKey });
 
-  // Prepare images
-  const images = (product.images || []).slice(0, MAX_IMAGES_PER_PRODUCT);
-  if (images.length === 0) {
-    return {
-      productId: product.id,
-      productTitle: product.title,
-      has_variants: false,
-      confidence: 0,
-      reasoning: 'No images available for analysis',
-      detected_variants: { color: null, size: null, style: null },
-      item_count: 0,
-      variant_source: null,
-      skipped: true,
-    };
-  }
-
-  // Download images as base64
-  console.log(`    Downloading ${images.length} image(s)...`);
-  const imageContents = [];
-  for (const img of images) {
-    const imgData = await downloadImageAsBase64(img.src);
-    if (imgData) {
-      imageContents.push({
-        type: 'image',
-        source: {
-          type: 'base64',
-          media_type: imgData.mediaType,
-          data: imgData.base64,
-        },
-      });
-    }
-  }
-
-  if (imageContents.length === 0) {
-    return {
-      productId: product.id,
-      productTitle: product.title,
-      has_variants: false,
-      confidence: 0,
-      reasoning: 'All image downloads failed',
-      detected_variants: { color: null, size: null, style: null },
-      item_count: 0,
-      variant_source: null,
-      skipped: true,
-    };
-  }
-
-  // Build message content: images first, then analysis prompt
   const messageContent = [
-    ...imageContents,
+    ...imageData.map(img => ({
+      type: 'image',
+      source: { type: 'base64', media_type: img.mediaType, data: img.base64 },
+    })),
     { type: 'text', text: buildAnalysisPrompt(product) },
   ];
 
-  // Rate limit Claude API calls
-  await aiRateLimit();
+  const response = await anthropic.messages.create({
+    model: SONNET_MODEL,
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: messageContent }],
+  });
 
-  try {
-    const response = await anthropic.messages.create({
-      model,
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: messageContent }],
-    });
+  const usage = {
+    model: 'sonnet',
+    inputTokens: response.usage?.input_tokens || 0,
+    outputTokens: response.usage?.output_tokens || 0,
+  };
+  usage.cost = usage.inputTokens * PRICING.sonnet.input + usage.outputTokens * PRICING.sonnet.output;
 
-    const responseText = response.content[0]?.text || '';
+  const text = response.content[0]?.text || '';
+  const raw = parseJsonResponse(text);
+  return normalizeAnalysis(product, raw, usage);
+}
 
-    // Parse JSON response (handle potential markdown code fences)
-    let analysis;
-    try {
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('No JSON object found in response');
-      analysis = JSON.parse(jsonMatch[0]);
-    } catch (parseErr) {
-      console.log(`    Warning: Failed to parse AI response: ${parseErr.message}`);
-      console.log(`    Raw response: ${responseText.substring(0, 300)}`);
-      return {
-        productId: product.id,
-        productTitle: product.title,
-        has_variants: false,
-        confidence: 0,
-        reasoning: `AI response parse error: ${parseErr.message}`,
-        detected_variants: { color: null, size: null, style: null },
-        item_count: 0,
-        variant_source: null,
-        error: true,
-      };
+// ── Main analysis entry point ─────────────────────────────────────────────────
+
+/**
+ * Analyze a product to detect variants.
+ *
+ * analysisModel option controls which model runs:
+ *   'gemini'  (default) — Gemini Flash, ~30x cheaper than Sonnet
+ *   'sonnet'            — Claude Sonnet, highest accuracy
+ *   'auto'              — Gemini first, escalate to Sonnet if confidence < threshold
+ */
+export async function analyzeProduct(product, options = {}) {
+  const {
+    analysisModel = process.env.ANALYSIS_MODEL || 'gemini',
+    apiKey = process.env.ANTHROPIC_API_KEY,
+    geminiApiKey = process.env.GEMINI_API_KEY,
+    confidenceThreshold = 0.7,
+    escalationThreshold = 0.6,
+  } = options;
+
+  // Download images once, reuse for any model
+  const images = (product.images || []).slice(0, MAX_IMAGES_PER_PRODUCT);
+  if (images.length === 0) return makeSkipResult(product, 'No images available for analysis');
+
+  const imageData = await downloadProductImages(product);
+  if (imageData.length === 0) return makeSkipResult(product, 'All image downloads failed');
+
+  // Route to the right model
+  if (analysisModel === 'sonnet') {
+    return await runSonnetAnalysis(product, imageData, apiKey);
+  }
+
+  if (analysisModel === 'gemini') {
+    return await runGeminiAnalysis(product, imageData, geminiApiKey, apiKey);
+  }
+
+  // 'auto' mode: Gemini first, escalate low-confidence to Sonnet
+  if (analysisModel === 'auto') {
+    const geminiResult = await runGeminiAnalysis(product, imageData, geminiApiKey, apiKey);
+    if (geminiResult.error || geminiResult.skipped) return geminiResult;
+
+    if (geminiResult.confidence >= escalationThreshold) {
+      return geminiResult;
     }
 
-    // Normalize and validate the response
-    return {
-      productId: product.id,
-      productTitle: product.title,
-      has_variants: !!analysis.has_variants,
-      confidence: Math.min(1, Math.max(0, Number(analysis.confidence) || 0)),
-      reasoning: String(analysis.reasoning || ''),
-      detected_variants: {
-        color: Array.isArray(analysis.detected_variants?.color) ? analysis.detected_variants.color : null,
-        size: Array.isArray(analysis.detected_variants?.size) ? analysis.detected_variants.size : null,
-        style: Array.isArray(analysis.detected_variants?.style) ? analysis.detected_variants.style : null,
-      },
-      item_count: Number(analysis.item_count) || 0,
-      variant_source: analysis.variant_source || null,
+    // Low confidence — escalate to Sonnet for a second opinion
+    const sonnetResult = await runSonnetAnalysis(product, imageData, apiKey);
+    if (sonnetResult.error) return geminiResult; // Stick with Gemini if Sonnet fails
+
+    // Merge usage: both calls count
+    sonnetResult.usage = {
+      ...sonnetResult.usage,
+      escalatedFrom: geminiResult.usage,
     };
+    sonnetResult.reasoning = `[escalated from Gemini] ${sonnetResult.reasoning}`;
+    return sonnetResult;
+  }
+
+  return makeSkipResult(product, `Unknown analysis model: ${analysisModel}`, { error: true });
+}
+
+async function runGeminiAnalysis(product, imageData, geminiKey, anthropicFallbackKey) {
+  if (geminiKey) {
+    try {
+      return await analyzeWithGemini(product, imageData, geminiKey);
+    } catch (err) {
+      // Fall back to Sonnet if Gemini fails
+      if (anthropicFallbackKey) {
+        return await analyzeWithSonnet(product, imageData, anthropicFallbackKey);
+      }
+      return makeSkipResult(product, `Gemini analysis error: ${err.message}`, { error: true });
+    }
+  }
+
+  // No Gemini key — fall back to Sonnet
+  if (anthropicFallbackKey) {
+    return await analyzeWithSonnet(product, imageData, anthropicFallbackKey);
+  }
+
+  return makeSkipResult(product, 'No API keys available for analysis', { error: true });
+}
+
+async function runSonnetAnalysis(product, imageData, apiKey) {
+  if (!apiKey) return makeSkipResult(product, 'ANTHROPIC_API_KEY required for Sonnet', { error: true });
+
+  try {
+    return await analyzeWithSonnet(product, imageData, apiKey);
   } catch (err) {
-    console.log(`    Error calling Claude API: ${err.message}`);
-    return {
-      productId: product.id,
-      productTitle: product.title,
-      has_variants: false,
-      confidence: 0,
-      reasoning: `API error: ${err.message}`,
-      detected_variants: { color: null, size: null, style: null },
-      item_count: 0,
-      variant_source: null,
-      error: true,
-    };
+    return makeSkipResult(product, `Sonnet analysis error: ${err.message}`, { error: true });
   }
 }
 
+// ── Screening ─────────────────────────────────────────────────────────────────
+
+const SCREEN_PROMPT = `How many distinct individual product items are visible in this image? Count only separate physical items of the same type shown in different colors or styles. Do NOT count accessories, backgrounds, or the same item from different angles. Respond with ONLY a JSON object: {"count": <number>, "multiple_colors": true/false}`;
+
 /**
- * Quick screening pass using Haiku — checks if the main product image shows
- * multiple distinct items (suggesting color/style variants). ~12x cheaper than
- * a full Sonnet analysis. Returns true if the product likely has variants.
+ * Quick screening pass — checks if the main product image shows multiple
+ * distinct items. Uses Gemini Flash by default with Haiku fallback.
  */
 export async function screenProduct(product, options = {}) {
-  const {
-    apiKey = process.env.ANTHROPIC_API_KEY,
-  } = options;
+  const geminiKey = options.geminiApiKey || process.env.GEMINI_API_KEY;
+  const anthropicKey = options.apiKey || process.env.ANTHROPIC_API_KEY;
 
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is required');
+  if (!geminiKey && !anthropicKey) {
+    throw new Error('Either GEMINI_API_KEY or ANTHROPIC_API_KEY is required for screening');
+  }
 
   const images = (product.images || []);
   if (images.length === 0) {
-    return { needsAnalysis: false, reason: 'no images', itemCount: 0 };
+    return { needsAnalysis: false, reason: 'no images', itemCount: 0, model: 'none', usage: null };
   }
 
-  // Download only the FIRST image (main product photo)
   const imgData = await downloadImageAsBase64(images[0].src);
   if (!imgData) {
-    return { needsAnalysis: false, reason: 'image download failed', itemCount: 0 };
+    return { needsAnalysis: false, reason: 'image download failed', itemCount: 0, model: 'none', usage: null };
   }
 
-  const anthropic = new Anthropic({ apiKey });
-  await aiRateLimit();
-
-  try {
-    const response = await anthropic.messages.create({
-      model: SCREENING_MODEL,
-      max_tokens: 150,
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'image',
-            source: { type: 'base64', media_type: imgData.mediaType, data: imgData.base64 },
-          },
-          {
-            type: 'text',
-            text: `How many distinct individual product items are visible in this image? Count only separate physical items of the same type shown in different colors or styles. Do NOT count accessories, backgrounds, or the same item from different angles. Respond with ONLY a JSON object: {"count": <number>, "multiple_colors": true/false}`,
-          },
-        ],
-      }],
-    });
-
-    const text = response.content[0]?.text || '';
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) {
-      const parsed = JSON.parse(match[0]);
-      const count = Number(parsed.count) || 1;
-      const multiColor = !!parsed.multiple_colors;
-      return {
-        needsAnalysis: count > 1 || multiColor,
-        reason: count > 1 ? `${count} items detected` : 'single item',
-        itemCount: count,
-      };
+  if (geminiKey) {
+    try {
+      return await screenWithGemini(imgData, geminiKey);
+    } catch (err) {
+      if (anthropicKey) return await screenWithHaiku(imgData, anthropicKey);
+      return { needsAnalysis: true, reason: `screen error: ${err.message}`, itemCount: 0, model: 'gemini-error', usage: null };
     }
-    // Couldn't parse — be safe, send to full analysis
-    return { needsAnalysis: true, reason: 'screen parse failed', itemCount: 0 };
-  } catch (err) {
-    // On error, be safe — send to full analysis
-    return { needsAnalysis: true, reason: `screen error: ${err.message}`, itemCount: 0 };
   }
+
+  return await screenWithHaiku(imgData, anthropicKey);
 }
 
-/**
- * Pre-filter check: does this product already have properly named color variants?
- * If so, it likely doesn't need AI analysis.
- */
+async function screenWithGemini(imgData, apiKey) {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+
+  const result = await model.generateContent([
+    SCREEN_PROMPT,
+    { inlineData: { mimeType: imgData.mediaType, data: imgData.base64 } },
+  ]);
+
+  const text = result.response.text();
+  const meta = result.response.usageMetadata;
+  const usage = {
+    model: 'gemini-flash',
+    inputTokens: meta?.promptTokenCount || 0,
+    outputTokens: meta?.candidatesTokenCount || 0,
+  };
+  usage.cost = usage.inputTokens * PRICING['gemini-flash'].input + usage.outputTokens * PRICING['gemini-flash'].output;
+
+  return parseScreenResponse(text, 'gemini-flash', usage);
+}
+
+async function screenWithHaiku(imgData, apiKey) {
+  const anthropic = new Anthropic({ apiKey });
+
+  const response = await anthropic.messages.create({
+    model: HAIKU_MODEL,
+    max_tokens: 150,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: imgData.mediaType, data: imgData.base64 } },
+        { type: 'text', text: SCREEN_PROMPT },
+      ],
+    }],
+  });
+
+  const text = response.content[0]?.text || '';
+  const usage = {
+    model: 'haiku',
+    inputTokens: response.usage?.input_tokens || 0,
+    outputTokens: response.usage?.output_tokens || 0,
+  };
+  usage.cost = usage.inputTokens * PRICING.haiku.input + usage.outputTokens * PRICING.haiku.output;
+
+  return parseScreenResponse(text, 'haiku', usage);
+}
+
+function parseScreenResponse(text, modelUsed, usage) {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (match) {
+    const parsed = JSON.parse(match[0]);
+    const count = Number(parsed.count) || 1;
+    const multiColor = !!parsed.multiple_colors;
+    return {
+      needsAnalysis: count > 1 || multiColor,
+      reason: count > 1 ? `${count} items detected` : 'single item',
+      itemCount: count,
+      model: modelUsed,
+      usage,
+    };
+  }
+  return { needsAnalysis: true, reason: 'screen parse failed', itemCount: 0, model: modelUsed, usage };
+}
+
+// ── Pre-filter ────────────────────────────────────────────────────────────────
+
 export function productAlreadyHasColorVariants(product) {
   const variants = product.variants || [];
   if (variants.length <= 1) return false;
@@ -331,8 +420,7 @@ export function productAlreadyHasColorVariants(product) {
   const colorOption = options.find(o => /^colou?r$/i.test(o.name));
   if (!colorOption) return false;
 
-  // Has a "Color" option with 2+ values — probably already set up
   return colorOption.values.length >= 2;
 }
 
-export default { analyzeProduct, screenProduct, productAlreadyHasColorVariants };
+export default { analyzeProduct, screenProduct, productAlreadyHasColorVariants, PRICING };

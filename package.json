@@ -45,6 +45,8 @@
     "min-order": "node src/add-minimum-order.js",
     "min-order:execute": "node src/add-minimum-order.js --execute",
     "variants": "node src/run-variant-analysis.js --dry-run --screen --skip-existing",
+    "variants:sonnet": "node src/run-variant-analysis.js --dry-run --screen --skip-existing --analysis-model=sonnet",
+    "variants:auto": "node src/run-variant-analysis.js --dry-run --screen --skip-existing --analysis-model=auto",
     "variants:full": "node src/run-variant-analysis.js --dry-run",
     "variants:apply": "node src/run-variant-analysis.js --apply --from-report=",
     "variants:apply-live": "node src/run-variant-analysis.js --apply --screen --skip-existing",
@@ -53,6 +55,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
+    "@google/generative-ai": "^0.24.1",
     "@shopify/shopify-api": "^9.0.0",
     "dotenv": "^16.3.1",
     "xlsx": "^0.18.5"
