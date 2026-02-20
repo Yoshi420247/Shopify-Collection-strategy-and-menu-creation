@@ -10,7 +10,7 @@ on:
         type: choice
         options:
           - dry-run          # Preview all changes without pushing live
-          - execute          # Push theme settings, discount codes, and metafields live
+          - execute          # Push theme settings, discount codes, email templates, and metafields live
 
 jobs:
   deploy-postsales:
@@ -28,13 +28,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Deploy Post-Sales System
+      - name: Deploy Post-Sales System (discounts, theme settings, metafields)
         env:
           SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
         run: |
           echo "=========================================="
-          echo "Post-Sales Messaging System Deployment"
+          echo "Post-Sales System — Core Deployment"
           echo "Action: ${{ inputs.action }}"
           echo "=========================================="
           echo ""
@@ -45,6 +45,23 @@ jobs:
           else
             echo "DRY RUN — Preview only, no changes will be made..."
             node src/deploy-postsales.js --dry-run
+          fi
+
+      - name: Deploy Email Templates (upload to theme assets)
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo ""
+          echo "=========================================="
+          echo "Email Template Deployment"
+          echo "=========================================="
+          echo ""
+
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            node src/deploy-email-templates.js --execute
+          else
+            node src/deploy-email-templates.js --dry-run
           fi
 
       - name: Generate Summary
@@ -61,13 +78,13 @@ jobs:
           echo "|-----------|-------------|" >> $GITHUB_STEP_SUMMARY
           echo "| Theme Settings | Cart message + chat widget greeting pushed to live theme |" >> $GITHUB_STEP_SUMMARY
           echo "| Discount Codes | WELCOME10, THANKS10, COMEBACK10, MISSYOU10, WELCOME15, VIP15, BDAY20 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Email Templates | 24 branded HTML email templates uploaded to theme assets |" >> $GITHUB_STEP_SUMMARY
           echo "| Metafield Defs | Customer metafields for tracking post-sales message state |" >> $GITHUB_STEP_SUMMARY
-          echo "| Flow Guide | Printed setup instructions for 23 Shopify Flow automations |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps After Execution" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "1. Go to **Shopify Admin > Apps > Shopify Flow**" >> $GITHUB_STEP_SUMMARY
-          echo "2. Create each workflow listed in the deployment output" >> $GITHUB_STEP_SUMMARY
-          echo "3. Create Shopify Email templates from \`src/postsales-messages.js\`" >> $GITHUB_STEP_SUMMARY
-          echo "4. Connect each Flow to the matching Shopify Email template (no third-party apps needed)" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go to **Marketing > Automations > View templates**" >> $GITHUB_STEP_SUMMARY
+          echo "2. Activate pre-built automations: abandoned cart, welcome series, win-back, upsell" >> $GITHUB_STEP_SUMMARY
+          echo "3. For each automation, paste the HTML from the matching \`assets/email-*.html\` theme file" >> $GITHUB_STEP_SUMMARY
+          echo "4. Build remaining custom automations in **Shopify Flow**" >> $GITHUB_STEP_SUMMARY
           echo "5. Test each flow with a test order before enabling for all customers" >> $GITHUB_STEP_SUMMARY
