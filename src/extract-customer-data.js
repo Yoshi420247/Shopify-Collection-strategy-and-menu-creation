@@ -32,6 +32,7 @@ import {
   getAbandonedCheckouts,
   getAbandonedCheckoutCount,
   getProducts,
+  graphqlQuery,
 } from './shopify-api.js';
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
@@ -109,7 +110,11 @@ async function fetchAllCustomers() {
 
   while (hasMore && page < PAGE_LIMIT) {
     page++;
-    const params = { limit: 250 };
+    // Fetch ALL customers starting from the very first one created
+    const params = {
+      limit: 250,
+      created_at_min: '2010-01-01T00:00:00-00:00', // Go back far enough for any store
+    };
     if (sinceId > 0) params.since_id = sinceId;
 
     const data = await getCustomers(params);
@@ -126,20 +131,143 @@ async function fetchAllCustomers() {
     }
   }
 
-  console.log(`✓ Fetched ${allCustomers.length} customers total`);
+  console.log(`✓ Fetched ${allCustomers.length} customers via REST API`);
+
+  // ─── GraphQL fallback: catch any customers REST might miss ────────
+  // Shopify's GraphQL API can surface customers that REST pagination
+  // sometimes skips, especially on very old stores.
+  try {
+    console.log('  Checking for additional customers via GraphQL...');
+    const restIds = new Set(allCustomers.map(c => c.id));
+    let cursor = null;
+    let gqlPage = 0;
+    let gqlFound = 0;
+
+    while (gqlPage < PAGE_LIMIT) {
+      gqlPage++;
+      const afterClause = cursor ? `, after: "${cursor}"` : '';
+      const query = `{
+        customers(first: 250${afterClause}) {
+          edges {
+            cursor
+            node {
+              id
+              email
+              firstName
+              lastName
+              phone
+              state
+              tags
+              note
+              ordersCount
+              totalSpent
+              acceptsMarketing
+              emailMarketingConsent { marketingState }
+              smsMarketingConsent { marketingState }
+              createdAt
+              updatedAt
+              defaultAddress {
+                address1
+                address2
+                city
+                province
+                provinceCode
+                zip
+                country
+                countryCodeV2
+                phone
+              }
+            }
+          }
+          pageInfo { hasNextPage }
+        }
+      }`;
+
+      const result = await graphqlQuery(query);
+      const edges = result?.data?.customers?.edges || [];
+
+      if (edges.length === 0) break;
+
+      for (const edge of edges) {
+        cursor = edge.cursor;
+        const node = edge.node;
+        // Extract numeric ID from GraphQL global ID (gid://shopify/Customer/12345)
+        const numericId = parseInt(node.id.replace(/\D/g, ''));
+
+        if (!restIds.has(numericId)) {
+          gqlFound++;
+          // Convert GraphQL format to REST format so processData works uniformly
+          const addr = node.defaultAddress || {};
+          allCustomers.push({
+            id: numericId,
+            email: node.email,
+            first_name: node.firstName || '',
+            last_name: node.lastName || '',
+            phone: node.phone || '',
+            state: node.state || '',
+            tags: (node.tags || []).join(', '),
+            note: node.note || '',
+            orders_count: node.ordersCount || 0,
+            total_spent: node.totalSpent || '0.00',
+            accepts_marketing: node.acceptsMarketing || false,
+            email_marketing_consent: {
+              state: node.emailMarketingConsent?.marketingState?.toLowerCase() || 'unknown',
+            },
+            sms_marketing_consent: {
+              state: node.smsMarketingConsent?.marketingState?.toLowerCase() || 'unknown',
+            },
+            created_at: node.createdAt,
+            updated_at: node.updatedAt,
+            default_address: {
+              address1: addr.address1 || '',
+              address2: addr.address2 || '',
+              city: addr.city || '',
+              province: addr.province || '',
+              province_code: addr.provinceCode || '',
+              zip: addr.zip || '',
+              country: addr.country || '',
+              country_code: addr.countryCodeV2 || '',
+              phone: addr.phone || '',
+            },
+          });
+          restIds.add(numericId);
+        }
+      }
+
+      if (gqlPage % 5 === 0) {
+        console.log(`    GraphQL page ${gqlPage}: checked ${gqlPage * 250} customers, found ${gqlFound} new`);
+      }
+
+      if (!result?.data?.customers?.pageInfo?.hasNextPage) break;
+    }
+
+    if (gqlFound > 0) {
+      console.log(`  ✓ GraphQL found ${gqlFound} additional customers missed by REST!`);
+    } else {
+      console.log('  ✓ GraphQL confirmed - no additional customers missed');
+    }
+  } catch (e) {
+    console.log(`  ⚠ GraphQL customer check failed: ${e.message}`);
+    console.log('  Continuing with REST results only.');
+  }
+
+  console.log(`✓ Total customers: ${allCustomers.length}`);
   return allCustomers;
 }
 
 // ─── EXTRACTION: ORDERS ─────────────────────────────────────────────────────
 async function fetchAllOrders() {
   console.log('\n━━━ FETCHING ORDERS ━━━');
+  console.log('  Requesting ALL historical orders (created_at_min: 2010-01-01)');
+  console.log('  NOTE: This requires the "read_all_orders" scope on your API token.');
+  console.log('        Without it, Shopify only returns orders from the last 60 days.');
 
   let countData;
   try {
     countData = await getOrderCount({ status: 'any' });
-    console.log(`Total orders in store: ${countData.count}`);
+    console.log(`  Total orders in store: ${countData.count}`);
   } catch (e) {
-    console.log('Could not fetch order count, will paginate until exhausted.');
+    console.log('  Could not fetch order count, will paginate until exhausted.');
   }
 
   const allOrders = [];
@@ -152,6 +280,8 @@ async function fetchAllOrders() {
     const params = {
       limit: 250,
       status: 'any',
+      // Critical: request orders all the way back to store founding
+      created_at_min: '2010-01-01T00:00:00-00:00',
       fields: 'id,customer,email,line_items,created_at,total_price,financial_status,fulfillment_status,tags,note,currency,subtotal_price,total_discounts,total_tax,source_name',
     };
     if (sinceId > 0) params.since_id = sinceId;
@@ -168,6 +298,17 @@ async function fetchAllOrders() {
 
       if (batch.length < 250) hasMore = false;
     }
+  }
+
+  // Warn if we got suspiciously few orders for a 10+ year store
+  if (countData?.count && allOrders.length < countData.count * 0.9) {
+    console.log('');
+    console.log('  ⚠ WARNING: Fetched significantly fewer orders than the store total.');
+    console.log(`    Expected ~${countData.count}, got ${allOrders.length}.`);
+    console.log('    Your API token likely needs the "read_all_orders" scope.');
+    console.log('    Go to: Shopify Admin → Settings → Apps and sales channels →');
+    console.log('    Develop apps → Your app → API scopes → Add "read_all_orders"');
+    console.log('');
   }
 
   console.log(`✓ Fetched ${allOrders.length} orders total`);
@@ -193,7 +334,10 @@ async function fetchAllAbandonedCheckouts() {
 
   while (hasMore && page < PAGE_LIMIT) {
     page++;
-    const params = { limit: 250 };
+    const params = {
+      limit: 250,
+      created_at_min: '2010-01-01T00:00:00-00:00',
+    };
     if (sinceId > 0) params.since_id = sinceId;
 
     try {
@@ -860,6 +1004,24 @@ async function main() {
   console.log(`Store: ${config.shopify.storeUrl}`);
   console.log(`Date: ${new Date().toISOString()}`);
   console.log(`Mode: ${SEGMENT_ONLY ? 'Re-segment from existing data' : CUSTOMERS_ONLY ? 'Customers only' : 'Full extraction'}`);
+
+  if (!SEGMENT_ONLY) {
+    console.log('');
+    console.log('┌──────────────────────────────────────────────────────────────┐');
+    console.log('│  REQUIRED API SCOPES for full extraction:                    │');
+    console.log('│                                                              │');
+    console.log('│    read_customers    - customer accounts & marketing consent │');
+    console.log('│    read_orders       - recent orders (last 60 days)          │');
+    console.log('│    read_all_orders   - ALL historical orders (10+ years)     │');
+    console.log('│    read_checkouts    - abandoned checkout data               │');
+    console.log('│    read_products     - product catalog for categorization    │');
+    console.log('│                                                              │');
+    console.log('│  If you are missing thousands of customers, check that your  │');
+    console.log('│  API token has "read_all_orders" enabled:                    │');
+    console.log('│  Shopify Admin → Settings → Apps → Develop apps →            │');
+    console.log('│  Your app → Configure → Admin API scopes                    │');
+    console.log('└──────────────────────────────────────────────────────────────┘');
+  }
 
   const dataDir = join(PROJECT_ROOT, 'data');
   const segmentsDir = join(dataDir, 'segments');
