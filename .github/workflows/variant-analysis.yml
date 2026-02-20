@@ -11,6 +11,16 @@ on:
         options:
           - dry-run        # Analyze products and generate report only (safe)
           - apply          # Analyze AND create/update variants on Shopify
+      use_screening:
+        description: 'Use cheap Haiku screening before Sonnet (saves ~50% AI cost)'
+        required: false
+        default: true
+        type: boolean
+      skip_existing:
+        description: 'Skip products that already have color variants'
+        required: false
+        default: true
+        type: boolean
       batch_size:
         description: 'Products per batch (lower = slower but safer)'
         required: false
@@ -65,6 +75,14 @@ jobs:
           ARGS="$ARGS --offset=${{ inputs.offset }}"
           ARGS="$ARGS --max=${{ inputs.max_products }}"
           ARGS="$ARGS --confidence=${{ inputs.confidence_threshold }}"
+
+          if [ "${{ inputs.use_screening }}" == "true" ]; then
+            ARGS="$ARGS --screen"
+          fi
+
+          if [ "${{ inputs.skip_existing }}" == "true" ]; then
+            ARGS="$ARGS --skip-existing"
+          fi
 
           if [ -n "${{ inputs.product_ids }}" ]; then
             ARGS="$ARGS --product-ids=${{ inputs.product_ids }}"
