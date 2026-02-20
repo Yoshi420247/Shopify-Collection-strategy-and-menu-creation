@@ -180,10 +180,11 @@ export const supabase = {
    * Gets all recovery sessions for a specific checkout.
    */
   getSessionsForCheckout(checkoutId) {
-    return supabaseRequest(
+    const raw = supabaseRequest(
       `cart_recovery_sessions?checkout_id=eq.${checkoutId}&order=created_at.asc`,
       'GET'
-    ) || [];
+    );
+    return Array.isArray(raw) ? raw : [];
   },
 
   // ────────────────────────────────────────────────────────────────────────
@@ -213,10 +214,11 @@ export const supabase = {
 
     // Count codes issued in last 30 days
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const monthCodes = supabaseRequest(
+    const rawMonth = supabaseRequest(
       `cart_discount_codes?customer_email=eq.${encodeURIComponent(email)}&created_at=gte.${thirtyDaysAgo}&select=id`,
       'GET'
-    ) || [];
+    );
+    const monthCodes = Array.isArray(rawMonth) ? rawMonth : [];
 
     if (monthCodes.length >= (rateLimits?.maxDiscountCodesPerMonth || 2)) {
       return false;
@@ -224,10 +226,11 @@ export const supabase = {
 
     // Count codes issued in last 90 days
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
-    const quarterCodes = supabaseRequest(
+    const rawQuarter = supabaseRequest(
       `cart_discount_codes?customer_email=eq.${encodeURIComponent(email)}&created_at=gte.${ninetyDaysAgo}&select=id`,
       'GET'
-    ) || [];
+    );
+    const quarterCodes = Array.isArray(rawQuarter) ? rawQuarter : [];
 
     if (quarterCodes.length >= (rateLimits?.maxDiscountCodesPerQuarter || 4)) {
       return false;
@@ -236,10 +239,11 @@ export const supabase = {
     // Check for recent redemption (cooldown)
     const cooldownDays = rateLimits?.cooldownAfterRedemption || 30;
     const cooldownDate = new Date(Date.now() - cooldownDays * 24 * 60 * 60 * 1000).toISOString();
-    const redeemed = supabaseRequest(
+    const rawRedeemed = supabaseRequest(
       `cart_discount_codes?customer_email=eq.${encodeURIComponent(email)}&redeemed=eq.true&created_at=gte.${cooldownDate}&select=id`,
       'GET'
-    ) || [];
+    );
+    const redeemed = Array.isArray(rawRedeemed) ? rawRedeemed : [];
 
     if (redeemed.length > 0) {
       return false;
@@ -270,10 +274,11 @@ export const supabase = {
    * Returns { testId: { variantId: { impressions, opens, clicks, conversions, revenue } } }
    */
   getABTestResults() {
-    const results = supabaseRequest(
+    const raw = supabaseRequest(
       'cart_ab_test_results?select=test_id,variant_id,event_type,value',
       'GET'
-    ) || [];
+    );
+    const results = Array.isArray(raw) ? raw : [];
 
     const aggregated = {};
 
@@ -316,10 +321,11 @@ export const supabase = {
    */
   getRecoveryStats(days = 7) {
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-    return supabaseRequest(
+    const raw = supabaseRequest(
       `cart_recovery_sessions?created_at=gte.${since}&order=created_at.desc`,
       'GET'
-    ) || [];
+    );
+    return Array.isArray(raw) ? raw : [];
   },
 
   /**
@@ -327,10 +333,11 @@ export const supabase = {
    */
   getDiscountStats(days = 30) {
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-    return supabaseRequest(
+    const raw = supabaseRequest(
       `cart_discount_codes?created_at=gte.${since}&order=created_at.desc`,
       'GET'
-    ) || [];
+    );
+    return Array.isArray(raw) ? raw : [];
   },
 };
 
