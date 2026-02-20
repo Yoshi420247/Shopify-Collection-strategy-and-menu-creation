@@ -252,10 +252,34 @@ const PRODUCT_TAG_FIXES = [
     titleContains: 'ceramic nail',
     ensureTags: ['material:ceramic', 'family:banger', 'use:dabbing', 'pillar:accessory'],
   },
+  // Quartz Control Tower inserts (before generic 'insert')
+  {
+    titleContains: 'control tower',
+    ensureTags: ['material:quartz', 'family:dab-tool', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Quartz insert (before generic 'insert')
+  {
+    titleContains: 'quartz insert',
+    ensureTags: ['material:quartz', 'family:dab-tool', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Terp pearls (quartz balls for bangers)
+  {
+    titleContains: 'terp pearl',
+    ensureTags: ['material:quartz', 'family:dab-tool', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Terp slurper (banger variant)
+  {
+    titleContains: 'terp slurper',
+    ensureTags: ['material:quartz', 'family:banger', 'use:dabbing', 'pillar:accessory'],
+  },
 
   // =====================================================
   // TIER 2: Silicone product patterns (before generic device patterns)
   // =====================================================
+  {
+    titleContains: 'silicone hand pipe',
+    ensureTags: ['material:silicone', 'family:spoon-pipe', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
   {
     titleContains: 'silicone bubbler',
     ensureTags: ['material:silicone', 'family:bubbler', 'use:flower-smoking', 'pillar:smokeshop-device'],
@@ -520,6 +544,79 @@ const PRODUCT_TAG_FIXES = [
     titleContains: 'banger',
     ensureTags: ['family:banger', 'use:dabbing', 'pillar:accessory'],
   },
+  // Beaker bongs (silicone beakers handled in TIER 2)
+  {
+    titleContains: 'beaker',
+    ensureTags: ['family:glass-bong', 'use:flower-smoking', 'pillar:smokeshop-device'],
+    excludeIfTitleContains: ['silicone'],
+  },
+  // Recycler rigs
+  {
+    titleContains: 'recycler',
+    ensureTags: ['family:glass-rig', 'use:dabbing', 'pillar:smokeshop-device'],
+  },
+  // Sherlock pipes
+  {
+    titleContains: 'sherlock',
+    ensureTags: ['family:spoon-pipe', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  // Generic hand pipe (after silicone hand pipe in TIER 2)
+  {
+    titleContains: 'hand pipe',
+    ensureTags: ['family:spoon-pipe', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  // Spoon pipe
+  {
+    titleContains: 'spoon pipe',
+    ensureTags: ['family:spoon-pipe', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  // Water pipe (non-silicone, silicone handled in TIER 2)
+  {
+    titleContains: 'water pipe',
+    ensureTags: ['family:glass-bong', 'use:flower-smoking', 'pillar:smokeshop-device'],
+    excludeIfTitleContains: ['silicone'],
+  },
+  // Straight tube bongs
+  {
+    titleContains: 'straight tube',
+    ensureTags: ['family:glass-bong', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  // E-rig / electronic rig
+  {
+    titleContains: 'e-rig',
+    ensureTags: ['family:e-rig', 'use:dabbing', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'electric rig',
+    ensureTags: ['family:e-rig', 'use:dabbing', 'pillar:smokeshop-device'],
+  },
+  // Pendant / merch
+  {
+    titleContains: 'pendant',
+    ensureTags: ['family:merch-pendant', 'pillar:merch'],
+  },
+  // Generic insert (dab accessory, after specific insert patterns in TIER 1)
+  {
+    titleContains: 'insert',
+    ensureTags: ['family:dab-tool', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Lighter (torch lighters handled by torch rule above)
+  {
+    titleContains: 'lighter',
+    ensureTags: ['family:lighter', 'use:flower-smoking', 'pillar:accessory'],
+    excludeIfTitleContains: ['torch'],
+  },
+  // Scale
+  {
+    titleContains: 'scale',
+    ensureTags: ['family:scale', 'use:preparation', 'pillar:accessory'],
+  },
+  // Tray (avoid matching 'ashtray')
+  {
+    titleContains: ' tray',
+    ensureTags: ['family:rolling-tray', 'use:rolling', 'pillar:accessory'],
+    excludeIfTitleContains: ['ashtray'],
+  },
 
   // =====================================================
   // TIER 6: Rolling products — use word-boundary-safe patterns
@@ -571,6 +668,17 @@ const PRODUCT_TAG_FIXES = [
     ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
     excludeIfTitleContains: ['silicone'],
   },
+  // Paper booklets (Vibes, RAW, etc.)
+  {
+    titleContains: 'booklet',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+  },
+  // Ultra Thin papers (Vibes, RAW brand descriptor)
+  {
+    titleContains: 'ultra thin',
+    ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
+    excludeIfTitleContains: ['silicone', 'bong', 'pipe', 'rig', 'grinder'],
+  },
 
   // =====================================================
   // TIER 7: Material-only inference (broadest, lowest priority)
@@ -579,6 +687,30 @@ const PRODUCT_TAG_FIXES = [
     titleContains: 'quartz',
     ensureTags: ['material:quartz'],
   },
+];
+
+// ============================================================================
+// TAG-BASED FAMILY INFERENCE (fallback for products still missing family:)
+// Applied after title-matching rules for products with existing category/use tags
+// ============================================================================
+const TAG_BASED_FAMILY_INFERENCE = [
+  // WYN category tags → family inference
+  { hasTag: 'category:bongs-water-pipes', family: 'glass-bong', ensureTags: ['material:glass', 'use:flower-smoking', 'pillar:smokeshop-device'] },
+  { hasTag: 'category:hand-pipes', family: 'spoon-pipe', ensureTags: ['use:flower-smoking', 'pillar:smokeshop-device'] },
+  { hasTag: 'category:dab-rigs', family: 'glass-rig', ensureTags: ['use:dabbing', 'pillar:smokeshop-device'] },
+  { hasTag: 'category:bubblers', family: 'bubbler', ensureTags: ['use:flower-smoking', 'pillar:smokeshop-device'] },
+  { hasTag: 'category:nectar-collectors', family: 'nectar-collector', ensureTags: ['use:dabbing', 'pillar:smokeshop-device'] },
+  { hasTag: 'category:quartz', family: 'dab-tool', ensureTags: ['material:quartz', 'use:dabbing', 'pillar:accessory'] },
+  { hasTag: 'category:carb-caps', family: 'carb-cap', ensureTags: ['use:dabbing', 'pillar:accessory'] },
+  { hasTag: 'category:grinders', family: 'grinder', ensureTags: ['use:preparation', 'pillar:accessory'] },
+  { hasTag: 'category:torches', family: 'torch', ensureTags: ['use:dabbing', 'pillar:accessory'] },
+  { hasTag: 'category:rolling-papers', family: 'rolling-paper', ensureTags: ['use:rolling', 'pillar:accessory'] },
+  { hasTag: 'category:vapes', family: 'vape-battery', ensureTags: ['use:vaping', 'pillar:smokeshop-device'] },
+  // Use-based inference (broadest fallback — only if no category tag matched)
+  { hasTag: 'use:rolling', family: 'rolling-paper', ensureTags: ['pillar:accessory'] },
+  { hasTag: 'use:storage', family: 'container', ensureTags: ['pillar:accessory'] },
+  { hasTag: 'use:dabbing', family: 'dab-tool', ensureTags: ['pillar:accessory'] },
+  { hasTag: 'use:flower-smoking', family: 'spoon-pipe', ensureTags: ['pillar:smokeshop-device'] },
 ];
 
 // ============================================================================
@@ -971,6 +1103,26 @@ async function fixProductTags(dryRun = true) {
       }
     }
 
+    // --- Tag-based family inference (fallback for products still missing family) ---
+    const hasFamilyAfterTitle = [...newTags].some(t => t.startsWith('family:'));
+    if (!hasFamilyAfterTitle) {
+      for (const rule of TAG_BASED_FAMILY_INFERENCE) {
+        if (newTags.has(rule.hasTag)) {
+          newTags.add(`family:${rule.family}`);
+          needsUpdate = true;
+          logProduct();
+          console.log(`    Tag inference: ${rule.hasTag} → family:${rule.family}`);
+          for (const tag of rule.ensureTags) {
+            if (!newTags.has(tag)) {
+              newTags.add(tag);
+              console.log(`    Adding inferred tag: ${tag}`);
+            }
+          }
+          break; // first matching rule wins
+        }
+      }
+    }
+
     // --- Cross-validation: silicone products must have material:silicone ---
     if (title.includes('silicone') && !newTags.has('material:silicone')) {
       newTags.add('material:silicone');
@@ -1033,18 +1185,21 @@ async function fixProductTags(dryRun = true) {
     }
 
     if (needsUpdate) {
+      const updatedTags = Array.from(newTags).join(', ');
       if (!dryRun) {
         try {
           await api.updateProduct(product.id, {
             id: product.id,
-            tags: Array.from(newTags).join(', '),
+            tags: updatedTags,
           });
+          product.tags = updatedTags; // Update local cache for accurate reporting
           fixed++;
         } catch (error) {
           log(`    ERROR: ${error.message}`, 'red');
           errors++;
         }
       } else {
+        product.tags = updatedTags; // Update local cache for accurate reporting
         fixed++;
       }
     }
