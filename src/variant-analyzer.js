@@ -231,7 +231,7 @@ export async function analyzeProduct(product, options = {}) {
   const {
     analysisModel = process.env.ANALYSIS_MODEL || 'gemini',
     apiKey = process.env.ANTHROPIC_API_KEY,
-    geminiApiKey = process.env.GEMINI_API_KEY,
+    geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
     confidenceThreshold = 0.7,
     escalationThreshold = 0.6,
   } = options;
@@ -317,7 +317,7 @@ const SCREEN_PROMPT = `How many distinct individual product items are visible in
  * distinct items. Uses Gemini Flash by default with Haiku fallback.
  */
 export async function screenProduct(product, options = {}) {
-  const geminiKey = options.geminiApiKey || process.env.GEMINI_API_KEY;
+  const geminiKey = options.geminiApiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   const anthropicKey = options.apiKey || process.env.ANTHROPIC_API_KEY;
 
   if (!geminiKey && !anthropicKey) {
