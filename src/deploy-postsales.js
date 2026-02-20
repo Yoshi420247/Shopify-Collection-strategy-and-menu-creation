@@ -14,6 +14,9 @@
 
 import 'dotenv/config';
 import { execSync } from 'child_process';
+import { writeFileSync, unlinkSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 const STORE_URL = process.env.SHOPIFY_STORE_URL;
 const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -35,12 +38,15 @@ function sleep(ms) {
 async function restRequest(endpoint, method = 'GET', body = null) {
   await sleep(550); // rate limiting
   const url = `${BASE_URL}/${endpoint}`;
-  let cmd = `curl -s -g --max-time 30 -X ${method} "${url}" `;
+  let cmd = `curl -s -g --max-time 60 -X ${method} "${url}" `;
   cmd += `-H "X-Shopify-Access-Token: ${ACCESS_TOKEN}" `;
   cmd += `-H "Content-Type: application/json" `;
+  let tmpFile = null;
   if (body) {
-    const escaped = JSON.stringify(body).replace(/'/g, "'\\''");
-    cmd += `-d '${escaped}'`;
+    // Write body to temp file to avoid E2BIG on large payloads (e.g. settings_data.json)
+    tmpFile = join(tmpdir(), `shopify-rest-${Date.now()}.json`);
+    writeFileSync(tmpFile, JSON.stringify(body));
+    cmd += `-d @${tmpFile}`;
   }
   try {
     const result = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
@@ -48,6 +54,8 @@ async function restRequest(endpoint, method = 'GET', body = null) {
   } catch (e) {
     console.error(`  REST error: ${e.message}`);
     return { errors: e.message };
+  } finally {
+    if (tmpFile) { try { unlinkSync(tmpFile); } catch (_) {} }
   }
 }
 
