@@ -1,0 +1,116 @@
+name: AI Variant Analysis & Creation
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run        # Analyze products and generate report only (safe)
+          - apply          # Analyze AND create/update variants on Shopify
+      batch_size:
+        description: 'Products per batch (lower = slower but safer)'
+        required: false
+        default: '20'
+        type: string
+      offset:
+        description: 'Start from product index (for resuming interrupted runs)'
+        required: false
+        default: '0'
+        type: string
+      max_products:
+        description: 'Max products to process (0 = all)'
+        required: false
+        default: '0'
+        type: string
+      confidence_threshold:
+        description: 'Min AI confidence to act on (0.0-1.0)'
+        required: false
+        default: '0.7'
+        type: string
+      product_ids:
+        description: 'Comma-separated product IDs (optional — overrides batch/offset)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  variant-analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 hours max for large catalogs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run AI Variant Analysis
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          ARGS="--${{ inputs.mode }}"
+          ARGS="$ARGS --batch-size=${{ inputs.batch_size }}"
+          ARGS="$ARGS --offset=${{ inputs.offset }}"
+          ARGS="$ARGS --max=${{ inputs.max_products }}"
+          ARGS="$ARGS --confidence=${{ inputs.confidence_threshold }}"
+
+          if [ -n "${{ inputs.product_ids }}" ]; then
+            ARGS="$ARGS --product-ids=${{ inputs.product_ids }}"
+          fi
+
+          echo "=== Running AI Variant Analysis ==="
+          echo "Mode: ${{ inputs.mode }}"
+          echo "Batch size: ${{ inputs.batch_size }}"
+          echo "Offset: ${{ inputs.offset }}"
+          echo "Max products: ${{ inputs.max_products }}"
+          echo "Confidence: ${{ inputs.confidence_threshold }}"
+          echo ""
+          echo "Command: node src/run-variant-analysis.js $ARGS"
+          echo ""
+
+          node src/run-variant-analysis.js $ARGS
+
+      - name: Upload Analysis Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: variant-analysis-report-${{ github.run_number }}
+          path: variant-analysis-report-*.json
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Variant Analysis Workflow Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** \`${{ inputs.mode }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Run:** #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Inputs" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Batch Size | ${{ inputs.batch_size }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Offset | ${{ inputs.offset }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Max Products | ${{ inputs.max_products }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Confidence | ${{ inputs.confidence_threshold }} |" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ inputs.product_ids }}" ]; then
+            echo "| Product IDs | ${{ inputs.product_ids }} |" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> Download the **variant-analysis-report** artifact for full details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.mode }}" == "dry-run" ]; then
+            echo "> **Next step:** Review the report, then re-run this workflow with mode=\`apply\` to create variants." >> $GITHUB_STEP_SUMMARY
+          fi

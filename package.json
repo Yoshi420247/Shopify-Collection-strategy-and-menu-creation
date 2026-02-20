@@ -43,9 +43,14 @@
     "descriptions:execute": "node src/update-collection-descriptions.js --execute",
     "descriptions:single": "node src/update-collection-descriptions.js --execute --collection=",
     "min-order": "node src/add-minimum-order.js",
-    "min-order:execute": "node src/add-minimum-order.js --execute"
+    "min-order:execute": "node src/add-minimum-order.js --execute",
+    "variants": "node src/run-variant-analysis.js --dry-run",
+    "variants:apply": "node src/run-variant-analysis.js --apply",
+    "variants:test": "node src/run-variant-analysis.js --dry-run --max=5",
+    "variants:product": "node src/run-variant-analysis.js --dry-run --product-ids="
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "@shopify/shopify-api": "^9.0.0",
     "dotenv": "^16.3.1",
     "xlsx": "^0.18.5"
