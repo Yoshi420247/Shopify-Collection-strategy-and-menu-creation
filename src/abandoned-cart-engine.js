@@ -382,21 +382,45 @@ class AbandonedCartEngine {
     const hasAccount = !!customer?.id;
     const cartValue = parseFloat(checkout.total_price || 0);
 
-    if (cartValue >= customerSegments.wholesaleLead.criteria.cartValueMin) {
-      return { ...customerSegments.wholesaleLead, ordersCount, lifetimeValue };
+    // Read existing customer tags for enhanced segmentation
+    const existingTags = (customerData?.tags || '').split(',').map(t => t.trim().toLowerCase());
+    const shopifySegmentTags = existingTags.filter(t => t.startsWith('segment:') || t.startsWith('rfm:'));
+
+    // Check existing Shopify segment tags first (set by your tagging system)
+    const hasVipTag = shopifySegmentTags.includes('segment:vip') || shopifySegmentTags.includes('rfm:high');
+    const hasAtRiskTag = shopifySegmentTags.includes('segment:at-risk');
+    const hasSmokeshopBuyerTag = shopifySegmentTags.includes('segment:smokeshop-buyer');
+    const hasHighValueTag = shopifySegmentTags.includes('segment:smokeshop-high-value');
+
+    // VIP / high-RFM customers → Loyal Customer (reduced discount multiplier)
+    if (hasVipTag || hasHighValueTag) {
+      return { ...customerSegments.loyalCustomer, ordersCount, lifetimeValue, shopifySegmentTags };
     }
+
+    // Wholesale cart value check
+    if (cartValue >= customerSegments.wholesaleLead.criteria.cartValueMin) {
+      return { ...customerSegments.wholesaleLead, ordersCount, lifetimeValue, shopifySegmentTags };
+    }
+
+    // Standard order-history based segmentation
     if (ordersCount >= customerSegments.loyalCustomer.criteria.ordersCountMin ||
         lifetimeValue >= customerSegments.loyalCustomer.criteria.lifetimeValueMin) {
-      return { ...customerSegments.loyalCustomer, ordersCount, lifetimeValue };
+      return { ...customerSegments.loyalCustomer, ordersCount, lifetimeValue, shopifySegmentTags };
     }
+
+    // At-risk customers get Returning treatment (eligible for bigger discounts to win back)
+    if (hasAtRiskTag) {
+      return { ...customerSegments.returningCustomer, ordersCount, lifetimeValue, shopifySegmentTags };
+    }
+
     if (ordersCount >= customerSegments.returningCustomer.criteria.ordersCountMin &&
         ordersCount <= customerSegments.returningCustomer.criteria.ordersCountMax) {
-      return { ...customerSegments.returningCustomer, ordersCount, lifetimeValue };
+      return { ...customerSegments.returningCustomer, ordersCount, lifetimeValue, shopifySegmentTags };
     }
     if (hasAccount && ordersCount === 0) {
-      return { ...customerSegments.newCustomer, ordersCount, lifetimeValue };
+      return { ...customerSegments.newCustomer, ordersCount, lifetimeValue, shopifySegmentTags };
     }
-    return { ...customerSegments.newVisitor, ordersCount, lifetimeValue };
+    return { ...customerSegments.newVisitor, ordersCount, lifetimeValue, shopifySegmentTags };
   }
 
   determineSequencePosition(checkout) {

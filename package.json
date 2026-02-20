@@ -63,7 +63,9 @@
     "cart-recovery:execute": "node src/abandoned-cart-engine.js --execute",
     "cart-recovery:report": "node src/abandoned-cart-engine.js --report",
     "cart-recovery:verbose": "node src/abandoned-cart-engine.js --verbose",
-    "cart-recovery:test": "node src/abandoned-cart-engine.js --max=5 --verbose"
+    "cart-recovery:test": "node src/abandoned-cart-engine.js --max=5 --verbose",
+    "cart-recovery:setup": "node src/setup-cart-recovery-flows.js",
+    "cart-recovery:setup:create": "node src/setup-cart-recovery-flows.js --create"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

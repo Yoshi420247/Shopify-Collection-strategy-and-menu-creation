@@ -1,0 +1,122 @@
+{% comment %}
+  Cart Recovery Email 3 — Light Incentive (48 hours after abandonment)
+  Oil Slick Pad — oilslickpad.com
+
+  Triggered by Shopify Flow when tag "cart-recovery:email-3" is added.
+  First email with a discount offer. Discount amount is category-aware:
+    Oil Slick products: 5%
+    Smokeshop products: 10%
+
+  Metafields used:
+    cart_recovery.cart_url          — Link back to cart (discount pre-applied in URL)
+    cart_recovery.cart_value        — Cart total
+    cart_recovery.cart_category     — oilSlick | smokeshop | unknown
+    cart_recovery.discount_code     — The discount code
+    cart_recovery.discount_percent  — Discount percentage
+    cart_recovery.sequence_stage    — 3
+{% endcomment %}
+
+{% assign cart_url = customer.metafields.cart_recovery.cart_url.value | default: "https://oilslickpad.com/cart" %}
+{% assign cart_value = customer.metafields.cart_recovery.cart_value.value | default: "0.00" %}
+{% assign cart_category = customer.metafields.cart_recovery.cart_category.value | default: "unknown" %}
+{% assign discount_code = customer.metafields.cart_recovery.discount_code.value %}
+{% assign discount_percent = customer.metafields.cart_recovery.discount_percent.value | default: "0" %}
+{% assign first_name = customer.first_name | default: "there" %}
+{% assign has_discount = false %}
+{% if discount_code != blank and discount_percent != "0" %}
+  {% assign has_discount = true %}
+{% endif %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--[if mso]><style>table{border-collapse:collapse;}</style><![endif]-->
+</head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;margin-top:20px;margin-bottom:20px;">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:24px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:24px;font-weight:300;">Oil Slick Pad</h1>
+    </div>
+
+    <!-- Content -->
+    <div style="padding:32px 24px;">
+
+      <!-- Greeting -->
+      <p style="font-size:16px;line-height:1.6;color:#333;">
+        Hi {{ first_name }},<br><br>
+        Still thinking about your cart? We've got a little something to help you decide.
+      </p>
+
+      <!-- Discount block -->
+      {% if has_discount %}
+      <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px;padding:32px;margin:24px 0;text-align:center;">
+        <h2 style="color:#e94560;margin:0 0 12px;font-size:28px;font-weight:800;">{{ discount_percent }}% OFF your cart</h2>
+        <p style="color:#fff;font-size:15px;margin:0 0 20px;line-height:1.5;">
+          Use the code below at checkout. This offer expires in 48 hours.
+        </p>
+        <div style="background:#fff;display:inline-block;padding:12px 32px;border-radius:8px;border:2px dashed #e94560;">
+          <span style="font-size:22px;font-weight:700;color:#1a1a2e;letter-spacing:3px;">{{ discount_code }}</span>
+        </div>
+        <p style="color:#e94560;font-size:13px;margin:16px 0 0;">⏰ Expires in 48 hours</p>
+      </div>
+      {% endif %}
+
+      <!-- Cart value callout -->
+      <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:24px 0;text-align:center;">
+        <p style="font-size:14px;color:#666;margin:0 0 4px;">Your saved cart</p>
+        <p style="font-size:28px;font-weight:700;color:#333;margin:0;">${{ cart_value }}</p>
+        {% if has_discount %}
+        <p style="font-size:14px;color:#e94560;font-weight:600;margin:8px 0 0;">
+          With {{ discount_percent }}% off, you save ${{ cart_value | times: discount_percent | divided_by: 100 | round: 2 }}
+        </p>
+        {% endif %}
+      </div>
+
+      <!-- Urgency -->
+      <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:16px 20px;margin:20px 0;border-radius:0 8px 8px 0;">
+        <p style="font-size:14px;color:#856404;margin:0;font-weight:600;">⚡ Items in your cart are selling fast. We can only hold them so long.</p>
+      </div>
+
+      <!-- Trust badges -->
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin:24px 0;padding:16px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;">
+        <div style="text-align:center;flex:1;min-width:100px;">
+          <div style="font-size:20px;">🔒</div>
+          <div style="font-size:11px;font-weight:700;color:#333;margin-top:4px;">Secure Checkout</div>
+        </div>
+        <div style="text-align:center;flex:1;min-width:100px;">
+          <div style="font-size:20px;">🚚</div>
+          <div style="font-size:11px;font-weight:700;color:#333;margin-top:4px;">Fast Shipping</div>
+        </div>
+        <div style="text-align:center;flex:1;min-width:100px;">
+          <div style="font-size:20px;">↩️</div>
+          <div style="font-size:11px;font-weight:700;color:#333;margin-top:4px;">Easy Returns</div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="text-align:center;margin:32px 0;">
+        <a href="{{ cart_url }}" style="display:inline-block;background:#e94560;color:#fff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">
+          {% if has_discount %}Claim Your {{ discount_percent }}% Off{% else %}Complete Your Order{% endif %}
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="border-top:1px solid #eee;padding:24px;text-align:center;">
+      <p style="font-size:14px;font-weight:600;color:#333;margin:0 0 4px;">Oil Slick Pad</p>
+      <p style="font-size:12px;color:#888;margin:0 0 12px;">Premium extraction supplies & smokeshop</p>
+      <p style="font-size:11px;color:#aaa;margin:0;">
+        You're receiving this because you left items in your cart at oilslickpad.com.<br>
+        Sent via Shopify Email — manage preferences in your account.<br>
+        <a href="https://oilslickpad.com/policies/privacy-policy" style="color:#aaa;">Privacy Policy</a>
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>
