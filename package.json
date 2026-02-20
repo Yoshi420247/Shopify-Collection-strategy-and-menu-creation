@@ -51,7 +51,12 @@
     "variants:apply": "node src/run-variant-analysis.js --apply --from-report=",
     "variants:apply-live": "node src/run-variant-analysis.js --apply --screen --skip-existing",
     "variants:test": "node src/run-variant-analysis.js --dry-run --max=5",
-    "variants:product": "node src/run-variant-analysis.js --dry-run --product-ids="
+    "variants:product": "node src/run-variant-analysis.js --dry-run --product-ids=",
+    "image-check": "node src/run-image-mismatch-check.js",
+    "image-check:sonnet": "node src/run-image-mismatch-check.js --analysis-model=sonnet",
+    "image-check:test": "node src/run-image-mismatch-check.js --max=5",
+    "image-check:tag": "node src/run-image-mismatch-check.js --tag-suspects",
+    "image-check:product": "node src/run-image-mismatch-check.js --product-ids="
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
