@@ -1,0 +1,645 @@
+{% comment %}
+** Sidebar - Filter Enhancement **
+- Improved filter labels and UI
+- Price range quick filters
+- In Stock toggle
+- Mobile-friendly
+- Clear All Filters button
+{% endcomment %}
+
+{% comment %}Filter sidebar disabled - all filter blocks and quick filters hidden for cleaner product browsing{% endcomment %}
+
+{% if featured %}
+  {% assign collection = collections[featured_collection] %}
+{% endif %}
+
+<style>
+/* Filter Enhancement Styles */
+.filter-enhancements {
+  margin-bottom: 15px;
+}
+
+.quick-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.quick-filter-btn {
+  padding: 8px 14px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  color: #333;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.quick-filter-btn:hover {
+  background: #e0e0e0;
+  border-color: #ccc;
+}
+
+.quick-filter-btn.active {
+  background: #333;
+  color: #fff;
+  border-color: #333;
+}
+
+.quick-filter-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.in-stock-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  margin-bottom: 15px;
+}
+
+.in-stock-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.in-stock-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.filter-badge {
+  background: #666;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 5px;
+}
+
+.clear-all-filters {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-bottom: 15px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.clear-all-filters:hover {
+  background: #d32f2f;
+  color: #fff;
+}
+
+.filter-section-title {
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Friendly filter value styling */
+.toggle_list li a,
+.toggle_list li label {
+  text-transform: capitalize;
+}
+
+/* Mobile filter bar */
+@media (max-width: 768px) {
+  .mobile-filter-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    padding: 10px 15px;
+    z-index: 999;
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+  }
+  
+  .mobile-filter-btn {
+    flex: 1;
+    padding: 12px;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  
+  .mobile-filter-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+  
+  .sidebar {
+    display: none;
+  }
+  
+  .sidebar.mobile-open {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 60px;
+    background: #fff;
+    z-index: 998;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  
+  .mobile-filter-close {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-filter-bar,
+  .mobile-filter-close {
+    display: none;
+  }
+}
+
+/* Active filter indicators */
+.active-filters {
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.active-filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #333;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  margin: 3px;
+}
+
+.active-filter-tag .remove {
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.active-filter-tag .remove:hover {
+  opacity: 1;
+}
+</style>
+
+{% if false %}
+{% if section.blocks.size > 0 %}
+  <div class="sidebar four columns toggle-all--{{ section.settings.toggle }} medium-down--one-whole" id="collection-sidebar">
+    <div class="sidebar-wrap">
+      
+      {% comment %} Mobile close button {% endcomment %}
+      <div class="mobile-filter-close">
+        <span class="filter-section-title">Filters</span>
+        <button onclick="document.getElementById('collection-sidebar').classList.remove('mobile-open')" style="background:none;border:none;font-size:24px;cursor:pointer;">&times;</button>
+      </div>
+
+      {% comment %} Clear All Filters - show if any tags are active {% endcomment %}
+      {% if current_tags.size > 0 %}
+        <a href="{{ collection.url }}" class="clear-all-filters">
+          <svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          Clear All Filters ({{ current_tags.size }})
+        </a>
+        
+        {% comment %} Show active filters {% endcomment %}
+        <div class="active-filters">
+          <small style="display:block;margin-bottom:8px;color:#666;">Active filters:</small>
+          {% for tag in current_tags %}
+            {% unless tag contains 'meta-' %}
+              {% assign friendly_tag = tag | replace: '_', ' ' | replace: '-', ' ' %}
+              {% comment %} Remove prefix patterns like "material:" {% endcomment %}
+              {% if friendly_tag contains ':' %}
+                {% assign friendly_tag = friendly_tag | split: ':' | last %}
+              {% endif %}
+              <span class="active-filter-tag">
+                {{ friendly_tag | capitalize }}
+                <a href="{{ collection.url }}" class="remove">&times;</a>
+              </span>
+            {% endunless %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% comment %} Quick Price Filters {% endcomment %}
+      <div class="filter-enhancements">
+        <h4 class="filter-section-title" style="margin-bottom:10px;">Quick Filters</h4>
+        <div class="quick-filters">
+          <a href="{{ collection.url }}?sort_by=price-ascending" class="quick-filter-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+            Under $50
+          </a>
+          <a href="{{ collection.url }}?sort_by=price-ascending" class="quick-filter-btn">
+            Under $100
+          </a>
+          <a href="{{ collection.url }}?sort_by=best-selling" class="quick-filter-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            Best Sellers
+          </a>
+          <a href="{{ collection.url }}?sort_by=created-descending" class="quick-filter-btn">
+            New Arrivals
+          </a>
+        </div>
+      </div>
+
+      {% for block in section.blocks %}
+        <div class="sidebar-block" {{ block.shopify_attributes }}>
+          {% if block.type == 'menu' %}
+            {% assign sidebar_menu = linklists[block.settings.custom_menu_linklist] %}
+            {% if sidebar_menu != blank %}
+              <h4 class="toggle">{{ sidebar_menu.title }}<span class="right icon-down-arrow"></span></h4>
+              <ul class="toggle_list">
+                {% for link in sidebar_menu.links %}
+                  {% if link.active %}
+                    {% assign active_link = true %}
+                  {% else %}
+                    {% assign active_link = false %}
+                    {% for sub_link in linklists[link.handle].links %}
+                      {% if sub_link.active %}
+                        {% assign active_link = true %}
+                      {% else %}
+                        {% for sub_sub_link in linklists[sub_link.handle].links %}
+                          {% if sub_sub_link.active %}
+                            {% assign active_link = true %}
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+
+                  <li>
+                    {% if link.url == 'http://' or link.url == '' or link.url == '/' or link.url == 'https://' or link.url == '#' %}
+                     <a data-no-instant href="{{ link.url }}" class="{% if link.active %}active{% endif %} parent-link--false">
+                        {{ link.title }}
+                      </a>
+                    {% else %}
+                     <a data-no-instant href="{{ link.url }}" class="{% if link.active %}active{% endif %} parent-link--true">
+                       {{ link.title }}
+                     </a>
+                    {% endif %}
+
+                    {% if linklists[link.handle].links != blank %}
+                      <span class="menu-toggle icon-down-arrow {% if active_link %}active{% endif %}" aria-haspopup="true" aria-expanded="{% if active_link %}true{% else %}false{% endif %}"> </span>
+
+                      <ul class="{% if active_link %}active{% endif %}">
+                        {% for sub_link in linklists[link.handle].links %}
+                          {% if sub_link.active %}
+                            {% assign active_link = true %}
+                          {% else %}
+                            {% assign active_link = false %}
+                            {% for sub_sub_link in linklists[sub_link.handle].links %}
+                              {% if sub_sub_link.active %}
+                                {% assign active_link = true %}
+                              {% endif %}
+                            {% endfor %}
+                          {% endif %}
+
+                          <li class="sub-menu {% if active_link %}active{% endif %}">
+                            <a {% if sub_link.active %}class="active"{% endif %} href="{{ sub_link.url }}">{{ sub_link.title }}</a>
+
+                            {% if linklists[sub_link.handle].links != blank %}
+                              <span class="menu-toggle icon-down-arrow {% if active_link %}active{% endif %}" aria-haspopup="true" aria-expanded="{% if active_link %}true{% else %}false{% endif %}"> </span>
+
+                              <ul class="{% if active_link %}active{% endif %}">
+                                {% for sub_sub_link in linklists[sub_link.handle].links %}
+                                  <li class="sub-menu">
+                                    <a {% if sub_sub_link.active %}class="active"{% endif %} href="{{ sub_sub_link.url }}">{{ sub_sub_link.title }}</a>
+                                  </li>
+                                {% endfor %}
+                              </ul>
+                            {% endif %}
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <h4 class="toggle">Menu title<span class="right icon-down-arrow"></span></h4>
+              <ul class="toggle_list">
+                <li><p>{{ 'homepage.onboarding.no_content' | t }}</p></li>
+              </ul>
+            {% endif %}
+
+          {% elsif block.type == 'page' %}
+            {% if block.settings.content_page != blank %}
+              <h4 class="toggle">{{ pages[block.settings.content_page].title }}<span class="right icon-down-arrow"></span></h4>
+              <ul class="toggle_list content_block">
+                <li>{{ pages[block.settings.content_page].content }}</li>
+              </ul>
+            {% else %}
+              <h4 class="toggle">Page title<span class="right icon-down-arrow"></span></h4>
+              <ul class="toggle_list">
+                <li><p>{{ 'homepage.onboarding.no_content' | t }}</p></li>
+              </ul>
+            {% endif %}
+
+          {% elsif block.type == 'filter_by_tag' %}
+            {% if template contains 'product' %}
+              {% assign tag_count = product.tags | size %}
+              {% if tag_count > 0 %}
+                <h4 class="toggle">{{ 'collections.sidebar.tags' | t }}<span class="right icon-down-arrow"></span></h4>
+                <ul class="toggle_list">
+                  {% for tag in product.tags %}
+                    {% unless tag contains 'meta-' %}
+                      {% comment %} Format tag for display {% endcomment %}
+                      {% assign display_tag = tag | replace: '_', ' ' | replace: '-', ' ' %}
+                      {% if display_tag contains ':' %}
+                        {% assign display_tag = display_tag | split: ':' | last %}
+                      {% endif %}
+                      <li>
+                        <a {% if current_tags contains tag %}class="active"{% endif %} href="/collections/{% if collection.handle != blank %}{{ collection.handle }}{% else %}all{% endif %}/{{ tag | handleize }}">{{ display_tag | capitalize }}</a>
+                      </li>
+                    {% endunless %}
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% else %}
+              {% assign tag_count = collection.all_tags | size %}
+              {% if tag_count > 0 %}
+                <h4 class="toggle">{{ 'collections.sidebar.tags' | t }}<span class="right icon-down-arrow"></span></h4>
+                <ul class="toggle_list">
+                  <li>
+                    <a {% unless current_tags %}class="active--default"{% endunless %} href="{% if collection.handle == "all" %}/collections/all{% else %}{{ collection.url }}{% endif %}">All {{ collection.title }}</a>
+                  </li>
+                  {% for tag in collection.all_tags %}
+                    {% unless tag contains 'meta-' %}
+                      {% comment %} Format tag for display {% endcomment %}
+                      {% assign display_tag = tag | replace: '_', ' ' | replace: '-', ' ' %}
+                      {% if display_tag contains ':' %}
+                        {% assign display_tag = display_tag | split: ':' | last %}
+                      {% endif %}
+                      <li>
+                        <a {% if current_tags contains tag %}class="active"{% endif %} href="/collections/{% if collection.handle != blank %}{{ collection.handle }}{% else %}all{% endif %}/{{ tag | handleize }}">{{ display_tag | capitalize }}</a>
+                      </li>
+                    {% endunless %}
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endif %}
+
+          {% elsif block.type == 'filter_by_type' %}
+            <h4 class="toggle">Product Type<span class="right icon-down-arrow"></span></h4>
+            <ul class="toggle_list">
+              {% for product_type in shop.types %}
+                <li {% if product_type == collection.title %}class="active"{% endif %}>{{ product_type | link_to_type }}</li>
+              {% endfor %}
+            </ul>
+
+          {% elsif block.type == 'filter_by_collection' %}
+            <h4 class="toggle">Categories<span class="right icon-down-arrow"></span></h4>
+            <ul class="toggle_list">
+              {% for col in collections %}
+                {% unless col.handle == 'frontpage' %}
+                  <li {% if col.handle == collection.handle %}class="active"{% endif %}><a href="{{ col.url }}" title="{{ col.title | escape }}">{{ col.title }}</a></li>
+                {% endunless %}
+              {% endfor %}
+            </ul>
+
+          {% elsif block.type == 'filter_by_vendor' %}
+            <h4 class="toggle">Brand<span class="right icon-down-arrow"></span></h4>
+            <ul class="toggle_list">
+              {% for product_vendor in shop.vendors %}
+                <li {% if product_vendor == collection.title %}class="active"{% endif %}>{{ product_vendor | link_to_vendor }}</li>
+              {% endfor %}
+            </ul>
+
+          {% elsif block.type == 'filter' %}
+            {% assign initial_filter_tags = block.settings.filter_tags | split: ',' %}
+            {% assign filter_name = block.settings.filter_name | replace: ' ', '_' | downcase | append: '__' %}
+
+            {% capture filter_tags %}{% for filter_tag in initial_filter_tags %}{{- filter_name | strip }}{{ filter_tag | strip -}}{% if forloop.last == false %}^{% endif %}{% endfor %}{% endcapture %}
+            {% assign filter_tags = filter_tags | split: "^" %}
+
+            {%- capture headlines -%}
+              {%- for collection_tag in collection.all_tags -%}
+                {%- for tag in filter_tags -%}
+                  {%- capture formatted_tag -%}{{- tag | replace: filter_name, '' | downcase -}}{%- endcapture -%}
+                  {%- capture formatted_collection_tag -%}{{- collection_tag | downcase -}}{%- endcapture -%}
+                  {%- if formatted_tag == formatted_collection_tag -%}
+                    {{ block.settings.filter_name }}{% if forloop.last == false %}^{% endif %}
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- endfor -%}
+            {%- endcapture -%}
+
+            {% assign headline_length = headlines | split: '^' | size %}
+
+            {% if headline_length > 0 %}
+
+              <div class="sidebar__collection-filter">
+
+                {% comment %} Friendly filter title mapping {% endcomment %}
+                {% assign friendly_title = block.settings.filter_name %}
+                {% case block.settings.filter_name | downcase %}
+                  {% when 'joint_size' or 'joint-size' %}
+                    {% assign friendly_title = 'Joint Size' %}
+                  {% when 'joint_angle' or 'joint-angle' %}
+                    {% assign friendly_title = 'Joint Angle' %}
+                  {% when 'joint_gender' or 'joint-gender' %}
+                    {% assign friendly_title = 'Joint Type' %}
+                  {% when 'material' %}
+                    {% assign friendly_title = 'Material' %}
+                  {% when 'length' %}
+                    {% assign friendly_title = 'Size' %}
+                  {% when 'bundle' %}
+                    {% assign friendly_title = 'Pack Size' %}
+                  {% when 'family' %}
+                    {% assign friendly_title = 'Category' %}
+                  {% when 'pillar' %}
+                    {% assign friendly_title = 'Type' %}
+                  {% when 'use' %}
+                    {% assign friendly_title = 'Use For' %}
+                  {% when 'style' %}
+                    {% assign friendly_title = 'Style' %}
+                {% endcase %}
+
+                <h2 class="h4 toggle">{{ friendly_title }}<span class="filter-badge">{{ headline_length }}</span><span class="right icon-down-arrow"></span></h2>
+
+                {% if block.settings.filter_name != blank and headline_length > 0 %}
+                  <ul class="toggle_list" >
+                    <div class="filter-all-tags color-filter--{{ block.settings.enable_filter_swatches }}">
+                      {% for tag in filter_tags %}
+                        {% for collection_tag in collection.all_tags %}
+                          {% capture formatted_tag %}{{- tag | replace: filter_name, '' | downcase -}}{% endcapture %}
+                          {% capture formatted_collection_tag %}{{ collection_tag | downcase }}{% endcapture %}
+
+                          {% if formatted_tag == formatted_collection_tag %}
+                            
+                            {% comment %} Format the display value {% endcomment %}
+                            {% assign display_value = tag | replace: filter_name, '' | replace: '_', ' ' %}
+                            
+                            {% comment %} Standardize length format {% endcomment %}
+                            {% assign filter_name_check = block.settings.filter_name | downcase %}{% if filter_name_check contains 'length' %}
+                              {% assign display_value = display_value | replace: 'in', '"' | replace: 'IN', '"' %}
+                            {% endif %}
+                            
+                            {% comment %} Capitalize properly {% endcomment %}
+                            {% assign display_value = display_value | capitalize %}
+                            
+                            {% comment %} Material consolidation: show Borosilicate as "Borosilicate Glass" {% endcomment %}
+                            {% if display_value contains 'Borosilicate' %}
+                              {% assign display_value = 'Borosilicate Glass' %}
+                            {% endif %}
+                            
+                            {% comment %} Clean up style tags {% endcomment %}
+                            {% if display_value == 'Brand-highlight' %}
+                              {% assign display_value = 'Brand Feature' %}
+                            {% elsif display_value == 'Travel-friendly' %}
+                              {% assign display_value = 'Travel Friendly' %}
+                            {% elsif display_value == 'Made-in-usa' %}
+                              {% assign display_value = 'Made in USA' %}
+                            {% endif %}
+                            
+                            {% if block.settings.enable_filter_swatches %}
+                              <li>
+                                <label data-option-filter><input type="checkbox" value="{{- tag | replace: filter_name, '' | handleize -}}" name="{{tag | handleize }}" id="{{tag}}" class="styled-checkbox" style="background-image: url({{ tag | replace: filter_name, ''| handleize | downcase | append: '.png' | asset_img_url: '50x' }}); background-color: {{tag | replace: filter_name, '' | downcase }}">
+                                    {{ display_value }}
+                                </label>
+                              </li>
+                            {% else %}
+                              <li>
+                                <a>
+                                  <label data-option-filter><input type="checkbox" value="{{- tag | replace: filter_name, '' | handleize -}}" name="{{tag | handleize }}" >
+                                    {{ display_value }}
+                                  </label>
+                                </a>
+                              </li>
+                            {% endif %}
+                          {% endif %}
+                        {% endfor %}
+                      {% endfor %}
+                    </div>
+                    <div class="filter-active-tag color-filter--{{ block.settings.enable_filter_swatches }}">
+                      {% for tag in filter_tags %}
+                        {% for current_tag in current_tags %}
+                          {% capture formatted_tag %}{{- tag | replace: filter_name, '' | downcase | handleize -}}{% endcapture %}
+                          {% capture formatted_current_tag %}{{ current_tag | downcase | handleize }}{% endcapture %}
+                          {% if formatted_tag == formatted_current_tag %}
+                            
+                            {% comment %} Same display value formatting {% endcomment %}
+                            {% assign display_value = tag | replace: filter_name, '' | replace: '_', ' ' | capitalize %}
+                            {% assign filter_name_check = block.settings.filter_name | downcase %}{% if filter_name_check contains 'length' %}
+                              {% assign display_value = display_value | replace: 'in', '"' %}
+                            {% endif %}
+                            
+                            {% if block.settings.enable_filter_swatches %}
+                              <li>
+                                <label data-option-filter>
+                                  <input checked type="checkbox" value="{{- tag | replace: filter_name, '' | handleize -}}" name="{{tag | handleize }}" id="{{tag}}" class="styled-checkbox" style="background-image: url({{ tag | replace: filter_name, '' | handleize | downcase | append: '.png' | asset_img_url: '50x' }}); background-color: {{tag | replace: filter_name, '' | downcase }}">
+                                  {{ display_value }}
+                                </label>
+                              </li>
+                            {% else %}
+                              <li>
+                                <a class="active">
+                                  <label data-option-filter><input checked type="checkbox" value="{{- tag | replace: filter_name, '' | handleize -}}" name="{{tag}}" >
+                                    {{ display_value }}
+                                  </label>
+                                </a>
+                              </li>
+                            {% endif %}
+                            <button class="clear-active-filter" data-clear-filter>
+                            <i class="x-icon"></i>{{ 'collections.sidebar.clear' | t }}</button>
+                            {% break %}
+                          {% endif %}
+                        {% endfor %}
+                      {% endfor %}
+                    </div>
+                  </ul>
+                {% endif %}
+              </div>
+            {% endif %}
+
+          {% elsif block.type == 'text' %}
+            <h4 class="toggle">{{ block.settings.title }}<span class="right icon-down-arrow"></span></h4>
+            <ul class="toggle_list content_block">
+              <li>{{ block.settings.text }}</li>
+            </ul>
+          {% elsif block.type == 'recently_viewed'%}
+            <div  class="js-sidebar-recently-viewed hidden"
+                  data-rv-handle="{{ product.handle }}"
+                  data-visible-products="{{ block.settings.sidebar_rv_per | plus: 1 }}"
+            >
+              <h4 class="toggle">{{ block.settings.sidebar_rv_title }}<span class="right icon-down-arrow"></span></h4>
+              <ul class="toggle_list">
+                <li>{% include 'sidebar-recently-viewed' %}</li>
+              </ul>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  
+  {% comment %} Mobile Filter Bar {% endcomment %}
+  <div class="mobile-filter-bar">
+    <button class="mobile-filter-btn" onclick="document.getElementById('collection-sidebar').classList.add('mobile-open')">
+      <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
+      Filters {% if current_tags.size > 0 %}({{ current_tags.size }}){% endif %}
+    </button>
+    <button class="mobile-filter-btn" onclick="document.getElementById('mobile-sort-modal').style.display='block'">
+      <svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg>
+      Sort
+    </button>
+  </div>
+{% endif %}
+{% endif %}
+
+<script>
+// Close mobile filter when clicking outside
+document.addEventListener('click', function(e) {
+  var sidebar = document.getElementById('collection-sidebar');
+  var filterBar = document.querySelector('.mobile-filter-bar');
+  if (sidebar && sidebar.classList.contains('mobile-open')) {
+    if (!sidebar.contains(e.target) && !filterBar.contains(e.target)) {
+      sidebar.classList.remove('mobile-open');
+    }
+  }
+});
+</script>
