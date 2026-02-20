@@ -1,0 +1,155 @@
+name: Bulk Product Wholesale Tagger
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run            # Preview bulk detection without modifying Shopify
+          - execute            # Tag bulk products as wholesale-only
+          - rollback           # Restore original tags from rollback file
+      vendor:
+        description: 'Filter by vendor (leave blank for all)'
+        required: false
+        default: ''
+        type: string
+      force_vision:
+        description: 'Force Gemini vision analysis on all products'
+        required: false
+        default: false
+        type: boolean
+      text_only:
+        description: 'Use text analysis only (no Gemini API cost)'
+        required: false
+        default: false
+        type: boolean
+      min_confidence:
+        description: 'Minimum confidence threshold (0.0-1.0)'
+        required: false
+        default: '0.5'
+        type: string
+      skip_processed:
+        description: 'Skip already-processed products'
+        required: false
+        default: true
+        type: boolean
+      max_products:
+        description: 'Max products to process (0 = all)'
+        required: false
+        default: '0'
+        type: string
+
+  schedule:
+    # Run weekly on Sundays at 6 AM UTC to catch newly added bulk products
+    - cron: '0 6 * * 0'
+
+jobs:
+  bulk-tagger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Restore processing cache
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: bulk-tagger-cache-${{ github.ref }}-${{ github.run_number }}
+          restore-keys: |
+            bulk-tagger-cache-${{ github.ref }}-
+
+      - name: Run Bulk Wholesale Tagger
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          # Build command arguments
+          ARGS=""
+
+          # Action mode
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            ARGS="$ARGS --execute"
+            echo "Mode: EXECUTE — will modify product tags in Shopify"
+          elif [ "${{ inputs.action }}" == "rollback" ]; then
+            ARGS="--rollback"
+            echo "Mode: ROLLBACK — restoring original tags"
+          else
+            echo "Mode: DRY RUN — preview only"
+          fi
+
+          # Vendor filter
+          if [ -n "${{ inputs.vendor }}" ]; then
+            ARGS="$ARGS --vendor=\"${{ inputs.vendor }}\""
+          fi
+
+          # Force vision
+          if [ "${{ inputs.force_vision }}" == "true" ]; then
+            ARGS="$ARGS --force-vision"
+          fi
+
+          # Text only
+          if [ "${{ inputs.text_only }}" == "true" ]; then
+            ARGS="$ARGS --text-only"
+          fi
+
+          # Confidence threshold
+          if [ "${{ inputs.min_confidence }}" != "0.5" ]; then
+            ARGS="$ARGS --min-confidence=${{ inputs.min_confidence }}"
+          fi
+
+          # Skip processed
+          if [ "${{ inputs.skip_processed }}" == "false" ]; then
+            ARGS="$ARGS --no-skip"
+          fi
+
+          # Max products
+          if [ "${{ inputs.max_products }}" != "0" ] && [ -n "${{ inputs.max_products }}" ]; then
+            ARGS="$ARGS --max=${{ inputs.max_products }}"
+          fi
+
+          echo "Running: node src/bulk-wholesale-tagger.js $ARGS"
+          eval "node src/bulk-wholesale-tagger.js $ARGS"
+
+      - name: Save processing cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/
+          key: bulk-tagger-cache-${{ github.ref }}-${{ github.run_number }}
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | \`${{ inputs.action || 'dry-run (scheduled)' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Vendor | \`${{ inputs.vendor || 'all' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Force Vision | \`${{ inputs.force_vision || 'false' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Text Only | \`${{ inputs.text_only || 'false' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Min Confidence | \`${{ inputs.min_confidence || '0.5' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Skip Processed | \`${{ inputs.skip_processed || 'true' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Max Products | \`${{ inputs.max_products || 'all' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Products](https://oil-slick-pad.myshopify.com/admin/products)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Collections](https://oil-slick-pad.myshopify.com/admin/collections)" >> $GITHUB_STEP_SUMMARY

@@ -75,7 +75,15 @@
     "cart-recovery:verbose": "node src/abandoned-cart-engine.js --verbose",
     "cart-recovery:test": "node src/abandoned-cart-engine.js --max=5 --verbose",
     "cart-recovery:setup": "node src/setup-cart-recovery-flows.js",
-    "cart-recovery:setup:create": "node src/setup-cart-recovery-flows.js --create"
+    "cart-recovery:setup:create": "node src/setup-cart-recovery-flows.js --create",
+    "bulk-tag": "node src/bulk-wholesale-tagger.js",
+    "bulk-tag:execute": "node src/bulk-wholesale-tagger.js --execute",
+    "bulk-tag:vision": "node src/bulk-wholesale-tagger.js --force-vision",
+    "bulk-tag:text": "node src/bulk-wholesale-tagger.js --text-only",
+    "bulk-tag:test": "node src/bulk-wholesale-tagger.js --max=5",
+    "bulk-tag:product": "node src/bulk-wholesale-tagger.js --product-ids=",
+    "bulk-tag:rollback": "node src/bulk-wholesale-tagger.js --rollback",
+    "bulk-tag:reset": "node src/bulk-wholesale-tagger.js --reset-log"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
