@@ -12,7 +12,7 @@ on:
           - dry-run        # Analyze products and generate report only (safe)
           - apply          # Analyze AND create/update variants on Shopify
       use_screening:
-        description: 'Use cheap Haiku screening before Sonnet (saves ~50% AI cost)'
+        description: 'Use cheap Gemini Flash screening before Sonnet (saves ~50% AI cost)'
         required: false
         default: true
         type: boolean
@@ -21,6 +21,11 @@ on:
         required: false
         default: true
         type: boolean
+      workers:
+        description: 'Parallel workers (higher = faster but more API pressure)'
+        required: false
+        default: '5'
+        type: string
       batch_size:
         description: 'Products per batch (lower = slower but safer)'
         required: false
@@ -88,6 +93,8 @@ jobs:
           if [ -n "${{ inputs.product_ids }}" ]; then
             ARGS="$ARGS --product-ids=${{ inputs.product_ids }}"
           fi
+
+          ARGS="$ARGS --workers=${{ inputs.workers }}"
 
           echo "=== Running AI Variant Analysis ==="
           echo "Mode: ${{ inputs.mode }}"

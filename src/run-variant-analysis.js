@@ -9,12 +9,15 @@
 //
 // Cost-saving flags:
 //   --from-report=<path>   Apply a previous dry-run report (ZERO AI cost)
-//   --screen               Use cheap Haiku screening before Sonnet (~50% savings)
+//   --screen               Use cheap Gemini Flash screening before Sonnet (~50% savings)
 //   --skip-existing        Skip products that already have color variants
+//
+// Performance:
+//   --workers=N            Process N products in parallel (default: 5)
 //
 import { config } from './config.js';
 import { getAllProductsByVendor, getProduct } from './shopify-api.js';
-import { analyzeProduct, screenProduct, productAlreadyHasColorVariants } from './variant-analyzer.js';
+import { analyzeProduct, screenProduct, productAlreadyHasColorVariants, PRICING } from './variant-analyzer.js';
 import { buildVariantPlan, applyVariantPlan } from './variant-creator.js';
 import { writeFileSync, appendFileSync, readFileSync, existsSync } from 'fs';
 
@@ -26,8 +29,9 @@ const DEFAULTS = {
   mode: 'dry-run',
   productIds: null,
   fromReport: null,        // Path to a dry-run report to reuse (skips AI entirely)
-  screen: false,           // Use cheap Haiku screening before expensive Sonnet analysis
+  screen: false,           // Use cheap Gemini screening before expensive Sonnet analysis
   skipExisting: false,     // Skip products that already have color variants
+  workers: 5,              // Parallel workers for processing products concurrently
 };
 
 function parseArgs() {
@@ -45,6 +49,7 @@ function parseArgs() {
     else if (arg.startsWith('--confidence=')) options.confidenceThreshold = parseFloat(arg.split('=')[1]);
     else if (arg.startsWith('--product-ids=')) options.productIds = arg.split('=')[1].split(',').map(Number);
     else if (arg.startsWith('--from-report=')) options.fromReport = arg.split('=')[1];
+    else if (arg.startsWith('--workers=')) options.workers = Math.max(1, parseInt(arg.split('=')[1], 10));
   }
 
   return options;
@@ -58,7 +63,11 @@ function printBanner(options) {
   console.log(`  Mode:                ${options.mode.toUpperCase()}`);
   console.log(`  Confidence threshold: ${options.confidenceThreshold}`);
   console.log(`  Batch size:          ${options.batchSize}`);
-  if (options.screen) console.log(`  Haiku screening:     ENABLED (saves ~50% on AI costs)`);
+  console.log(`  Workers:             ${options.workers}`);
+  if (options.screen) {
+    const screenModel = process.env.GEMINI_API_KEY ? 'Gemini Flash' : 'Haiku';
+    console.log(`  Screening:           ENABLED (${screenModel})`);
+  }
   if (options.skipExisting) console.log(`  Skip existing:       ENABLED`);
   if (options.fromReport) console.log(`  From report:         ${options.fromReport} (no AI cost)`);
   if (options.offset > 0) console.log(`  Starting offset:     ${options.offset}`);
@@ -89,6 +98,153 @@ async function fetchProducts(options) {
   return products;
 }
 
+// ── Cost tracker ──────────────────────────────────────────────────────────────
+
+function createCostTracker() {
+  return {
+    'gemini-flash': { inputTokens: 0, outputTokens: 0, calls: 0, cost: 0 },
+    'haiku':        { inputTokens: 0, outputTokens: 0, calls: 0, cost: 0 },
+    'sonnet':       { inputTokens: 0, outputTokens: 0, calls: 0, cost: 0 },
+  };
+}
+
+function trackUsage(costTracker, usage) {
+  if (!usage || !usage.model) return;
+  const bucket = costTracker[usage.model];
+  if (!bucket) return;
+  bucket.inputTokens += usage.inputTokens || 0;
+  bucket.outputTokens += usage.outputTokens || 0;
+  bucket.calls++;
+  bucket.cost += usage.cost || 0;
+}
+
+function getTotalCost(costTracker) {
+  return Object.values(costTracker).reduce((sum, b) => sum + b.cost, 0);
+}
+
+function formatCostBreakdown(costTracker) {
+  const lines = [];
+  for (const [model, data] of Object.entries(costTracker)) {
+    if (data.calls === 0) continue;
+    const inK = (data.inputTokens / 1000).toFixed(1);
+    const outK = (data.outputTokens / 1000).toFixed(1);
+    lines.push(`    ${model.padEnd(14)} ${String(data.calls).padStart(5)} calls | ${inK.padStart(8)}K in | ${outK.padStart(7)}K out | $${data.cost.toFixed(4)}`);
+  }
+  return lines;
+}
+
+// ── Parallel worker pool ──────────────────────────────────────────────────────
+
+async function runPool(items, fn, concurrency) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const i = nextIndex++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+
+  const workerCount = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
+}
+
+// ── Process a single product (returns structured result + buffered log) ───────
+
+async function processProduct(product, idx, total, options) {
+  const log = [];  // Buffer log lines to print atomically
+  const L = (msg) => log.push(msg);
+
+  L(`\n  [${idx + 1}/${total}] ${product.title}`);
+  L(`    ID: ${product.id} | Variants: ${product.variants?.length || 0} | Images: ${product.images?.length || 0}`);
+
+  const entry = { id: product.id, title: product.title, status: null, screen: null, analysis: null, plan: null, result: null };
+
+  // ── Pre-filter: skip products that already have color variants ──
+  if (options.skipExisting && productAlreadyHasColorVariants(product)) {
+    L(`    SKIP: Already has color variants set up`);
+    entry.status = 'skipped_existing';
+    return { entry, log, category: 'skipped' };
+  }
+
+  // ── Screening: cheap check before expensive Sonnet call ──────────
+  if (options.screen) {
+    const screenModel = process.env.GEMINI_API_KEY ? 'Gemini Flash' : 'Haiku';
+    L(`    Screening with ${screenModel}...`);
+    const screenResult = await screenProduct(product);
+    entry.screen = screenResult;
+    if (!screenResult.needsAnalysis) {
+      L(`    SCREEN (${screenResult.model}): ${screenResult.reason} — skipping full analysis`);
+      entry.status = 'screened_out';
+      return { entry, log, category: 'screened', usage: [screenResult.usage] };
+    }
+    L(`    SCREEN (${screenResult.model}): ${screenResult.reason} — proceeding to full analysis`);
+  }
+
+  // ── Full AI Analysis (Sonnet) ────────────────────────────────────
+  const analysis = await analyzeProduct(product, {
+    confidenceThreshold: options.confidenceThreshold,
+  });
+  entry.analysis = analysis;
+
+  if (analysis.error) {
+    L(`    ERROR: ${analysis.reasoning}`);
+    entry.status = 'error';
+    return { entry, log, category: 'error', usage: [entry.screen?.usage, analysis.usage] };
+  }
+
+  if (analysis.skipped) {
+    L(`    SKIP: ${analysis.reasoning}`);
+    entry.status = 'skipped';
+    return { entry, log, category: 'skipped', usage: [entry.screen?.usage, analysis.usage] };
+  }
+
+  // Log what the AI found
+  L(`    AI: has_variants=${analysis.has_variants} | confidence=${analysis.confidence} | items=${analysis.item_count}`);
+  L(`    Reasoning: ${analysis.reasoning}`);
+  if (analysis.detected_variants?.color) L(`    Colors: ${analysis.detected_variants.color.join(', ')}`);
+  if (analysis.detected_variants?.size) L(`    Sizes: ${analysis.detected_variants.size.join(', ')}`);
+  if (analysis.detected_variants?.style) L(`    Styles: ${analysis.detected_variants.style.join(', ')}`);
+
+  // ── Confidence gate ──────────────────────────────────────────────
+  if (analysis.confidence < options.confidenceThreshold) {
+    L(`    LOW CONFIDENCE (${analysis.confidence} < ${options.confidenceThreshold}) — skipping`);
+    entry.status = 'low_confidence';
+    return { entry, log, category: 'skipped', usage: [entry.screen?.usage, analysis.usage] };
+  }
+
+  // ── Build variant plan ───────────────────────────────────────────
+  const plan = buildVariantPlan(product, analysis);
+  entry.plan = plan;
+
+  L(`    Plan: ${plan.action} — ${plan.reason}`);
+  if (plan.changes.length > 0) plan.changes.forEach(c => L(`      • ${c}`));
+
+  if (plan.action === 'skip') {
+    entry.status = 'skip';
+    return { entry, log, category: 'correct', usage: [entry.screen?.usage, analysis.usage] };
+  }
+
+  entry.status = plan.action;
+  const category = plan.action === 'create_variants' ? 'needsVariants' : 'needsUpdates';
+
+  // ── Apply changes (if not dry-run) ──────────────────────────────
+  if (options.mode === 'apply' && plan.action !== 'skip') {
+    const applyResult = await applyVariantPlan(product, plan);
+    entry.result = applyResult;
+    L(`    Result: ${applyResult.success ? 'SUCCESS' : 'FAILED'} — ${applyResult.message}`);
+    if (applyResult.success) {
+      return { entry, log, category, applied: true, usage: [entry.screen?.usage, analysis.usage] };
+    }
+  }
+
+  return { entry, log, category, usage: [entry.screen?.usage, analysis.usage] };
+}
+
+// ── Report generation ─────────────────────────────────────────────────────────
+
 function generateMarkdownSummary(results) {
   let md = `## AI Variant Analysis Report\n\n`;
   md += `**Mode:** \`${results.mode}\` | **Date:** ${results.timestamp}\n\n`;
@@ -100,10 +256,23 @@ function generateMarkdownSummary(results) {
   md += `| Already Correct | ${results.correct} |\n`;
   md += `| Skipped (no images/low confidence) | ${results.skipped} |\n`;
   md += `| Errors | ${results.errors} |\n`;
-  if (results.mode === 'apply') {
+  if (results.mode !== 'dry-run') {
     md += `| **Successfully Applied** | **${results.applied}** |\n`;
   }
   md += `\n`;
+
+  // Cost breakdown
+  if (results.costs) {
+    md += `### AI Cost Breakdown\n\n`;
+    md += `| Model | Calls | Input Tokens | Output Tokens | Cost |\n`;
+    md += `|-------|------:|-------------:|--------------:|-----:|\n`;
+    for (const [model, data] of Object.entries(results.costs)) {
+      if (data.calls === 0) continue;
+      md += `| ${model} | ${data.calls} | ${data.inputTokens.toLocaleString()} | ${data.outputTokens.toLocaleString()} | $${data.cost.toFixed(4)} |\n`;
+    }
+    md += `| **Total** | | | | **$${results.totalCost.toFixed(4)}** |\n`;
+    md += `\n`;
+  }
 
   // Products that need changes
   const actionProducts = results.products.filter(
@@ -140,6 +309,8 @@ function generateMarkdownSummary(results) {
   return md;
 }
 
+// ── Main ──────────────────────────────────────────────────────────────────────
+
 async function main() {
   const options = parseArgs();
   printBanner(options);
@@ -168,14 +339,17 @@ async function main() {
     products = products.slice(0, options.maxProducts);
   }
 
-  console.log(`\nProcessing ${products.length} products (offset: ${options.offset})${options.maxProducts > 0 ? ` (max: ${options.maxProducts})` : ''}\n`);
+  console.log(`\nProcessing ${products.length} products (offset: ${options.offset})${options.maxProducts > 0 ? ` (max: ${options.maxProducts})` : ''}`);
+  if (options.workers > 1) console.log(`Using ${options.workers} parallel workers`);
+  console.log('');
 
   if (products.length === 0) {
     console.log('No products to process. Exiting.');
     return;
   }
 
-  // Initialize results tracker
+  // Initialize results tracker and cost tracker
+  const costTracker = createCostTracker();
   const results = {
     timestamp: new Date().toISOString(),
     mode: options.mode,
@@ -189,12 +363,13 @@ async function main() {
     errors: 0,
     applied: 0,
     products: [],
+    costs: null,
+    totalCost: 0,
   };
 
   const reportPath = `variant-analysis-report-${Date.now()}.json`;
-
-  // Process products in batches
   const totalBatches = Math.ceil(products.length / options.batchSize);
+  const startTime = Date.now();
 
   for (let batchIdx = 0; batchIdx < products.length; batchIdx += options.batchSize) {
     const batch = products.slice(batchIdx, batchIdx + options.batchSize);
@@ -204,117 +379,48 @@ async function main() {
     console.log(`  Batch ${batchNum}/${totalBatches} (products ${batchIdx + 1}–${batchIdx + batch.length} of ${products.length})`);
     console.log(`${'─'.repeat(60)}`);
 
-    for (const product of batch) {
+    // Process products in parallel using worker pool
+    const batchResults = await runPool(batch, async (product, localIdx) => {
+      const globalIdx = batchIdx + localIdx;
+      return processProduct(product, globalIdx, products.length, options);
+    }, options.workers);
+
+    // Collect results and print buffered logs in order
+    for (const r of batchResults) {
+      // Print buffered log lines for this product
+      for (const line of r.log) console.log(line);
+
+      // Track costs
+      if (r.usage) {
+        for (const u of r.usage) trackUsage(costTracker, u);
+      }
+
       results.analyzed++;
-      const idx = results.analyzed;
+      results.products.push(r.entry);
 
-      console.log(`\n  [${idx}/${products.length}] ${product.title}`);
-      console.log(`    ID: ${product.id} | Variants: ${product.variants?.length || 0} | Images: ${product.images?.length || 0}`);
-
-      // ── Pre-filter: skip products that already have color variants ──
-      if (options.skipExisting && productAlreadyHasColorVariants(product)) {
-        console.log(`    SKIP: Already has color variants set up`);
-        results.skipped++;
-        results.products.push({ id: product.id, title: product.title, status: 'skipped_existing', analysis: null, plan: null, result: null });
-        continue;
-      }
-
-      // ── Screening: cheap check before expensive Sonnet call ──────────
-      if (options.screen) {
-        const screenModel = process.env.GEMINI_API_KEY ? 'Gemini Flash' : 'Haiku';
-        console.log(`    Screening with ${screenModel}...`);
-        const screenResult = await screenProduct(product);
-        if (!screenResult.needsAnalysis) {
-          console.log(`    SCREEN (${screenResult.model}): ${screenResult.reason} — skipping full analysis`);
-          results.screened++;
-          results.skipped++;
-          results.products.push({ id: product.id, title: product.title, status: 'screened_out', screen: screenResult, analysis: null, plan: null, result: null });
-          continue;
-        }
-        console.log(`    SCREEN (${screenResult.model}): ${screenResult.reason} — proceeding to full analysis`);
-      }
-
-      // ── Step 1: Full AI Analysis (Sonnet) ──────────────────────────
-      const analysis = await analyzeProduct(product, {
-        confidenceThreshold: options.confidenceThreshold,
-      });
-
-      if (analysis.error) {
-        console.log(`    ERROR: ${analysis.reasoning}`);
-        results.errors++;
-        results.products.push({ id: product.id, title: product.title, status: 'error', analysis, plan: null, result: null });
-        continue;
-      }
-
-      if (analysis.skipped) {
-        console.log(`    SKIP: ${analysis.reasoning}`);
-        results.skipped++;
-        results.products.push({ id: product.id, title: product.title, status: 'skipped', analysis, plan: null, result: null });
-        continue;
-      }
-
-      // Log what the AI found
-      console.log(`    AI: has_variants=${analysis.has_variants} | confidence=${analysis.confidence} | items=${analysis.item_count}`);
-      console.log(`    Reasoning: ${analysis.reasoning}`);
-      if (analysis.detected_variants?.color) {
-        console.log(`    Colors: ${analysis.detected_variants.color.join(', ')}`);
-      }
-      if (analysis.detected_variants?.size) {
-        console.log(`    Sizes: ${analysis.detected_variants.size.join(', ')}`);
-      }
-      if (analysis.detected_variants?.style) {
-        console.log(`    Styles: ${analysis.detected_variants.style.join(', ')}`);
-      }
-
-      // ── Step 2: Confidence gate ──────────────────────────────────────
-      if (analysis.confidence < options.confidenceThreshold) {
-        console.log(`    LOW CONFIDENCE (${analysis.confidence} < ${options.confidenceThreshold}) — skipping`);
-        results.skipped++;
-        results.products.push({ id: product.id, title: product.title, status: 'low_confidence', analysis, plan: null, result: null });
-        continue;
-      }
-
-      // ── Step 3: Build variant plan ───────────────────────────────────
-      const plan = buildVariantPlan(product, analysis);
-
-      console.log(`    Plan: ${plan.action} — ${plan.reason}`);
-      if (plan.changes.length > 0) {
-        plan.changes.forEach(c => console.log(`      • ${c}`));
-      }
-
-      // Categorize
-      if (plan.action === 'skip') {
-        results.correct++;
-      } else if (plan.action === 'create_variants') {
-        results.needsVariants++;
-      } else if (plan.action === 'update_variants') {
-        results.needsUpdates++;
-      }
-
-      // ── Step 4: Apply changes (if not dry-run) ──────────────────────
-      let applyResult = null;
-      if (options.mode === 'apply' && plan.action !== 'skip') {
-        applyResult = await applyVariantPlan(product, plan);
-        console.log(`    Result: ${applyResult.success ? 'SUCCESS' : 'FAILED'} — ${applyResult.message}`);
-        if (applyResult.success) results.applied++;
-      }
-
-      results.products.push({
-        id: product.id,
-        title: product.title,
-        status: plan.action,
-        analysis,
-        plan,
-        result: applyResult,
-      });
+      if (r.category === 'skipped') results.skipped++;
+      else if (r.category === 'screened') { results.screened++; results.skipped++; }
+      else if (r.category === 'error') results.errors++;
+      else if (r.category === 'correct') results.correct++;
+      else if (r.category === 'needsVariants') results.needsVariants++;
+      else if (r.category === 'needsUpdates') results.needsUpdates++;
+      if (r.applied) results.applied++;
     }
 
+    // Print running cost
+    const runningCost = getTotalCost(costTracker);
+    console.log(`\n  [Batch ${batchNum} done | Running cost: $${runningCost.toFixed(4)}]`);
+
     // Save checkpoint after each batch
+    results.costs = costTracker;
+    results.totalCost = runningCost;
     writeFileSync(reportPath, JSON.stringify(results, null, 2));
-    console.log(`\n  [Checkpoint saved to ${reportPath}]`);
+    console.log(`  [Checkpoint saved to ${reportPath}]`);
   }
 
-  // ── Final summary ──────────────────────────────────────────────────────
+  results.costs = costTracker;
+  results.totalCost = getTotalCost(costTracker);
+  results.durationMs = Date.now() - startTime;
   printSummary(results, options, reportPath);
 }
 
@@ -342,7 +448,11 @@ async function applyFromReport(options) {
   );
 
   console.log(`Found ${actionable.length} products with pending variant changes`);
-  console.log(`(Original analysis: ${report.analyzed} products on ${report.timestamp})\n`);
+  console.log(`(Original analysis: ${report.analyzed} products on ${report.timestamp})`);
+  if (report.totalCost) {
+    console.log(`(Original analysis cost: $${report.totalCost.toFixed(4)})`);
+  }
+  console.log('');
 
   if (actionable.length === 0) {
     console.log('Nothing to apply. Exiting.');
@@ -363,6 +473,8 @@ async function applyFromReport(options) {
     errors: 0,
     applied: 0,
     products: [],
+    costs: null,
+    totalCost: 0,
   };
 
   for (let i = 0; i < actionable.length; i++) {
@@ -415,12 +527,31 @@ function printSummary(results, options, reportPath) {
   console.log(`  Already correct:      ${results.correct}`);
   console.log(`  Skipped/low conf:     ${results.skipped}`);
   if (results.screened > 0) {
-    console.log(`  Screened out (Haiku): ${results.screened}`);
+    console.log(`  Screened out:         ${results.screened}`);
   }
   console.log(`  Errors:               ${results.errors}`);
   if (results.mode !== 'dry-run') {
     console.log(`  Successfully applied: ${results.applied}`);
   }
+  if (results.durationMs) {
+    const secs = (results.durationMs / 1000).toFixed(1);
+    const perProduct = results.analyzed > 0 ? (results.durationMs / results.analyzed / 1000).toFixed(2) : '?';
+    console.log(`  Duration:             ${secs}s (${perProduct}s/product)`);
+  }
+
+  // ── Cost breakdown ──────────────────────────────────────────────
+  if (results.costs) {
+    const lines = formatCostBreakdown(results.costs);
+    if (lines.length > 0) {
+      console.log(`${'─'.repeat(60)}`);
+      console.log(`  AI COST BREAKDOWN`);
+      console.log(`${'─'.repeat(60)}`);
+      for (const line of lines) console.log(line);
+      console.log(`${'─'.repeat(60)}`);
+      console.log(`  TOTAL COST:           $${results.totalCost.toFixed(4)}`);
+    }
+  }
+
   console.log(`${'═'.repeat(60)}`);
 
   // Final report save

@@ -8,21 +8,16 @@ const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
 const HAIKU_SCREENING_MODEL = 'claude-haiku-4-5-20251001';
 const GEMINI_SCREENING_MODEL = 'gemini-2.0-flash';
 const MAX_IMAGES_PER_PRODUCT = 5;
-const AI_RATE_LIMIT_MS = 1200; // ~50 requests/minute
 
-let lastAiRequestTime = 0;
+// Per-token pricing (USD) — used for cost tracking in reports
+export const PRICING = {
+  'gemini-flash': { input: 0.10 / 1_000_000, output: 0.40 / 1_000_000 },
+  'haiku':        { input: 1.00 / 1_000_000, output: 5.00 / 1_000_000 },
+  'sonnet':       { input: 3.00 / 1_000_000, output: 15.00 / 1_000_000 },
+};
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function aiRateLimit() {
-  const now = Date.now();
-  const elapsed = now - lastAiRequestTime;
-  if (elapsed < AI_RATE_LIMIT_MS) {
-    await sleep(AI_RATE_LIMIT_MS - elapsed);
-  }
-  lastAiRequestTime = Date.now();
 }
 
 function stripHtml(html) {
@@ -49,7 +44,6 @@ async function downloadImageAsBase64(url) {
     const contentType = response.headers.get('content-type') || 'image/jpeg';
     return { base64, mediaType: contentType.split(';')[0] };
   } catch (err) {
-    console.log(`    Warning: Failed to download image: ${err.message}`);
     return null;
   }
 }
@@ -123,9 +117,7 @@ Respond with ONLY valid JSON (no markdown fences, no explanation outside JSON):
 
 /**
  * Analyze a product's images and text to detect variants using Claude Vision.
- * @param {Object} product - Shopify product object (must include images array)
- * @param {Object} options - { model, apiKey, confidenceThreshold }
- * @returns {Object} Analysis result with detected variants
+ * Returns analysis result with usage tracking for cost reporting.
  */
 export async function analyzeProduct(product, options = {}) {
   const {
@@ -152,11 +144,11 @@ export async function analyzeProduct(product, options = {}) {
       item_count: 0,
       variant_source: null,
       skipped: true,
+      usage: null,
     };
   }
 
   // Download images as base64
-  console.log(`    Downloading ${images.length} image(s)...`);
   const imageContents = [];
   for (const img of images) {
     const imgData = await downloadImageAsBase64(img.src);
@@ -183,6 +175,7 @@ export async function analyzeProduct(product, options = {}) {
       item_count: 0,
       variant_source: null,
       skipped: true,
+      usage: null,
     };
   }
 
@@ -192,15 +185,20 @@ export async function analyzeProduct(product, options = {}) {
     { type: 'text', text: buildAnalysisPrompt(product) },
   ];
 
-  // Rate limit Claude API calls
-  await aiRateLimit();
-
   try {
     const response = await anthropic.messages.create({
       model,
       max_tokens: 1024,
       messages: [{ role: 'user', content: messageContent }],
     });
+
+    // Extract token usage for cost tracking
+    const usage = {
+      model: 'sonnet',
+      inputTokens: response.usage?.input_tokens || 0,
+      outputTokens: response.usage?.output_tokens || 0,
+    };
+    usage.cost = usage.inputTokens * PRICING.sonnet.input + usage.outputTokens * PRICING.sonnet.output;
 
     const responseText = response.content[0]?.text || '';
 
@@ -211,8 +209,6 @@ export async function analyzeProduct(product, options = {}) {
       if (!jsonMatch) throw new Error('No JSON object found in response');
       analysis = JSON.parse(jsonMatch[0]);
     } catch (parseErr) {
-      console.log(`    Warning: Failed to parse AI response: ${parseErr.message}`);
-      console.log(`    Raw response: ${responseText.substring(0, 300)}`);
       return {
         productId: product.id,
         productTitle: product.title,
@@ -223,6 +219,7 @@ export async function analyzeProduct(product, options = {}) {
         item_count: 0,
         variant_source: null,
         error: true,
+        usage,
       };
     }
 
@@ -240,9 +237,9 @@ export async function analyzeProduct(product, options = {}) {
       },
       item_count: Number(analysis.item_count) || 0,
       variant_source: analysis.variant_source || null,
+      usage,
     };
   } catch (err) {
-    console.log(`    Error calling Claude API: ${err.message}`);
     return {
       productId: product.id,
       productTitle: product.title,
@@ -253,6 +250,7 @@ export async function analyzeProduct(product, options = {}) {
       item_count: 0,
       variant_source: null,
       error: true,
+      usage: null,
     };
   }
 }
@@ -265,6 +263,8 @@ const SCREEN_PROMPT = `How many distinct individual product items are visible in
  *
  * Uses Gemini Flash by default (~$0.15/1000 products) with automatic
  * fallback to Haiku (~$1.75/1000 products) if no GEMINI_API_KEY is set.
+ *
+ * Returns usage tracking for cost reporting.
  */
 export async function screenProduct(product, options = {}) {
   const geminiKey = options.geminiApiKey || process.env.GEMINI_API_KEY;
@@ -276,13 +276,13 @@ export async function screenProduct(product, options = {}) {
 
   const images = (product.images || []);
   if (images.length === 0) {
-    return { needsAnalysis: false, reason: 'no images', itemCount: 0, model: 'none' };
+    return { needsAnalysis: false, reason: 'no images', itemCount: 0, model: 'none', usage: null };
   }
 
   // Download only the FIRST image (main product photo)
   const imgData = await downloadImageAsBase64(images[0].src);
   if (!imgData) {
-    return { needsAnalysis: false, reason: 'image download failed', itemCount: 0, model: 'none' };
+    return { needsAnalysis: false, reason: 'image download failed', itemCount: 0, model: 'none', usage: null };
   }
 
   // Try Gemini Flash first (10x cheaper), fall back to Haiku
@@ -290,11 +290,10 @@ export async function screenProduct(product, options = {}) {
     try {
       return await screenWithGemini(imgData, geminiKey);
     } catch (err) {
-      console.log(`    Gemini screen failed (${err.message}), falling back to Haiku`);
       if (anthropicKey) {
         return await screenWithHaiku(imgData, anthropicKey);
       }
-      return { needsAnalysis: true, reason: `screen error: ${err.message}`, itemCount: 0, model: 'gemini-error' };
+      return { needsAnalysis: true, reason: `screen error: ${err.message}`, itemCount: 0, model: 'gemini-error', usage: null };
     }
   }
 
@@ -316,12 +315,19 @@ async function screenWithGemini(imgData, apiKey) {
   ]);
 
   const text = result.response.text();
-  return parseScreenResponse(text, 'gemini-flash');
+  const meta = result.response.usageMetadata;
+  const usage = {
+    model: 'gemini-flash',
+    inputTokens: meta?.promptTokenCount || 0,
+    outputTokens: meta?.candidatesTokenCount || 0,
+  };
+  usage.cost = usage.inputTokens * PRICING['gemini-flash'].input + usage.outputTokens * PRICING['gemini-flash'].output;
+
+  return parseScreenResponse(text, 'gemini-flash', usage);
 }
 
 async function screenWithHaiku(imgData, apiKey) {
   const anthropic = new Anthropic({ apiKey });
-  await aiRateLimit();
 
   const response = await anthropic.messages.create({
     model: HAIKU_SCREENING_MODEL,
@@ -339,10 +345,17 @@ async function screenWithHaiku(imgData, apiKey) {
   });
 
   const text = response.content[0]?.text || '';
-  return parseScreenResponse(text, 'haiku');
+  const usage = {
+    model: 'haiku',
+    inputTokens: response.usage?.input_tokens || 0,
+    outputTokens: response.usage?.output_tokens || 0,
+  };
+  usage.cost = usage.inputTokens * PRICING.haiku.input + usage.outputTokens * PRICING.haiku.output;
+
+  return parseScreenResponse(text, 'haiku', usage);
 }
 
-function parseScreenResponse(text, modelUsed) {
+function parseScreenResponse(text, modelUsed, usage) {
   const match = text.match(/\{[\s\S]*\}/);
   if (match) {
     const parsed = JSON.parse(match[0]);
@@ -353,10 +366,11 @@ function parseScreenResponse(text, modelUsed) {
       reason: count > 1 ? `${count} items detected` : 'single item',
       itemCount: count,
       model: modelUsed,
+      usage,
     };
   }
   // Couldn't parse — be safe, send to full analysis
-  return { needsAnalysis: true, reason: 'screen parse failed', itemCount: 0, model: modelUsed };
+  return { needsAnalysis: true, reason: 'screen parse failed', itemCount: 0, model: modelUsed, usage };
 }
 
 /**
@@ -375,4 +389,4 @@ export function productAlreadyHasColorVariants(product) {
   return colorOption.values.length >= 2;
 }
 
-export default { analyzeProduct, screenProduct, productAlreadyHasColorVariants };
+export default { analyzeProduct, screenProduct, productAlreadyHasColorVariants, PRICING };
