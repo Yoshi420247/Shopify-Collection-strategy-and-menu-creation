@@ -147,6 +147,78 @@ export async function getAllProductsByVendor(vendor) {
   return products;
 }
 
+// Paginate through a REST endpoint using Shopify's cursor-based Link header.
+// This replaces since_id pagination which is unreliable on large stores
+// (can return fewer than `limit` records mid-stream, stopping pagination early).
+export async function paginateAll(endpoint, resourceKey, params = {}, { pageLimit = Infinity } = {}) {
+  const queryParams = new URLSearchParams(params);
+  let url = `${BASE_URL}/${endpoint}?${queryParams}`;
+  const allRecords = [];
+  let page = 0;
+
+  while (url && page < pageLimit) {
+    page++;
+
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      await sleep(MIN_REQUEST_INTERVAL - timeSinceLastRequest);
+    }
+    lastRequestTime = Date.now();
+
+    let lastError;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'X-Shopify-Access-Token': config.shopify.accessToken,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`HTTP ${response.status}: ${text.substring(0, 300)}`);
+        }
+
+        const data = await response.json();
+
+        if (data.errors) {
+          throw new Error(JSON.stringify(data.errors));
+        }
+
+        const batch = data[resourceKey] || [];
+        if (batch.length === 0) return allRecords;
+
+        allRecords.push(...batch);
+        console.log(`  Page ${page}: fetched ${batch.length} (total: ${allRecords.length})`);
+
+        // Follow cursor-based pagination via Link header
+        const linkHeader = response.headers.get('link') || '';
+        const nextMatch = linkHeader.match(/<([^>]+)>;\s*rel="next"/);
+        url = nextMatch ? nextMatch[1] : null;
+
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+        if (attempt < 3) {
+          const waitTime = Math.pow(2, attempt) * 1000;
+          console.log(`  Retry ${attempt}/3 after ${waitTime / 1000}s...`);
+          await sleep(waitTime);
+        }
+      }
+    }
+
+    if (lastError) {
+      console.error(`API Error after 3 attempts: ${lastError.message}`);
+      throw lastError;
+    }
+  }
+
+  return allRecords;
+}
+
 // GraphQL API methods
 export async function graphqlQuery(query, variables = {}) {
   return rateLimitedRequest(
@@ -356,6 +428,7 @@ export default {
   updateSmartCollection,
   deleteSmartCollection,
   getAllProductsByVendor,
+  paginateAll,
   graphqlQuery,
   getMenus,
   createMenu,
