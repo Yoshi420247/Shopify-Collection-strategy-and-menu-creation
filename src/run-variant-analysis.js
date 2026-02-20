@@ -67,10 +67,17 @@ function printBanner(options) {
   console.log(`  Confidence threshold: ${options.confidenceThreshold}`);
   console.log(`  Batch size:          ${options.batchSize}`);
   console.log(`  Workers:             ${options.workers}`);
+  const hasGemini = !!process.env.GEMINI_API_KEY;
   const modelNames = { gemini: 'Gemini Flash ($0.10/M)', sonnet: 'Claude Sonnet ($3/M)', auto: 'Gemini Flash → Sonnet escalation' };
-  console.log(`  Analysis model:      ${modelNames[options.analysisModel] || options.analysisModel}`);
+  const requestedModel = modelNames[options.analysisModel] || options.analysisModel;
+  if ((options.analysisModel === 'gemini' || options.analysisModel === 'auto') && !hasGemini) {
+    console.log(`  Analysis model:      ${requestedModel}`);
+    console.log(`  ⚠ WARNING:          GEMINI_API_KEY not set — falling back to Sonnet ($3/M)`);
+  } else {
+    console.log(`  Analysis model:      ${requestedModel}`);
+  }
   if (options.screen) {
-    const screenModel = process.env.GEMINI_API_KEY ? 'Gemini Flash' : 'Haiku';
+    const screenModel = hasGemini ? 'Gemini Flash' : 'Haiku (no GEMINI_API_KEY)';
     console.log(`  Screening:           ENABLED (${screenModel})`);
   }
   if (options.skipExisting) console.log(`  Skip existing:       ENABLED`);
