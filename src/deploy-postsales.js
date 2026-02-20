@@ -35,7 +35,7 @@ function sleep(ms) {
 async function restRequest(endpoint, method = 'GET', body = null) {
   await sleep(550); // rate limiting
   const url = `${BASE_URL}/${endpoint}`;
-  let cmd = `curl -s --max-time 30 -X ${method} "${url}" `;
+  let cmd = `curl -s -g --max-time 30 -X ${method} "${url}" `;
   cmd += `-H "X-Shopify-Access-Token: ${ACCESS_TOKEN}" `;
   cmd += `-H "Content-Type: application/json" `;
   if (body) {
@@ -210,7 +210,7 @@ async function deployDiscountCodes() {
     {
       code: 'WELCOME10',
       title: 'Welcome 10% — New subscriber first purchase',
-      percentage: -10.0,
+      percentage: 10.0,
       usageLimit: null, // unlimited uses, but once per customer
       oncePerCustomer: true,
       startsAt: now.toISOString(),
@@ -219,7 +219,7 @@ async function deployDiscountCodes() {
     {
       code: 'THANKS10',
       title: 'Thanks 10% — Post-review thank you',
-      percentage: -10.0,
+      percentage: 10.0,
       usageLimit: null,
       oncePerCustomer: true,
       startsAt: now.toISOString(),
@@ -228,7 +228,7 @@ async function deployDiscountCodes() {
     {
       code: 'COMEBACK10',
       title: 'Comeback 10% — Abandoned cart recovery',
-      percentage: -10.0,
+      percentage: 10.0,
       usageLimit: null,
       oncePerCustomer: true,
       startsAt: now.toISOString(),
@@ -237,7 +237,7 @@ async function deployDiscountCodes() {
     {
       code: 'MISSYOU10',
       title: 'Miss You 10% — 60-day win-back',
-      percentage: -10.0,
+      percentage: 10.0,
       usageLimit: null,
       oncePerCustomer: true,
       startsAt: now.toISOString(),
@@ -246,7 +246,7 @@ async function deployDiscountCodes() {
     {
       code: 'WELCOME15',
       title: 'Welcome Back 15% — 90-day win-back last chance',
-      percentage: -15.0,
+      percentage: 15.0,
       usageLimit: null,
       oncePerCustomer: true,
       startsAt: now.toISOString(),
@@ -255,7 +255,7 @@ async function deployDiscountCodes() {
     {
       code: 'VIP15',
       title: 'VIP 15% — Repeat customer reward',
-      percentage: -15.0,
+      percentage: 15.0,
       usageLimit: null,
       oncePerCustomer: true,
       startsAt: now.toISOString(),
@@ -264,7 +264,7 @@ async function deployDiscountCodes() {
     {
       code: 'BDAY20',
       title: 'Birthday 20% — Customer birthday discount',
-      percentage: -20.0,
+      percentage: 20.0,
       usageLimit: null,
       oncePerCustomer: false, // can use yearly
       startsAt: now.toISOString(),
