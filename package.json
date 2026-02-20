@@ -58,7 +58,12 @@
     "image-check:sonnet": "node src/run-image-mismatch-check.js --analysis-model=sonnet",
     "image-check:test": "node src/run-image-mismatch-check.js --max=5",
     "image-check:tag": "node src/run-image-mismatch-check.js --tag-suspects",
-    "image-check:product": "node src/run-image-mismatch-check.js --product-ids="
+    "image-check:product": "node src/run-image-mismatch-check.js --product-ids=",
+    "cart-recovery": "node src/abandoned-cart-engine.js",
+    "cart-recovery:execute": "node src/abandoned-cart-engine.js --execute",
+    "cart-recovery:report": "node src/abandoned-cart-engine.js --report",
+    "cart-recovery:verbose": "node src/abandoned-cart-engine.js --verbose",
+    "cart-recovery:test": "node src/abandoned-cart-engine.js --max=5 --verbose"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -71,7 +76,10 @@
     "shopify",
     "collections",
     "menu",
-    "navigation"
+    "navigation",
+    "abandoned-cart",
+    "recovery",
+    "automation"
   ],
   "author": "",
   "license": "MIT"
