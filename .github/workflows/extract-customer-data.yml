@@ -1,0 +1,94 @@
+name: Extract Customer Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Extraction mode'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - customers-only
+      max_pages:
+        description: 'Max pages per endpoint (leave empty for all)'
+        required: false
+        type: string
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run customer data extraction
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.mode }}" = "customers-only" ]; then
+            ARGS="--customers-only"
+          fi
+          if [ -n "${{ inputs.max_pages }}" ]; then
+            ARGS="$ARGS --max-pages=${{ inputs.max_pages }}"
+          fi
+          node src/extract-customer-data.js $ARGS
+
+      - name: Upload extraction results
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-data-${{ github.run_number }}
+          path: |
+            data/customer-master-list.csv
+            data/customer-master-list.json
+            data/abandoned-checkouts.csv
+            data/abandoned-checkouts.json
+            data/master-email-list.csv
+            data/extraction-report.json
+            data/segments/
+          retention-days: 90
+
+      - name: Generate summary
+        if: always()
+        run: |
+          if [ -f data/extraction-report.json ]; then
+            echo "## Customer Data Extraction Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Total Unique Emails | $(node -e "console.log(JSON.parse(require('fs').readFileSync('data/extraction-report.json','utf8')).summary.total_unique_emails)") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Customer Accounts | $(node -e "console.log(JSON.parse(require('fs').readFileSync('data/extraction-report.json','utf8')).summary.total_customers)") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Customers With Orders | $(node -e "console.log(JSON.parse(require('fs').readFileSync('data/extraction-report.json','utf8')).summary.customers_with_orders)") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Abandoned Checkouts | $(node -e "console.log(JSON.parse(require('fs').readFileSync('data/extraction-report.json','utf8')).summary.total_abandoned_checkouts)") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Smokeshop Buyers | $(node -e "console.log(JSON.parse(require('fs').readFileSync('data/extraction-report.json','utf8')).summary.smokeshop_buyers)") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Smokeshop Abandoned | $(node -e "console.log(JSON.parse(require('fs').readFileSync('data/extraction-report.json','utf8')).summary.smokeshop_abandoned)") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Marketing Opted In | $(node -e "console.log(JSON.parse(require('fs').readFileSync('data/extraction-report.json','utf8')).summary.marketing_opted_in)") |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Segments Generated" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            node -e "
+              const r = JSON.parse(require('fs').readFileSync('data/extraction-report.json','utf8'));
+              Object.entries(r.segments).forEach(([name, seg]) => {
+                console.log(name.padEnd(35) + seg.count.toString().padStart(6) + '  ' + seg.description);
+              });
+            " >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Download the **customer-data-${{ github.run_number }}** artifact for full CSV/JSON files." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## Extraction Failed" >> $GITHUB_STEP_SUMMARY
+            echo "No report file generated. Check the logs above." >> $GITHUB_STEP_SUMMARY
+          fi
