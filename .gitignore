@@ -29,3 +29,6 @@ __pycache__/
 
 # Variant analysis reports (generated at runtime)
 variant-analysis-report-*.json
+
+# Customer data exports (contains PII - never commit)
+data/
