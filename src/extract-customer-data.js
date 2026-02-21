@@ -949,17 +949,15 @@ async function main() {
     abandonedOnlyEmails = existingAbandoned.abandoned_only_emails || [];
     console.log(`Loaded ${customerRecords.length} customers and ${abandonedRecords.length} abandoned checkouts from disk`);
   } else {
-    // Fetch product catalog for smokeshop identification
-    const productMap = await fetchProductCatalog();
-
-    // Fetch all customers
-    const customers = await fetchAllCustomers();
-
-    // Fetch all orders (unless customers-only mode)
-    const orders = CUSTOMERS_ONLY ? [] : await fetchAllOrders();
-
-    // Fetch all abandoned checkouts
-    const abandonedCheckouts = CUSTOMERS_ONLY ? [] : await fetchAllAbandonedCheckouts();
+    // Fetch all data concurrently - requests are serialized via the shared
+    // request queue in shopify-api.js, so we respect Shopify's rate limits
+    // while eliminating idle time between endpoints.
+    const [productMap, customers, orders, abandonedCheckouts] = await Promise.all([
+      fetchProductCatalog(),
+      fetchAllCustomers(),
+      CUSTOMERS_ONLY ? [] : fetchAllOrders(),
+      CUSTOMERS_ONLY ? [] : fetchAllAbandonedCheckouts(),
+    ]);
 
     // Process and enrich data
     const processed = processData(customers, orders, abandonedCheckouts, productMap);
