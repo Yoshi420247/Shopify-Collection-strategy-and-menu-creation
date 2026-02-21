@@ -69,6 +69,8 @@
     "customers:tag:clear:execute": "node src/tag-customer-segments.js --clear --execute",
     "customers:opt-in": "node src/tag-customer-segments.js --opt-in-all",
     "customers:opt-in:execute": "node src/tag-customer-segments.js --opt-in-all --execute",
+    "customers:consent": "node src/update-marketing-consent.js",
+    "customers:consent:execute": "node src/update-marketing-consent.js --execute",
     "cart-recovery": "node src/abandoned-cart-engine.js",
     "cart-recovery:execute": "node src/abandoned-cart-engine.js --execute",
     "cart-recovery:report": "node src/abandoned-cart-engine.js --report",

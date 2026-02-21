@@ -1,0 +1,113 @@
+name: Update Marketing Consent
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - execute
+      max_customers:
+        description: 'Max customers to update (leave empty for all)'
+        required: false
+        type: string
+
+jobs:
+  update-consent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify API credentials
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL || secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$SHOPIFY_STORE_URL" ]; then
+            echo "::error::SHOPIFY_STORE_URL secret is not set."
+            exit 1
+          fi
+          if [ -z "$SHOPIFY_ACCESS_TOKEN" ]; then
+            echo "::error::SHOPIFY_ACCESS_TOKEN secret is not set."
+            exit 1
+          fi
+          echo "Store URL: $SHOPIFY_STORE_URL"
+          echo "Access token: shpat_****$(echo $SHOPIFY_ACCESS_TOKEN | tail -c 5)"
+          echo "Credentials verified."
+
+      - name: Update marketing consent
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL || secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.mode }}" = "execute" ]; then
+            ARGS="--execute"
+          fi
+          if [ -n "${{ inputs.max_customers }}" ]; then
+            ARGS="$ARGS --max=${{ inputs.max_customers }}"
+          fi
+          node src/update-marketing-consent.js $ARGS
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consent-update-${{ github.run_number }}
+          path: |
+            data/consent-update-results.json
+            data/consent-update-dry-run.json
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Generate summary
+        if: always()
+        run: |
+          RESULT_FILE=""
+          if [ -f data/consent-update-results.json ]; then
+            RESULT_FILE="data/consent-update-results.json"
+          elif [ -f data/consent-update-dry-run.json ]; then
+            RESULT_FILE="data/consent-update-dry-run.json"
+          fi
+
+          if [ -n "$RESULT_FILE" ]; then
+            echo "## Marketing Consent Update Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            node -e "
+              const r = JSON.parse(require('fs').readFileSync('$RESULT_FILE','utf8'));
+              console.log('| Metric | Count |');
+              console.log('|--------|-------|');
+              if (r.dry_run) {
+                console.log('| Mode | DRY RUN |');
+                console.log('| Total Customers | ' + r.total_customers + ' |');
+                console.log('| Already Subscribed | ' + r.already_subscribed + ' |');
+                console.log('| Would Update | ' + r.would_update + ' |');
+                console.log('| No Email | ' + r.no_email + ' |');
+              } else {
+                console.log('| Mode | EXECUTED |');
+                console.log('| Total Customers | ' + r.total_customers + ' |');
+                console.log('| Previously Subscribed | ' + r.previously_subscribed + ' |');
+                console.log('| Newly Subscribed | ' + r.newly_subscribed + ' |');
+                console.log('| Errors | ' + r.errors + ' |');
+                console.log('| Total Now Subscribed | ' + r.total_now_subscribed + ' |');
+              }
+            " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## Consent Update Failed" >> $GITHUB_STEP_SUMMARY
+            echo "No result file generated. Check the logs above." >> $GITHUB_STEP_SUMMARY
+          fi
