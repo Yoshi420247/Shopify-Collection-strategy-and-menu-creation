@@ -114,7 +114,7 @@ async function ensureTables() {
     execSync(curlCmd, { encoding: 'utf8', maxBuffer: 5 * 1024 * 1024 });
     console.log('  Supabase tables verified.');
   } catch {
-    // Tables may already exist or RPC may not be set up — that's fine.
+    // Tables may already exist or RPC may not be set up - that's fine.
     // The REST endpoints will work if tables exist.
     console.log('  Supabase: tables assumed to exist (create manually if needed).');
   }
@@ -129,7 +129,7 @@ export const supabase = {
   enabled: supabaseEnabled(),
 
   /**
-   * Initialize — verify connection and create tables if needed.
+   * Initialize - verify connection and create tables if needed.
    */
   async init() {
     if (!supabaseEnabled()) {

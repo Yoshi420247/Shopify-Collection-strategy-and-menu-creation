@@ -3,8 +3,8 @@
 // that should be removed from retail collections and kept only in wholesale.
 //
 // Uses a two-pass approach:
-//   1. Text heuristics (free) — catches obvious bulk keywords in title/description
-//   2. Gemini Flash vision (cheap) — analyzes product images for bulk packaging cues
+//   1. Text heuristics (free) - catches obvious bulk keywords in title/description
+//   2. Gemini Flash vision (cheap) - analyzes product images for bulk packaging cues
 //
 // Cost optimization: ~$0.0001-0.0003 per product with Gemini 2.0 Flash
 
@@ -145,7 +145,7 @@ Tags: ${product.tags || 'none'}
 TEXT ANALYSIS SIGNALS: ${textAnalysis.signals.length > 0 ? textAnalysis.signals.join('; ') : 'none detected'}
 
 YOUR TASK:
-Examine the product image(s) and determine if this is a BULK/WHOLESALE product — meaning it's packaged for resale or contains multiple units intended for retailers, NOT individual consumers.
+Examine the product image(s) and determine if this is a BULK/WHOLESALE product - meaning it's packaged for resale or contains multiple units intended for retailers, NOT individual consumers.
 
 BULK INDICATORS (look for these in images):
 - Multiple identical items packaged together (cases, boxes, display units)
@@ -159,7 +159,7 @@ BULK INDICATORS (look for these in images):
 
 NOT BULK (do NOT flag these):
 - Single retail products even if expensive
-- Products that come as a "set" (e.g., dab tool set) — these are retail sets
+- Products that come as a "set" (e.g., dab tool set) - these are retail sets
 - Products with multiple color variants shown
 - A single product photographed from multiple angles
 - Products that include accessories (bong + bowl + downstem)
@@ -276,9 +276,9 @@ export async function analyzeWithVision(product, options = {}) {
  *
  * Strategy for cost optimization:
  *  1. Run free text analysis first
- *  2. If text score >= 0.7 (very likely bulk) — skip vision, mark as bulk
- *  3. If text score <= 0.1 (very unlikely bulk) — skip vision, mark as not bulk
- *  4. Otherwise — use Gemini Flash vision for confirmation
+ *  2. If text score >= 0.7 (very likely bulk) - skip vision, mark as bulk
+ *  3. If text score <= 0.1 (very unlikely bulk) - skip vision, mark as not bulk
+ *  4. Otherwise - use Gemini Flash vision for confirmation
  *
  * @param {object} product - Shopify product object
  * @param {object} options

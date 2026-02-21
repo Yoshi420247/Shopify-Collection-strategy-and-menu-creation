@@ -72,7 +72,7 @@ function printBanner(options) {
   const requestedModel = modelNames[options.analysisModel] || options.analysisModel;
   if ((options.analysisModel === 'gemini' || options.analysisModel === 'auto') && !hasGemini) {
     console.log(`  Analysis model:      ${requestedModel}`);
-    console.log(`  ⚠ WARNING:          GEMINI_API_KEY not set — falling back to Sonnet ($3/M)`);
+    console.log(`  ⚠ WARNING:          GEMINI_API_KEY not set - falling back to Sonnet ($3/M)`);
   } else {
     console.log(`  Analysis model:      ${requestedModel}`);
   }
@@ -192,11 +192,11 @@ async function processProduct(product, idx, total, options) {
     const screenResult = await screenProduct(product);
     entry.screen = screenResult;
     if (!screenResult.needsAnalysis) {
-      L(`    SCREEN (${screenResult.model}): ${screenResult.reason} — skipping full analysis`);
+      L(`    SCREEN (${screenResult.model}): ${screenResult.reason} - skipping full analysis`);
       entry.status = 'screened_out';
       return { entry, log, category: 'screened', usage: [screenResult.usage] };
     }
-    L(`    SCREEN (${screenResult.model}): ${screenResult.reason} — proceeding to full analysis`);
+    L(`    SCREEN (${screenResult.model}): ${screenResult.reason} - proceeding to full analysis`);
   }
 
   // ── Full AI Analysis ────────────────────────────────────────────
@@ -227,7 +227,7 @@ async function processProduct(product, idx, total, options) {
 
   // ── Confidence gate ──────────────────────────────────────────────
   if (analysis.confidence < options.confidenceThreshold) {
-    L(`    LOW CONFIDENCE (${analysis.confidence} < ${options.confidenceThreshold}) — skipping`);
+    L(`    LOW CONFIDENCE (${analysis.confidence} < ${options.confidenceThreshold}) - skipping`);
     entry.status = 'low_confidence';
     return { entry, log, category: 'skipped', usage: [entry.screen?.usage, analysis.usage] };
   }
@@ -236,7 +236,7 @@ async function processProduct(product, idx, total, options) {
   const plan = buildVariantPlan(product, analysis);
   entry.plan = plan;
 
-  L(`    Plan: ${plan.action} — ${plan.reason}`);
+  L(`    Plan: ${plan.action} - ${plan.reason}`);
   if (plan.changes.length > 0) plan.changes.forEach(c => L(`      • ${c}`));
 
   if (plan.action === 'skip') {
@@ -251,7 +251,7 @@ async function processProduct(product, idx, total, options) {
   if (options.mode === 'apply' && plan.action !== 'skip') {
     const applyResult = await applyVariantPlan(product, plan);
     entry.result = applyResult;
-    L(`    Result: ${applyResult.success ? 'SUCCESS' : 'FAILED'} — ${applyResult.message}`);
+    L(`    Result: ${applyResult.success ? 'SUCCESS' : 'FAILED'} - ${applyResult.message}`);
     if (applyResult.success) {
       return { entry, log, category, applied: true, usage: [entry.screen?.usage, analysis.usage] };
     }
@@ -443,7 +443,7 @@ async function main() {
 
 /**
  * Apply variant changes from a previously saved dry-run report.
- * Skips ALL AI analysis — zero Claude API cost.
+ * Skips ALL AI analysis - zero Claude API cost.
  */
 async function applyFromReport(options) {
   const reportFile = options.fromReport;
@@ -498,7 +498,7 @@ async function applyFromReport(options) {
     const entry = actionable[i];
     results.analyzed++;
     console.log(`\n  [${i + 1}/${actionable.length}] ${entry.title} (ID: ${entry.id})`);
-    console.log(`    Cached plan: ${entry.plan.action} — ${entry.plan.reason}`);
+    console.log(`    Cached plan: ${entry.plan.action} - ${entry.plan.reason}`);
 
     // Re-fetch product to get current state (variants may have changed since dry-run)
     let product;
@@ -523,7 +523,7 @@ async function applyFromReport(options) {
     }
 
     const applyResult = await applyVariantPlan(product, plan);
-    console.log(`    Result: ${applyResult.success ? 'SUCCESS' : 'FAILED'} — ${applyResult.message}`);
+    console.log(`    Result: ${applyResult.success ? 'SUCCESS' : 'FAILED'} - ${applyResult.message}`);
     if (applyResult.success) results.applied++;
     else results.errors++;
 

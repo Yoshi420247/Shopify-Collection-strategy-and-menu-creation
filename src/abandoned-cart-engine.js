@@ -12,7 +12,7 @@
 // Persistence: Supabase stores recovery history, discount tracking, A/B results.
 //
 // Usage:
-//   node src/abandoned-cart-engine.js                    # Dry run — analyze only
+//   node src/abandoned-cart-engine.js                    # Dry run - analyze only
 //   node src/abandoned-cart-engine.js --execute          # Process and send
 //   node src/abandoned-cart-engine.js --report           # Generate analytics report
 // ============================================================================
@@ -543,7 +543,7 @@ class AbandonedCartEngine {
   }
 
   async generateReport() {
-    console.log('\n  ABANDONED CART RECOVERY — ANALYTICS REPORT');
+    console.log('\n  ABANDONED CART RECOVERY - ANALYTICS REPORT');
     console.log('  ===========================================\n');
 
     const checkouts = await getAbandonedCheckouts(168);
@@ -602,7 +602,7 @@ class AbandonedCartEngine {
     }
 
     if (DRY_RUN) {
-      console.log('\n  DRY RUN — no changes made. Run with --execute to go live.\n');
+      console.log('\n  DRY RUN - no changes made. Run with --execute to go live.\n');
     }
 
     if (this.results.errors.length > 0) {

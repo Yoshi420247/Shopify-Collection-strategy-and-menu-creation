@@ -64,14 +64,14 @@ YOUR TASK:
 Compare ALL the images provided for this single product listing. The FIRST image (Image 1) is considered the "primary" image and is almost always correct. Your job is to determine if any of the OTHER images show a DIFFERENT product than Image 1.
 
 WHAT COUNTS AS A MISMATCH:
-- Image 1 shows a carb cap but Image 3 shows a banger/nail — MISMATCH
-- Image 1 shows a blue bong but Image 4 shows a completely different style pipe — MISMATCH
-- Image 1 shows glass product X but Image 5 shows an unrelated glass product Y — MISMATCH
-- Images showing the product from different angles or in different lighting — NOT a mismatch
-- Images showing the same product type in different colors (color variants) — NOT a mismatch
-- A lifestyle/action shot of the same product — NOT a mismatch
-- A close-up detail of the same product — NOT a mismatch
-- A size chart or dimensions graphic — NOT a mismatch
+- Image 1 shows a carb cap but Image 3 shows a banger/nail - MISMATCH
+- Image 1 shows a blue bong but Image 4 shows a completely different style pipe - MISMATCH
+- Image 1 shows glass product X but Image 5 shows an unrelated glass product Y - MISMATCH
+- Images showing the product from different angles or in different lighting - NOT a mismatch
+- Images showing the same product type in different colors (color variants) - NOT a mismatch
+- A lifestyle/action shot of the same product - NOT a mismatch
+- A close-up detail of the same product - NOT a mismatch
+- A size chart or dimensions graphic - NOT a mismatch
 
 ANALYSIS STEPS:
 1. Identify what product Image 1 shows (shape, type, category)
@@ -208,8 +208,8 @@ async function analyzeWithSonnet(product, imageData, apiKey) {
  * Analyze a product's images to detect mismatches.
  *
  * analysisModel option controls which model runs:
- *   'gemini'  (default) — Gemini Flash, cheapest
- *   'sonnet'            — Claude Sonnet, highest accuracy
+ *   'gemini'  (default) - Gemini Flash, cheapest
+ *   'sonnet'            - Claude Sonnet, highest accuracy
  */
 export async function detectImageMismatches(product, options = {}) {
   const {
@@ -222,12 +222,12 @@ export async function detectImageMismatches(product, options = {}) {
 
   // Need at least 2 images to compare
   if (images.length < 2) {
-    return makeSkipResult(product, `Only ${images.length} image(s) — nothing to compare`);
+    return makeSkipResult(product, `Only ${images.length} image(s) - nothing to compare`);
   }
 
   const imageData = await downloadProductImages(product);
   if (imageData.length < 2) {
-    return makeSkipResult(product, `Only ${imageData.length} image(s) downloaded successfully — nothing to compare`);
+    return makeSkipResult(product, `Only ${imageData.length} image(s) downloaded successfully - nothing to compare`);
   }
 
   // Route to the right model

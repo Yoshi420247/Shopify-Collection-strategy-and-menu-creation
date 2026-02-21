@@ -9,7 +9,7 @@ const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 const GEMINI_MODEL = 'gemini-2.0-flash';
 const MAX_IMAGES_PER_PRODUCT = 5;
 
-// Per-token pricing (USD) — used for cost tracking in reports
+// Per-token pricing (USD) - used for cost tracking in reports
 export const PRICING = {
   'gemini-flash': { input: 0.10 / 1_000_000, output: 0.40 / 1_000_000 },
   'haiku':        { input: 1.00 / 1_000_000, output: 5.00 / 1_000_000 },
@@ -223,9 +223,9 @@ async function analyzeWithSonnet(product, imageData, apiKey) {
  * Analyze a product to detect variants.
  *
  * analysisModel option controls which model runs:
- *   'gemini'  (default) — Gemini Flash, ~30x cheaper than Sonnet
- *   'sonnet'            — Claude Sonnet, highest accuracy
- *   'auto'              — Gemini first, escalate to Sonnet if confidence < threshold
+ *   'gemini'  (default) - Gemini Flash, ~30x cheaper than Sonnet
+ *   'sonnet'            - Claude Sonnet, highest accuracy
+ *   'auto'              - Gemini first, escalate to Sonnet if confidence < threshold
  */
 export async function analyzeProduct(product, options = {}) {
   const {
@@ -261,7 +261,7 @@ export async function analyzeProduct(product, options = {}) {
       return geminiResult;
     }
 
-    // Low confidence — escalate to Sonnet for a second opinion
+    // Low confidence - escalate to Sonnet for a second opinion
     const sonnetResult = await runSonnetAnalysis(product, imageData, apiKey);
     if (sonnetResult.error) return geminiResult; // Stick with Gemini if Sonnet fails
 
@@ -290,7 +290,7 @@ async function runGeminiAnalysis(product, imageData, geminiKey, anthropicFallbac
     }
   }
 
-  // No Gemini key — fall back to Sonnet
+  // No Gemini key - fall back to Sonnet
   if (anthropicFallbackKey) {
     return await analyzeWithSonnet(product, imageData, anthropicFallbackKey);
   }
@@ -313,7 +313,7 @@ async function runSonnetAnalysis(product, imageData, apiKey) {
 const SCREEN_PROMPT = `How many distinct individual product items are visible in this image? Count only separate physical items of the same type shown in different colors or styles. Do NOT count accessories, backgrounds, or the same item from different angles. Respond with ONLY a JSON object: {"count": <number>, "multiple_colors": true/false}`;
 
 /**
- * Quick screening pass — checks if the main product image shows multiple
+ * Quick screening pass - checks if the main product image shows multiple
  * distinct items. Uses Gemini Flash by default with Haiku fallback.
  */
 export async function screenProduct(product, options = {}) {

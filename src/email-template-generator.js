@@ -125,9 +125,9 @@ export class EmailTemplateGenerator {
     const greetings = {
       'New Visitor': {
         0: `Hey ${name},\n\nLooks like you were checking out some items at Oil Slick Pad. We saved your cart in case you want to pick up where you left off.`,
-        1: `Hi ${name},\n\nWe noticed you left a few items behind. No pressure — but we thought you might want to know what others are saying about them.`,
+        1: `Hi ${name},\n\nWe noticed you left a few items behind. No pressure - but we thought you might want to know what others are saying about them.`,
         2: `Hi ${name},\n\nStill thinking about your cart? We've got a little something to help you decide.`,
-        3: `Hey ${name},\n\nWe get it — sometimes you need time to decide. Here's our best offer to make it easier.`,
+        3: `Hey ${name},\n\nWe get it - sometimes you need time to decide. Here's our best offer to make it easier.`,
         4: `Hi ${name},\n\nThis is our last note about your cart. Before we let it go, we wanted to give you one final offer.`,
       },
       'Returning Customer': {
@@ -141,7 +141,7 @@ export class EmailTemplateGenerator {
         0: `Hi ${name},\n\nYou left some items in your cart at Oil Slick Pad. We saved them for you.`,
         1: `Hey ${name},\n\nStill interested in your cart items? Here's what other customers think.`,
         2: `Hi ${name},\n\nWe've got a special offer for you on your saved cart.`,
-        3: `${name},\n\nDon't miss out — your exclusive discount is about to expire.`,
+        3: `${name},\n\nDon't miss out - your exclusive discount is about to expire.`,
         4: `Hi ${name},\n\nFinal notice: your cart and our best offer expire soon.`,
       },
     };
@@ -164,7 +164,7 @@ export class EmailTemplateGenerator {
 
     const text = [
       '\n--- YOUR CART ---',
-      ...rows.map(r => `${r.title}${r.variantTitle ? ` (${r.variantTitle})` : ''} x${r.quantity} — $${r.price}`),
+      ...rows.map(r => `${r.title}${r.variantTitle ? ` (${r.variantTitle})` : ''} x${r.quantity} - $${r.price}`),
       `\nCart Total: $${cartAnalysis.totalValue.toFixed(2)}`,
       '---\n',
     ].join('\n');
@@ -205,7 +205,7 @@ export class EmailTemplateGenerator {
       oilSlick: {
         headline: 'Why professionals choose Oil Slick',
         points: [
-          { icon: '🏭', text: 'Medical-grade PTFE — lab-tested, non-stick, solvent-resistant' },
+          { icon: '🏭', text: 'Medical-grade PTFE - lab-tested, non-stick, solvent-resistant' },
           { icon: '📦', text: 'Trusted by extraction labs and processors nationwide' },
           { icon: '🚚', text: 'Most orders ship same day from Colorado' },
         ],
@@ -214,9 +214,9 @@ export class EmailTemplateGenerator {
       smokeshop: {
         headline: 'Why shop with Oil Slick Pad',
         points: [
-          { icon: '✅', text: 'Curated selection — every piece hand-picked for quality' },
-          { icon: '📦', text: 'Discreet, well-padded shipping — arrives in perfect condition' },
-          { icon: '💰', text: 'Wholesale prices direct to you — skip the headshop markup' },
+          { icon: '✅', text: 'Curated selection - every piece hand-picked for quality' },
+          { icon: '📦', text: 'Discreet, well-padded shipping - arrives in perfect condition' },
+          { icon: '💰', text: 'Wholesale prices direct to you - skip the headshop markup' },
         ],
         statsLine: 'Top-rated smoke shop with fast, discreet shipping',
       },
@@ -295,7 +295,7 @@ export class EmailTemplateGenerator {
     const itemCount = cartAnalysis.itemCount;
 
     const urgencyMessages = [
-      `${productName} is popular right now — don't miss out!`,
+      `${productName} is popular right now - don't miss out!`,
       `Items in your cart are selling fast. We can only hold them so long.`,
       `Your cart has ${itemCount} item${itemCount > 1 ? 's' : ''} waiting. Complete your order before they're gone.`,
     ];
@@ -327,7 +327,7 @@ export class EmailTemplateGenerator {
       badges.push({ icon: '⭐', label: '10,000+ Customers', detail: 'Trusted since 2012' });
     }
 
-    const text = badges.map(b => `${b.icon} ${b.label} — ${b.detail}`).join('\n');
+    const text = badges.map(b => `${b.icon} ${b.label} - ${b.detail}`).join('\n');
 
     const html = `
       <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin:20px 0;padding:16px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;">
@@ -402,7 +402,7 @@ export class EmailTemplateGenerator {
     // Link to contact page (which exists on all Shopify stores) instead of a nonexistent /pages/feedback
     const contactUrl = 'https://oilslickpad.com/pages/contact';
 
-    const text = `\nWe'd love to hear from you — what could we do better?\nReply to this email or reach out: ${contactUrl}\n`;
+    const text = `\nWe'd love to hear from you - what could we do better?\nReply to this email or reach out: ${contactUrl}\n`;
 
     const html = `
       <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
@@ -437,8 +437,8 @@ export class EmailTemplateGenerator {
 
   buildFooter() {
     const text = [
-      '\n—',
-      'Oil Slick Pad — oilslickpad.com',
+      '\n-',
+      'Oil Slick Pad - oilslickpad.com',
       'Premium extraction supplies & smokeshop',
       '',
       'You\'re receiving this because you left items in your cart at oilslickpad.com.',
@@ -450,7 +450,7 @@ export class EmailTemplateGenerator {
         <p style="font-size:14px;font-weight:600;color:#333;margin:0 0 4px;">Oil Slick Pad</p>
         <p style="font-size:12px;color:#888;margin:0 0 12px;">Premium extraction supplies & smokeshop</p>
         <p style="font-size:11px;color:#aaa;margin:0;">You're receiving this because you left items in your cart at oilslickpad.com.<br>
-        Sent via Shopify Email — manage preferences in your account.<br>
+        Sent via Shopify Email - manage preferences in your account.<br>
         <a href="https://oilslickpad.com/policies/privacy-policy" style="color:#aaa;">Privacy Policy</a></p>
       </div>
     `;
@@ -464,7 +464,7 @@ export class EmailTemplateGenerator {
 
   buildPreheader(email, cartAnalysis, discountDecision) {
     if (discountDecision.shouldDiscount) {
-      return `${discountDecision.discountPercent}% off your $${cartAnalysis.totalValue.toFixed(0)} cart — limited time only`;
+      return `${discountDecision.discountPercent}% off your $${cartAnalysis.totalValue.toFixed(0)} cart - limited time only`;
     }
     return `Your $${cartAnalysis.totalValue.toFixed(0)} cart is still waiting for you`;
   }

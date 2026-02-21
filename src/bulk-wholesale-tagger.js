@@ -127,7 +127,7 @@ function loadRollbackData() {
 
 function saveRollbackEntry(productId, originalTags) {
   const data = loadRollbackData();
-  // Only save the first time — don't overwrite with already-modified tags
+  // Only save the first time - don't overwrite with already-modified tags
   if (!data[productId]) {
     data[productId] = {
       originalTags,
@@ -372,7 +372,7 @@ async function main() {
 
     for (const item of results.bulkProducts) {
       if (item.removedTags.length === 0) {
-        console.log(`  SKIP "${item.productTitle}" — tags already correct`);
+        console.log(`  SKIP "${item.productTitle}" - tags already correct`);
         continue;
       }
 
@@ -382,7 +382,7 @@ async function main() {
       console.log(`  Updating "${item.productTitle}" (${item.productId})...`);
       try {
         await updateProduct(item.productId, { tags: item.newTags });
-        console.log(`    OK — removed ${item.removedTags.length} tags, kept wholesale tag`);
+        console.log(`    OK - removed ${item.removedTags.length} tags, kept wholesale tag`);
         applied++;
       } catch (err) {
         console.log(`    FAILED: ${err.message}`);
@@ -500,7 +500,7 @@ async function main() {
 
 async function rollback() {
   console.log('='.repeat(70));
-  console.log('  ROLLBACK — Restoring original tags');
+  console.log('  ROLLBACK - Restoring original tags');
   console.log('='.repeat(70));
 
   const data = loadRollbackData();

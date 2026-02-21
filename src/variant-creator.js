@@ -74,7 +74,7 @@ function buildCombinations(optionTypes) {
 
 /**
  * Compare existing product variants with AI analysis and produce a change plan.
- * Does NOT modify Shopify — pure data transformation.
+ * Does NOT modify Shopify - pure data transformation.
  */
 export function buildVariantPlan(product, analysis) {
   const currentVariants = product.variants || [];
@@ -172,7 +172,7 @@ export function buildVariantPlan(product, analysis) {
     };
   }
 
-  // ── CASE 2: Product already has variants — suggest additions ─────────
+  // ── CASE 2: Product already has variants - suggest additions ─────────
   const existingOptions = product.options || [];
   const changes = [];
   const variantsToAdd = [];
@@ -184,7 +184,7 @@ export function buildVariantPlan(product, analysis) {
     );
 
     if (existingOpt) {
-      // Option exists — find new values not yet present
+      // Option exists - find new values not yet present
       const existingVals = new Set(existingOpt.values.map(v => v.toLowerCase()));
       const newVals = optionType.values.filter(v => !existingVals.has(v.toLowerCase()));
 
@@ -214,8 +214,8 @@ export function buildVariantPlan(product, analysis) {
         changes.push(`Add ${optionType.name} values: ${newVals.join(', ')}`);
       }
     } else if (existingOptions.length < 3) {
-      // Completely new option type — can add if product has < 3 options
-      changes.push(`New option "${optionType.name}" detected: ${optionType.values.join(', ')} (requires manual setup — Shopify cannot add new option types to existing multi-variant products via REST)`);
+      // Completely new option type - can add if product has < 3 options
+      changes.push(`New option "${optionType.name}" detected: ${optionType.values.join(', ')} (requires manual setup - Shopify cannot add new option types to existing multi-variant products via REST)`);
     }
   }
 
@@ -290,7 +290,7 @@ export async function applyVariantPlan(product, plan) {
         return { success: false, action: 'create_variants', message: 'Shopify returned no product data' };
       }
 
-      // Set inventory for newly created variants (skip first — it kept original inventory)
+      // Set inventory for newly created variants (skip first - it kept original inventory)
       if (locationId && plan.inventoryToCopy > 0) {
         const newVariants = result.product.variants.slice(1);
         for (const variant of newVariants) {

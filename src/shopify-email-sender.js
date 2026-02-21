@@ -48,12 +48,12 @@ export class ShopifyEmailSender {
     const customerId = checkout.customer?.id;
 
     if (!customerId) {
-      // No Shopify customer record — store email for manual follow-up
-      console.log(`  ⚠️  No customer ID for ${checkout.email} — logging for manual outreach`);
+      // No Shopify customer record - store email for manual follow-up
+      console.log(`  ⚠️  No customer ID for ${checkout.email} - logging for manual outreach`);
       return {
         success: false,
         method: 'manual',
-        details: 'No Shopify customer record — email content logged for manual send',
+        details: 'No Shopify customer record - email content logged for manual send',
       };
     }
 
@@ -71,7 +71,7 @@ export class ShopifyEmailSender {
       return {
         success: true,
         method: 'shopify_flow',
-        details: `Tagged customer ${customerId} with ${tags.join(', ')} — Shopify Flow will send email`,
+        details: `Tagged customer ${customerId} with ${tags.join(', ')} - Shopify Flow will send email`,
       };
     } catch (error) {
       this.errorCount++;
@@ -157,7 +157,7 @@ export class ShopifyEmailSender {
   buildTags(cartAnalysis, discountDecision, sequencePosition) {
     const tags = [];
 
-    // Sequence position tag — Shopify Flow triggers on this
+    // Sequence position tag - Shopify Flow triggers on this
     tags.push(`cart-recovery:email-${sequencePosition.index + 1}`);
 
     // Category tag

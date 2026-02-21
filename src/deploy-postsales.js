@@ -149,7 +149,7 @@ async function deployThemeSettings() {
     for (const [blockId, block] of Object.entries(footerSection.blocks)) {
       if (block.type && block.type.includes('inbox/blocks/chat')) {
         const oldGreeting = block.settings?.greeting_message || '(empty)';
-        const newGreeting = 'Hey there — got a question about a product, your order, or anything else? Drop us a message. We usually reply within a few hours during business hours.';
+        const newGreeting = 'Hey there - got a question about a product, your order, or anything else? Drop us a message. We usually reply within a few hours during business hours.';
         console.log(`\n  Chat widget greeting (block ${blockId}):`);
         console.log(`    OLD: "${oldGreeting}"`);
         console.log(`    NEW: "${newGreeting}"`);
@@ -157,14 +157,14 @@ async function deployThemeSettings() {
       }
     }
   } else {
-    console.log('\n  Chat widget: Could not find footer blocks — will try top-level blocks');
+    console.log('\n  Chat widget: Could not find footer blocks - will try top-level blocks');
     // Some themes store app blocks at a different level
     for (const [sectionKey, section] of Object.entries(settings.current?.sections || activeSettings.sections || {})) {
       if (section.blocks) {
         for (const [blockId, block] of Object.entries(section.blocks)) {
           if (block.type && block.type.includes('inbox/blocks/chat')) {
             const oldGreeting = block.settings?.greeting_message || '(empty)';
-            const newGreeting = 'Hey there — got a question about a product, your order, or anything else? Drop us a message. We usually reply within a few hours during business hours.';
+            const newGreeting = 'Hey there - got a question about a product, your order, or anything else? Drop us a message. We usually reply within a few hours during business hours.';
             console.log(`  Found chat widget in section "${sectionKey}" (block ${blockId}):`);
             console.log(`    OLD: "${oldGreeting}"`);
             console.log(`    NEW: "${newGreeting}"`);
@@ -217,16 +217,16 @@ async function deployDiscountCodes() {
   const discounts = [
     {
       code: 'WELCOME10',
-      title: 'Welcome 10% — New subscriber first purchase',
+      title: 'Welcome 10% - New subscriber first purchase',
       percentage: 10.0,
       usageLimit: null, // unlimited uses, but once per customer
       oncePerCustomer: true,
       startsAt: now.toISOString(),
-      endsAt: null, // no expiry — code is always available, per-use expiry handled in messages
+      endsAt: null, // no expiry - code is always available, per-use expiry handled in messages
     },
     {
       code: 'THANKS10',
-      title: 'Thanks 10% — Post-review thank you',
+      title: 'Thanks 10% - Post-review thank you',
       percentage: 10.0,
       usageLimit: null,
       oncePerCustomer: true,
@@ -235,7 +235,7 @@ async function deployDiscountCodes() {
     },
     {
       code: 'COMEBACK10',
-      title: 'Comeback 10% — Abandoned cart recovery',
+      title: 'Comeback 10% - Abandoned cart recovery',
       percentage: 10.0,
       usageLimit: null,
       oncePerCustomer: true,
@@ -244,7 +244,7 @@ async function deployDiscountCodes() {
     },
     {
       code: 'MISSYOU10',
-      title: 'Miss You 10% — 60-day win-back',
+      title: 'Miss You 10% - 60-day win-back',
       percentage: 10.0,
       usageLimit: null,
       oncePerCustomer: true,
@@ -253,7 +253,7 @@ async function deployDiscountCodes() {
     },
     {
       code: 'WELCOME15',
-      title: 'Welcome Back 15% — 90-day win-back last chance',
+      title: 'Welcome Back 15% - 90-day win-back last chance',
       percentage: 15.0,
       usageLimit: null,
       oncePerCustomer: true,
@@ -262,7 +262,7 @@ async function deployDiscountCodes() {
     },
     {
       code: 'VIP15',
-      title: 'VIP 15% — Repeat customer reward',
+      title: 'VIP 15% - Repeat customer reward',
       percentage: 15.0,
       usageLimit: null,
       oncePerCustomer: true,
@@ -271,7 +271,7 @@ async function deployDiscountCodes() {
     },
     {
       code: 'BDAY20',
-      title: 'Birthday 20% — Customer birthday discount',
+      title: 'Birthday 20% - Customer birthday discount',
       percentage: 20.0,
       usageLimit: null,
       oncePerCustomer: false, // can use yearly
@@ -322,12 +322,12 @@ async function deployDiscountCodes() {
 
   for (const discount of discounts) {
     if (existingCodes.has(discount.code.toUpperCase())) {
-      console.log(`  SKIP: ${discount.code} — already exists`);
+      console.log(`  SKIP: ${discount.code} - already exists`);
       skipped++;
       continue;
     }
 
-    console.log(`  Creating: ${discount.code} (${discount.percentage}%) — ${discount.title}`);
+    console.log(`  Creating: ${discount.code} (${discount.percentage}%) - ${discount.title}`);
 
     if (DRY_RUN) {
       console.log(`    [DRY RUN] Would create discount code`);
@@ -404,7 +404,7 @@ async function deployDiscountCodes() {
 // =============================================================================
 // STEP 3: DEPLOY SHOPIFY FLOW / MARKETING AUTOMATION TRIGGERS
 //
-// Shopify Flow workflows cannot be fully created via API — they must be built
+// Shopify Flow workflows cannot be fully created via API - they must be built
 // in the Shopify admin UI. However, we CAN:
 //   a) Create the webhook subscriptions that Flow listens to
 //   b) Set up marketing automation event bridges via GraphQL
@@ -443,11 +443,11 @@ async function deployAutomationTriggers() {
   let webhooksCreated = 0;
   for (const wh of webhookTopics) {
     if (existingTopics.has(wh.topic)) {
-      console.log(`  EXISTS: ${wh.topic} — ${wh.note}`);
+      console.log(`  EXISTS: ${wh.topic} - ${wh.note}`);
       continue;
     }
 
-    console.log(`  Register: ${wh.topic} — ${wh.note}`);
+    console.log(`  Register: ${wh.topic} - ${wh.note}`);
 
     if (!DRY_RUN) {
       // Note: Shopify Flow automatically subscribes to these topics when
@@ -466,7 +466,7 @@ async function deployAutomationTriggers() {
         webhooksCreated++;
       } else if (result.errors) {
         // Shopify may reject if Flow already handles this topic
-        console.log(`    Note: ${JSON.stringify(result.errors)} — Flow may handle this natively`);
+        console.log(`    Note: ${JSON.stringify(result.errors)} - Flow may handle this natively`);
       }
     } else {
       console.log(`    [DRY RUN] Would register webhook`);
@@ -541,61 +541,61 @@ FLOW 9: Restock Reminder
   Action: Send Shopify Email (template: restockReminder.email)
   Action: Send Shopify SMS (template: restockReminder.sms)
 
-FLOW 10: Abandoned Cart — 1 Hour
+FLOW 10: Abandoned Cart - 1 Hour
   Trigger: Checkout abandoned
   Delay: Wait 1 hour
   Condition: Checkout not completed
   Action: Send Shopify Email (template: abandonedCart.reminder1.email)
   Action: Send Shopify SMS (template: abandonedCart.reminder1.sms)
 
-FLOW 11: Abandoned Cart — 24 Hours
+FLOW 11: Abandoned Cart - 24 Hours
   Trigger: Checkout abandoned
   Delay: Wait 24 hours
   Condition: Checkout not completed
   Action: Send Shopify Email (template: abandonedCart.reminder2.email)
 
-FLOW 12: Abandoned Cart — 72 Hours (with discount)
+FLOW 12: Abandoned Cart - 72 Hours (with discount)
   Trigger: Checkout abandoned
   Delay: Wait 72 hours
   Condition: Checkout not completed
   Action: Send Shopify Email (template: abandonedCart.reminder3.email)
   Action: Send Shopify SMS (template: abandonedCart.reminder3.sms)
 
-FLOW 13: Welcome Series — Immediate
+FLOW 13: Welcome Series - Immediate
   Trigger: Customer created (via email signup)
   Condition: Customer has 0 orders
   Action: Send Shopify Email (template: welcomeSeries.welcome.email)
   Action: Send Shopify SMS (template: welcomeSeries.welcome.sms)
 
-FLOW 14: Welcome Series — Best Sellers (Day 3)
+FLOW 14: Welcome Series - Best Sellers (Day 3)
   Trigger: Customer created
   Delay: Wait 3 days
   Condition: Customer has 0 orders
   Action: Send Shopify Email (template: welcomeSeries.bestSellers.email)
 
-FLOW 15: Welcome Series — Trust Builder (Day 7)
+FLOW 15: Welcome Series - Trust Builder (Day 7)
   Trigger: Customer created
   Delay: Wait 7 days
   Condition: Customer has 0 orders
   Action: Send Shopify Email (template: welcomeSeries.trustBuilder.email)
 
-FLOW 16: Win-Back — 30 Days
+FLOW 16: Win-Back - 30 Days
   Trigger: Scheduled (daily check)
   Condition: Last order > 30 days ago, < 60 days ago
   Action: Send Shopify Email (template: winBack.gentle.email)
 
-FLOW 17: Win-Back — 60 Days
+FLOW 17: Win-Back - 60 Days
   Trigger: Scheduled (daily check)
   Condition: Last order > 60 days ago, < 90 days ago
   Action: Send Shopify Email (template: winBack.nudge.email)
 
-FLOW 18: Win-Back — 90 Days (Last Chance)
+FLOW 18: Win-Back - 90 Days (Last Chance)
   Trigger: Scheduled (daily check)
   Condition: Last order > 90 days ago, < 120 days ago
   Action: Send Shopify Email (template: winBack.lastChance.email)
   Action: Send Shopify SMS (template: winBack.lastChance.sms)
 
-FLOW 19: Sunset — 120 Days
+FLOW 19: Sunset - 120 Days
   Trigger: Scheduled (daily check)
   Condition: Last order > 120 days ago, no email opens in 30 days
   Action: Send Shopify Email (template: sunsetFlow.email)
@@ -715,7 +715,7 @@ async function deployMetafieldDefinitions() {
     if (result.data?.metafieldDefinitionCreate?.userErrors?.length > 0) {
       const errors = result.data.metafieldDefinitionCreate.userErrors;
       if (errors.some(e => e.message.includes('already exists') || e.message.includes('taken'))) {
-        console.log(`    Already exists — skipping`);
+        console.log(`    Already exists - skipping`);
       } else {
         console.error(`    FAILED: ${errors.map(e => e.message).join(', ')}`);
       }
@@ -736,7 +736,7 @@ async function deployMetafieldDefinitions() {
 
 async function main() {
   console.log('='.repeat(70));
-  console.log('OIL SLICK — POST-SALES SYSTEM DEPLOYMENT');
+  console.log('OIL SLICK - POST-SALES SYSTEM DEPLOYMENT');
   console.log('='.repeat(70));
   console.log(`Store: ${STORE_URL}`);
   console.log(`Mode: ${DRY_RUN ? 'DRY RUN (preview only)' : 'LIVE EXECUTION'}`);
@@ -797,7 +797,7 @@ async function main() {
     console.log('  1. Build Shopify Flow automations in admin using the guide above');
     console.log('  2. Create Shopify Email templates matching src/postsales-messages.js');
     console.log('  3. Connect each Flow to the corresponding Shopify Email template');
-    console.log('  4. All email + SMS stays 100% inside Shopify — no third-party apps needed');
+    console.log('  4. All email + SMS stays 100% inside Shopify - no third-party apps needed');
   }
 }
 
