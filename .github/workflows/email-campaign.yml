@@ -1,0 +1,140 @@
+name: Email Campaign - Smokeshop Expansion
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Campaign mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - execute
+          - report
+          - templates-only
+      tier:
+        description: 'Process specific tier only (leave empty for all)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - tier1
+          - tier2
+          - tier3
+          - tier4
+          - tier5
+      max_customers:
+        description: 'Max customers to process (leave empty for all)'
+        required: false
+        type: string
+
+jobs:
+  campaign:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify API credentials
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL || secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$SHOPIFY_STORE_URL" ]; then
+            echo "::error::SHOPIFY_STORE_URL secret is not set."
+            exit 1
+          fi
+          if [ -z "$SHOPIFY_ACCESS_TOKEN" ]; then
+            echo "::error::SHOPIFY_ACCESS_TOKEN secret is not set."
+            exit 1
+          fi
+          echo "Store URL: $SHOPIFY_STORE_URL"
+          echo "Access token: shpat_****$(echo $SHOPIFY_ACCESS_TOKEN | tail -c 5)"
+          echo "Credentials verified."
+
+      - name: Download latest customer data
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL || secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          # Check if customer data exists, extract if not
+          if [ ! -f data/customer-master-list.json ]; then
+            echo "Customer data not found, running extraction..."
+            node src/extract-customer-data.js
+          else
+            echo "Customer data already present."
+          fi
+
+      - name: Run email campaign launcher
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL || secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.mode }}" = "execute" ]; then
+            ARGS="--execute"
+          elif [ "${{ inputs.mode }}" = "report" ]; then
+            ARGS="--report"
+          elif [ "${{ inputs.mode }}" = "templates-only" ]; then
+            ARGS="--templates-only"
+          fi
+          if [ -n "${{ inputs.tier }}" ]; then
+            ARGS="$ARGS --tier=${{ inputs.tier }}"
+          fi
+          if [ -n "${{ inputs.max_customers }}" ]; then
+            ARGS="$ARGS --max=${{ inputs.max_customers }}"
+          fi
+          echo "Running: node src/email-campaign-launcher.js $ARGS"
+          node src/email-campaign-launcher.js $ARGS
+
+      - name: Upload campaign artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smokeshop-campaign-${{ github.run_number }}
+          path: |
+            data/campaign/
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Generate summary
+        if: always()
+        run: |
+          if [ -f data/campaign/campaign-summary.json ]; then
+            echo "## Email Campaign: Smokeshop Expansion" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Mode:** ${{ inputs.mode }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Tier | Customers | Emails/Customer | Total Sends |" >> $GITHUB_STEP_SUMMARY
+            echo "|------|-----------|-----------------|-------------|" >> $GITHUB_STEP_SUMMARY
+            node -e "
+              const s = JSON.parse(require('fs').readFileSync('data/campaign/campaign-summary.json','utf8'));
+              s.tiers.forEach(t => {
+                console.log('| ' + t.name + ' | ' + t.customerCount + ' | ' + t.emailCount + ' | ' + t.totalSends + ' |');
+              });
+              console.log('');
+              console.log('**Total Customers:** ' + s.totals.totalCustomers);
+              console.log('');
+              console.log('**Total Codes:** ' + s.totals.totalCodes);
+              console.log('');
+              console.log('**Total Email Sends:** ' + s.totals.totalEmails);
+            " >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Download **smokeshop-campaign-${{ github.run_number }}** artifact for templates and data." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## Campaign" >> $GITHUB_STEP_SUMMARY
+            echo "No campaign summary generated. Check logs above." >> $GITHUB_STEP_SUMMARY
+          fi

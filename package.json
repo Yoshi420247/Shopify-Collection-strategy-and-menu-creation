@@ -90,7 +90,14 @@
     "image-report:strict": "node src/check-product-images.js --threshold=4",
     "image-report:test": "node src/check-product-images.js --max=10",
     "image-report:csv": "node src/check-product-images.js --csv",
-    "image-report:product": "node src/check-product-images.js --product-ids="
+    "image-report:product": "node src/check-product-images.js --product-ids=",
+    "campaign": "node src/email-campaign-launcher.js",
+    "campaign:execute": "node src/email-campaign-launcher.js --execute",
+    "campaign:report": "node src/email-campaign-launcher.js --report",
+    "campaign:templates": "node src/email-campaign-launcher.js --templates-only",
+    "campaign:test": "node src/email-campaign-launcher.js --max=100",
+    "campaign:tier1": "node src/email-campaign-launcher.js --tier=tier1",
+    "campaign:tier1:execute": "node src/email-campaign-launcher.js --tier=tier1 --execute"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -106,7 +113,8 @@
     "navigation",
     "abandoned-cart",
     "recovery",
-    "automation"
+    "automation",
+    "email-campaign"
   ],
   "author": "",
   "license": "MIT"
