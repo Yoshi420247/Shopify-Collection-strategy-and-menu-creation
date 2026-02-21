@@ -1,0 +1,206 @@
+name: "Go Live: Cart Recovery System"
+
+# One-click deployment of the entire abandoned cart recovery system.
+# This workflow chains all programmatic setup steps in order:
+#   1. Create customer metafield definitions (idempotent - skips existing)
+#   2. Deploy email templates to theme assets
+#   3. Validate metafield setup
+#   4. Run cart recovery engine in dry-run to verify everything works
+#   5. Optionally execute the first live recovery run
+#
+# After this workflow completes, the only remaining manual step is
+# creating 6 Shopify Flow automations in the admin UI.
+# See the workflow summary output for exact instructions.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Deployment mode'
+        required: true
+        default: 'setup-only'
+        type: choice
+        options:
+          - setup-only       # Create metafields + deploy templates + validate (no emails sent)
+          - setup-and-dry-run # Setup + run cart recovery in dry-run to preview what would send
+          - full-go-live      # Setup + deploy + execute first live cart recovery run
+
+env:
+  SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+  SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+jobs:
+  go-live:
+    name: Deploy Cart Recovery System
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ── Step 1: Create metafield definitions ──────────────────────────────
+      - name: "Step 1/5: Create customer metafield definitions"
+        run: |
+          echo "══════════════════════════════════════════════════"
+          echo "  STEP 1: Creating cart_recovery.* metafields"
+          echo "══════════════════════════════════════════════════"
+          echo ""
+          echo "This registers 9 customer metafield definitions in Shopify."
+          echo "Idempotent — skips any that already exist."
+          echo ""
+          node src/setup-cart-recovery-flows.js --create
+
+      # ── Step 2: Deploy email templates to theme assets ────────────────────
+      - name: "Step 2/5: Deploy email templates to theme assets"
+        run: |
+          echo "══════════════════════════════════════════════════"
+          echo "  STEP 2: Uploading email templates to theme"
+          echo "══════════════════════════════════════════════════"
+          echo ""
+          echo "Uploading 24+ branded HTML email templates as theme assets."
+          echo "These are used by Shopify Email templates in your automations."
+          echo ""
+          node src/deploy-email-templates.js --execute
+
+      # ── Step 3: Validate metafield setup ──────────────────────────────────
+      - name: "Step 3/5: Validate metafield definitions"
+        run: |
+          echo "══════════════════════════════════════════════════"
+          echo "  STEP 3: Validating metafield setup"
+          echo "══════════════════════════════════════════════════"
+          echo ""
+          node src/setup-cart-recovery-flows.js
+
+      # ── Step 4: Dry-run cart recovery to verify pipeline ──────────────────
+      - name: "Step 4/5: Dry-run cart recovery (verify pipeline)"
+        if: inputs.mode == 'setup-and-dry-run' || inputs.mode == 'full-go-live'
+        run: |
+          echo "══════════════════════════════════════════════════"
+          echo "  STEP 4: Dry-run cart recovery engine"
+          echo "══════════════════════════════════════════════════"
+          echo ""
+          echo "Fetching abandoned checkouts and simulating recovery."
+          echo "No customers will be tagged. No emails will be sent."
+          echo ""
+          node src/abandoned-cart-engine.js --verbose
+
+      # ── Step 5: Execute first live recovery run ───────────────────────────
+      - name: "Step 5/5: Execute first live cart recovery"
+        if: inputs.mode == 'full-go-live'
+        run: |
+          echo "══════════════════════════════════════════════════"
+          echo "  STEP 5: LIVE EXECUTION — Cart Recovery"
+          echo "══════════════════════════════════════════════════"
+          echo ""
+          echo "⚠️  LIVE MODE: This will tag customers and trigger Shopify Flow emails."
+          echo ""
+          node src/abandoned-cart-engine.js --execute --verbose
+
+      # ── Upload artifacts ──────────────────────────────────────────────────
+      - name: Upload run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-live-cart-recovery-${{ github.run_number }}
+          path: |
+            *.log
+            *.json
+          retention-days: 30
+
+      # ── Summary with Shopify Flow setup instructions ──────────────────────
+      - name: Generate deployment summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'SUMMARY'
+          ## Cart Recovery System — Deployment Report
+
+          **Mode:** `${{ inputs.mode }}`
+          **Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')
+
+          ### What was deployed
+
+          | Step | Component | Status |
+          |------|-----------|--------|
+          | 1 | Customer metafield definitions (9 fields) | Created/verified |
+          | 2 | Email templates uploaded to theme assets | Deployed |
+          | 3 | Metafield validation | Checked |
+          | 4 | Dry-run cart recovery | ${{ inputs.mode == 'setup-only' && 'Skipped' || 'Ran' }} |
+          | 5 | Live cart recovery execution | ${{ inputs.mode == 'full-go-live' && 'Executed' || 'Skipped' }} |
+
+          ---
+
+          ### REMAINING MANUAL STEP: Create Shopify Flow Automations
+
+          > Shopify does not have an API for creating Flow automations.
+          > You must create these 6 workflows manually in the Shopify admin.
+
+          Go to: **Shopify Admin → Apps → Shopify Flow → Create workflow**
+
+          #### Flow 1: Cart Recovery Email 1 (Gentle Reminder)
+          - **Trigger:** Customer tags added
+          - **Condition:** Customer tag contains `cart-recovery:email-1`
+          - **Action:** Send marketing email → select "Cart Recovery Email 1" template
+          - **Turn ON** the workflow
+
+          #### Flow 2: Cart Recovery Email 2 (Trust Builder)
+          - **Trigger:** Customer tags added
+          - **Condition:** Customer tag contains `cart-recovery:email-2`
+          - **Action:** Send marketing email → select "Cart Recovery Email 2" template
+          - **Turn ON** the workflow
+
+          #### Flow 3: Cart Recovery Email 3 (Light Incentive)
+          - **Trigger:** Customer tags added
+          - **Condition:** Customer tag contains `cart-recovery:email-3`
+          - **Action:** Send marketing email → select "Cart Recovery Email 3" template
+          - **Turn ON** the workflow
+
+          #### Flow 4: Cart Recovery Email 4 (Strong Incentive)
+          - **Trigger:** Customer tags added
+          - **Condition:** Customer tag contains `cart-recovery:email-4`
+          - **Action:** Send marketing email → select "Cart Recovery Email 4" template
+          - **Turn ON** the workflow
+
+          #### Flow 5: Cart Recovery Email 5 (Final Push)
+          - **Trigger:** Customer tags added
+          - **Condition:** Customer tag contains `cart-recovery:email-5`
+          - **Action:** Send marketing email → select "Cart Recovery Email 5" template
+          - **Turn ON** the workflow
+
+          #### Flow 6: Cleanup on Purchase
+          - **Trigger:** Order created
+          - **Condition:** Customer tag contains `cart-recovery:active`
+          - **Action:** Remove customer tags → remove ALL `cart-recovery:*` tags
+          - **Turn ON** the workflow
+
+          ---
+
+          ### Creating the Shopify Email Templates
+
+          The HTML for each email has been uploaded as theme assets. To create the Shopify Email templates:
+
+          1. Go to **Marketing → Shopify Email → Create template**
+          2. Switch to **Code view**
+          3. Go to **Online Store → Themes → Edit code → Assets**
+          4. Find `email-abandoned-cart-*.html` files
+          5. Copy the HTML into the corresponding Shopify Email template
+          6. Or use the Liquid templates from `theme-files/notifications/cart-recovery-email-{1-5}.liquid`
+
+          ---
+
+          ### After Flows Are Created
+
+          Run the **"Abandoned Cart Recovery"** workflow with mode `execute` to start recovering carts.
+          It runs automatically every 6 hours via cron, or you can trigger it manually.
+
+          SUMMARY
