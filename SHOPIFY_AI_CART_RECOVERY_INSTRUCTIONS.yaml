@@ -1,0 +1,1165 @@
+# ============================================================================
+# SHOPIFY AI — COMPLETE CART RECOVERY SYSTEM BUILD INSTRUCTIONS
+# ============================================================================
+# Store: Oil Slick Pad (oilslickpad.com)
+# Give this entire file to Shopify Sidekick / Shopify AI to build out a
+# complete 5-email abandoned cart recovery system using only native Shopify
+# tools: Shopify Email, Shopify Flow, and Shopify Discounts.
+# ============================================================================
+#
+# HOW TO USE THIS FILE:
+#   1. Open Shopify Admin
+#   2. Open Sidekick (the AI assistant)
+#   3. Paste sections of this file as prompts (or the whole thing)
+#   4. Follow up with the HTML blocks when Sidekick asks for email content
+#   5. Verify each piece after creation
+#
+# ============================================================================
+
+# ────────────────────────────────────────────────────────────────────────────
+# SECTION 0: OVERVIEW — WHAT WE ARE BUILDING
+# ────────────────────────────────────────────────────────────────────────────
+
+overview:
+  system_name: "Oil Slick Pad Abandoned Cart Recovery"
+  store: "oilslickpad.com"
+  strategy: |
+    A 5-email abandoned cart recovery sequence that escalates from a gentle
+    reminder (no discount) to a final push (maximum discount). The system
+    uses Shopify Flow for automation, Shopify Email for templates, and
+    Shopify Discounts for incentives. Each email is spaced out over 7 days.
+
+  email_sequence_summary:
+    - email: 1
+      name: "Gentle Reminder"
+      delay: "1 hour after abandonment"
+      discount: "None"
+      tone: "Friendly, no pressure"
+
+    - email: 2
+      name: "Trust Builder"
+      delay: "24 hours after abandonment"
+      discount: "None"
+      tone: "Social proof, value propositions"
+
+    - email: 3
+      name: "Light Incentive"
+      delay: "48 hours after abandonment"
+      discount: "10% off"
+      tone: "Helpful, first offer"
+
+    - email: 4
+      name: "Strong Incentive"
+      delay: "72 hours after abandonment"
+      discount: "20% off"
+      tone: "Urgency, cross-sells"
+
+    - email: 5
+      name: "Final Push"
+      delay: "7 days after abandonment"
+      discount: "30% off (maximum)"
+      tone: "Last chance, feedback request"
+
+  brand_colors:
+    primary_dark: "#1a1a2e"
+    secondary_dark: "#16213e"
+    accent_red: "#e94560"
+    white: "#ffffff"
+    light_gray: "#f5f5f5"
+    text_dark: "#333333"
+    text_muted: "#666666"
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# SECTION 1: PRE-SETUP — DISABLE SHOPIFY DEFAULT ABANDONED CHECKOUT EMAIL
+# ────────────────────────────────────────────────────────────────────────────
+
+pre_setup:
+  prompt_for_sidekick: |
+    Disable the default Shopify abandoned checkout email notification.
+    I am replacing it with a custom 5-email Flow-based sequence.
+
+  manual_steps:
+    - step: "Go to Settings > Checkout"
+    - step: "Scroll to 'Abandoned checkouts' section"
+    - step: "Uncheck 'Automatically send abandoned checkout emails'"
+    - step: "Save"
+
+  why: |
+    Shopify's built-in abandoned checkout only sends 1 email. We are
+    replacing it with a 5-email Flow-based sequence that escalates
+    discounts over 7 days. If you leave the default ON, customers
+    will get duplicate emails.
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# SECTION 2: CREATE DISCOUNT CODES
+# ────────────────────────────────────────────────────────────────────────────
+# These are fixed codes used by emails 3, 4, and 5.
+# Emails 1 and 2 have NO discount.
+# ────────────────────────────────────────────────────────────────────────────
+
+discount_codes:
+
+  prompt_for_sidekick: |
+    Create the following 3 discount codes for my abandoned cart recovery
+    emails. Each one should apply to the entire order, be usable once per
+    customer, require a minimum purchase of $20, and cannot combine with
+    other discounts.
+
+  code_1:
+    prompt: |
+      Create a discount code with these exact settings:
+      - Code: COMEBACK10
+      - Type: Percentage discount
+      - Value: 10% off
+      - Applies to: Entire order
+      - Minimum purchase: $20.00
+      - Usage limit: One use per customer
+      - Combine with other discounts: No
+      - Active dates: No end date (always active)
+    settings:
+      code: "COMEBACK10"
+      type: "percentage"
+      value: 10
+      applies_to: "entire_order"
+      minimum_purchase: 20.00
+      usage_limit: "once_per_customer"
+      combines_with_other: false
+
+  code_2:
+    prompt: |
+      Create a discount code with these exact settings:
+      - Code: COMEBACK20
+      - Type: Percentage discount
+      - Value: 20% off
+      - Applies to: Entire order
+      - Minimum purchase: $20.00
+      - Usage limit: One use per customer
+      - Combine with other discounts: No
+      - Active dates: No end date (always active)
+    settings:
+      code: "COMEBACK20"
+      type: "percentage"
+      value: 20
+      applies_to: "entire_order"
+      minimum_purchase: 20.00
+      usage_limit: "once_per_customer"
+      combines_with_other: false
+
+  code_3:
+    prompt: |
+      Create a discount code with these exact settings:
+      - Code: LASTCHANCE30
+      - Type: Percentage discount
+      - Value: 30% off
+      - Applies to: Entire order
+      - Minimum purchase: $20.00
+      - Usage limit: One use per customer
+      - Combine with other discounts: No
+      - Active dates: No end date (always active)
+    settings:
+      code: "LASTCHANCE30"
+      type: "percentage"
+      value: 30
+      applies_to: "entire_order"
+      minimum_purchase: 20.00
+      usage_limit: "once_per_customer"
+      combines_with_other: false
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# SECTION 3: CREATE SHOPIFY EMAIL TEMPLATES
+# ────────────────────────────────────────────────────────────────────────────
+# Create 5 email templates in Shopify Email (Marketing > Shopify Email).
+# For each one: Create template > switch to Code view > paste the HTML.
+# ────────────────────────────────────────────────────────────────────────────
+
+email_templates:
+
+  prompt_for_sidekick: |
+    I need to create 5 Shopify Email templates for my abandoned cart
+    recovery sequence. I will give you the HTML for each one. Please
+    create them in Marketing > Shopify Email > Templates.
+
+  # ──────────────────────────────────────────────────────────────────────
+  # EMAIL 1: GENTLE REMINDER (1 hour)
+  # ──────────────────────────────────────────────────────────────────────
+
+  email_1:
+    template_name: "Cart Recovery 1 - Gentle Reminder"
+    subject_line: "You left something behind"
+    preview_text: "Your cart is saved and waiting for you at Oil Slick Pad"
+    delay: "1 hour after checkout abandonment"
+    discount: "none"
+    strategy: "Simple friendly reminder with trust badges. No pressure, no discount."
+
+    prompt_for_sidekick: |
+      Create a Shopify Email template called "Cart Recovery 1 - Gentle Reminder".
+      Set the subject line to: You left something behind
+      Set the preview text to: Your cart is saved and waiting for you at Oil Slick Pad
+      Switch to Code view and paste the following HTML exactly as-is.
+
+    html: |
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Your cart is waiting</title>
+        <!--[if mso]><style>table{border-collapse:collapse;}</style><![endif]-->
+      </head>
+      <body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+        <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;margin-top:20px;margin-bottom:20px;">
+
+          <!-- Header -->
+          <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:24px;text-align:center;">
+            <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:300;">Oil Slick Pad</h1>
+          </div>
+
+          <!-- Body -->
+          <div style="padding:32px 24px;">
+
+            <p style="font-size:16px;line-height:1.6;color:#333333;">
+              Hey there,<br><br>
+              Looks like you were checking out some items at Oil Slick Pad. We saved your cart in case you want to pick up where you left off.
+            </p>
+
+            <!-- Cart reminder box -->
+            <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:24px 0;text-align:center;">
+              <p style="font-size:14px;color:#666666;margin:0 0 4px;">Your cart is saved</p>
+              <p style="font-size:18px;font-weight:700;color:#333333;margin:0;">Ready when you are</p>
+            </div>
+
+            <!-- Trust badges -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;border-top:1px solid #eeeeee;border-bottom:1px solid #eeeeee;padding:16px 0;">
+              <tr>
+                <td align="center" style="padding:16px 8px;width:33%;">
+                  <div style="font-size:24px;">&#128274;</div>
+                  <div style="font-size:11px;font-weight:700;color:#333333;margin-top:4px;">Secure Checkout</div>
+                </td>
+                <td align="center" style="padding:16px 8px;width:33%;">
+                  <div style="font-size:24px;">&#128666;</div>
+                  <div style="font-size:11px;font-weight:700;color:#333333;margin-top:4px;">Fast Shipping</div>
+                </td>
+                <td align="center" style="padding:16px 8px;width:33%;">
+                  <div style="font-size:24px;">&#8617;&#65039;</div>
+                  <div style="font-size:11px;font-weight:700;color:#333333;margin-top:4px;">Easy Returns</div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin:32px 0;">
+              <a href="{{ abandoned_checkout.recovery_url }}" style="display:inline-block;background:#e94560;color:#ffffff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">Complete Your Order</a>
+            </div>
+
+          </div>
+
+          <!-- Footer -->
+          <div style="border-top:1px solid #eeeeee;padding:24px;text-align:center;">
+            <p style="font-size:14px;font-weight:600;color:#333333;margin:0 0 4px;">Oil Slick Pad</p>
+            <p style="font-size:12px;color:#888888;margin:0 0 12px;">Premium extraction supplies &amp; smokeshop</p>
+            <p style="font-size:11px;color:#aaaaaa;margin:0;">
+              You're receiving this because you left items in your cart at oilslickpad.com.<br>
+              <a href="https://oilslickpad.com/policies/privacy-policy" style="color:#aaaaaa;">Privacy Policy</a> |
+              <a href="{{ unsubscribe_url }}" style="color:#aaaaaa;">Unsubscribe</a>
+            </p>
+          </div>
+
+        </div>
+      </body>
+      </html>
+
+
+  # ──────────────────────────────────────────────────────────────────────
+  # EMAIL 2: TRUST BUILDER (24 hours)
+  # ──────────────────────────────────────────────────────────────────────
+
+  email_2:
+    template_name: "Cart Recovery 2 - Trust Builder"
+    subject_line: "Still thinking it over?"
+    preview_text: "Here's why thousands of customers choose Oil Slick Pad"
+    delay: "24 hours after checkout abandonment"
+    discount: "none"
+    strategy: "Social proof and value propositions. Build trust. Still no discount."
+
+    prompt_for_sidekick: |
+      Create a Shopify Email template called "Cart Recovery 2 - Trust Builder".
+      Set the subject line to: Still thinking it over?
+      Set the preview text to: Here's why thousands of customers choose Oil Slick Pad
+      Switch to Code view and paste the following HTML exactly as-is.
+
+    html: |
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Why choose Oil Slick Pad</title>
+        <!--[if mso]><style>table{border-collapse:collapse;}</style><![endif]-->
+      </head>
+      <body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+        <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;margin-top:20px;margin-bottom:20px;">
+
+          <!-- Header -->
+          <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:24px;text-align:center;">
+            <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:300;">Oil Slick Pad</h1>
+          </div>
+
+          <!-- Body -->
+          <div style="padding:32px 24px;">
+
+            <p style="font-size:16px;line-height:1.6;color:#333333;">
+              Hi there,<br><br>
+              We noticed you left a few items behind. No pressure — but we thought you might want to know why people choose Oil Slick Pad.
+            </p>
+
+            <!-- Cart reminder box -->
+            <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:24px 0;text-align:center;">
+              <p style="font-size:14px;color:#666666;margin:0 0 4px;">Your cart is still saved</p>
+              <p style="font-size:18px;font-weight:700;color:#333333;margin:0;">Waiting for you</p>
+            </div>
+
+            <!-- Social proof section -->
+            <div style="background:#fafafa;border-radius:8px;padding:24px;margin:24px 0;">
+              <h3 style="color:#333333;margin:0 0 16px;font-size:18px;">Why shop with Oil Slick Pad</h3>
+
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding:0 12px 14px 0;width:30px;vertical-align:top;font-size:20px;">&#9989;</td>
+                  <td style="padding:0 0 14px 0;font-size:14px;color:#333333;line-height:1.5;">
+                    <strong>Premium Quality</strong> — Medical-grade materials, lab-tested, trusted by professionals nationwide
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 12px 14px 0;width:30px;vertical-align:top;font-size:20px;">&#128230;</td>
+                  <td style="padding:0 0 14px 0;font-size:14px;color:#333333;line-height:1.5;">
+                    <strong>Fast &amp; Discreet</strong> — Most orders ship same day from Colorado, well-padded and discreet packaging
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 12px 14px 0;width:30px;vertical-align:top;font-size:20px;">&#128176;</td>
+                  <td style="padding:0 0 14px 0;font-size:14px;color:#333333;line-height:1.5;">
+                    <strong>Best Prices</strong> — Wholesale prices direct to you, no middleman markup
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 12px 0 0;width:30px;vertical-align:top;font-size:20px;">&#8617;&#65039;</td>
+                  <td style="padding:0;font-size:14px;color:#333333;line-height:1.5;">
+                    <strong>Easy Returns</strong> — Not satisfied? Return it, no hassle
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size:13px;color:#666666;text-align:center;margin:16px 0 0;padding-top:16px;border-top:1px solid #eeeeee;">
+                Serving the extraction industry since 2012
+              </p>
+            </div>
+
+            <!-- Trust badges -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;border-top:1px solid #eeeeee;border-bottom:1px solid #eeeeee;padding:16px 0;">
+              <tr>
+                <td align="center" style="padding:16px 8px;width:33%;">
+                  <div style="font-size:24px;">&#128274;</div>
+                  <div style="font-size:11px;font-weight:700;color:#333333;margin-top:4px;">Secure Checkout</div>
+                </td>
+                <td align="center" style="padding:16px 8px;width:33%;">
+                  <div style="font-size:24px;">&#128666;</div>
+                  <div style="font-size:11px;font-weight:700;color:#333333;margin-top:4px;">Fast Shipping</div>
+                </td>
+                <td align="center" style="padding:16px 8px;width:33%;">
+                  <div style="font-size:24px;">&#8617;&#65039;</div>
+                  <div style="font-size:11px;font-weight:700;color:#333333;margin-top:4px;">Easy Returns</div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin:32px 0;">
+              <a href="{{ abandoned_checkout.recovery_url }}" style="display:inline-block;background:#e94560;color:#ffffff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">Return to Your Cart</a>
+            </div>
+
+          </div>
+
+          <!-- Footer -->
+          <div style="border-top:1px solid #eeeeee;padding:24px;text-align:center;">
+            <p style="font-size:14px;font-weight:600;color:#333333;margin:0 0 4px;">Oil Slick Pad</p>
+            <p style="font-size:12px;color:#888888;margin:0 0 12px;">Premium extraction supplies &amp; smokeshop</p>
+            <p style="font-size:11px;color:#aaaaaa;margin:0;">
+              You're receiving this because you left items in your cart at oilslickpad.com.<br>
+              <a href="https://oilslickpad.com/policies/privacy-policy" style="color:#aaaaaa;">Privacy Policy</a> |
+              <a href="{{ unsubscribe_url }}" style="color:#aaaaaa;">Unsubscribe</a>
+            </p>
+          </div>
+
+        </div>
+      </body>
+      </html>
+
+
+  # ──────────────────────────────────────────────────────────────────────
+  # EMAIL 3: LIGHT INCENTIVE (48 hours) — 10% OFF
+  # ──────────────────────────────────────────────────────────────────────
+
+  email_3:
+    template_name: "Cart Recovery 3 - 10% Off"
+    subject_line: "A little something to sweeten the deal — 10% off"
+    preview_text: "Use code COMEBACK10 for 10% off your cart. Expires in 48 hours."
+    delay: "48 hours after checkout abandonment"
+    discount: "10% — code COMEBACK10"
+    strategy: "First discount introduction. Light urgency with 48-hour expiry."
+
+    prompt_for_sidekick: |
+      Create a Shopify Email template called "Cart Recovery 3 - 10% Off".
+      Set the subject line to: A little something to sweeten the deal — 10% off
+      Set the preview text to: Use code COMEBACK10 for 10% off your cart. Expires in 48 hours.
+      Switch to Code view and paste the following HTML exactly as-is.
+
+    html: |
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>10% off your cart</title>
+        <!--[if mso]><style>table{border-collapse:collapse;}</style><![endif]-->
+      </head>
+      <body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+        <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;margin-top:20px;margin-bottom:20px;">
+
+          <!-- Header -->
+          <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:24px;text-align:center;">
+            <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:300;">Oil Slick Pad</h1>
+          </div>
+
+          <!-- Body -->
+          <div style="padding:32px 24px;">
+
+            <p style="font-size:16px;line-height:1.6;color:#333333;">
+              Hi there,<br><br>
+              Still thinking about your cart? We've got a little something to help you decide.
+            </p>
+
+            <!-- Discount block -->
+            <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px;padding:32px;margin:24px 0;text-align:center;">
+              <h2 style="color:#e94560;margin:0 0 12px;font-size:28px;font-weight:800;">10% OFF your cart</h2>
+              <p style="color:#ffffff;font-size:15px;margin:0 0 20px;line-height:1.5;">
+                Use the code below at checkout. This offer expires in 48 hours.
+              </p>
+              <div style="background:#ffffff;display:inline-block;padding:12px 32px;border-radius:8px;border:2px dashed #e94560;">
+                <span style="font-size:22px;font-weight:700;color:#1a1a2e;letter-spacing:3px;">COMEBACK10</span>
+              </div>
+              <p style="color:#e94560;font-size:13px;margin:16px 0 0;">&#9200; Expires in 48 hours</p>
+            </div>
+
+            <!-- Cart reminder -->
+            <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:24px 0;text-align:center;">
+              <p style="font-size:14px;color:#666666;margin:0 0 4px;">Your saved cart</p>
+              <p style="font-size:18px;font-weight:700;color:#333333;margin:0;">Is waiting + 10% off</p>
+            </div>
+
+            <!-- Urgency -->
+            <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:16px 20px;margin:20px 0;border-radius:0 8px 8px 0;">
+              <p style="font-size:14px;color:#856404;margin:0;font-weight:600;">&#9889; Items in your cart are selling fast. We can only hold them so long.</p>
+            </div>
+
+            <!-- Trust badges -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;border-top:1px solid #eeeeee;border-bottom:1px solid #eeeeee;padding:16px 0;">
+              <tr>
+                <td align="center" style="padding:16px 8px;width:33%;">
+                  <div style="font-size:24px;">&#128274;</div>
+                  <div style="font-size:11px;font-weight:700;color:#333333;margin-top:4px;">Secure Checkout</div>
+                </td>
+                <td align="center" style="padding:16px 8px;width:33%;">
+                  <div style="font-size:24px;">&#128666;</div>
+                  <div style="font-size:11px;font-weight:700;color:#333333;margin-top:4px;">Fast Shipping</div>
+                </td>
+                <td align="center" style="padding:16px 8px;width:33%;">
+                  <div style="font-size:24px;">&#8617;&#65039;</div>
+                  <div style="font-size:11px;font-weight:700;color:#333333;margin-top:4px;">Easy Returns</div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin:32px 0;">
+              <a href="{{ abandoned_checkout.recovery_url }}" style="display:inline-block;background:#e94560;color:#ffffff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">Claim Your 10% Off</a>
+            </div>
+
+          </div>
+
+          <!-- Footer -->
+          <div style="border-top:1px solid #eeeeee;padding:24px;text-align:center;">
+            <p style="font-size:14px;font-weight:600;color:#333333;margin:0 0 4px;">Oil Slick Pad</p>
+            <p style="font-size:12px;color:#888888;margin:0 0 12px;">Premium extraction supplies &amp; smokeshop</p>
+            <p style="font-size:11px;color:#aaaaaa;margin:0;">
+              You're receiving this because you left items in your cart at oilslickpad.com.<br>
+              <a href="https://oilslickpad.com/policies/privacy-policy" style="color:#aaaaaa;">Privacy Policy</a> |
+              <a href="{{ unsubscribe_url }}" style="color:#aaaaaa;">Unsubscribe</a>
+            </p>
+          </div>
+
+        </div>
+      </body>
+      </html>
+
+
+  # ──────────────────────────────────────────────────────────────────────
+  # EMAIL 4: STRONG INCENTIVE (72 hours) — 20% OFF
+  # ──────────────────────────────────────────────────────────────────────
+
+  email_4:
+    template_name: "Cart Recovery 4 - 20% Off"
+    subject_line: "Your cart + 20% off — don't miss out"
+    preview_text: "Use code COMEBACK20 for 20% off. Offer expires in 24 hours."
+    delay: "72 hours after checkout abandonment"
+    discount: "20% — code COMEBACK20"
+    strategy: "Escalated discount. Stronger urgency with 24-hour expiry. Cross-sells."
+
+    prompt_for_sidekick: |
+      Create a Shopify Email template called "Cart Recovery 4 - 20% Off".
+      Set the subject line to: Your cart + 20% off — don't miss out
+      Set the preview text to: Use code COMEBACK20 for 20% off. Offer expires in 24 hours.
+      Switch to Code view and paste the following HTML exactly as-is.
+
+    html: |
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>20% off your cart</title>
+        <!--[if mso]><style>table{border-collapse:collapse;}</style><![endif]-->
+      </head>
+      <body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+        <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;margin-top:20px;margin-bottom:20px;">
+
+          <!-- Header -->
+          <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:24px;text-align:center;">
+            <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:300;">Oil Slick Pad</h1>
+          </div>
+
+          <!-- Body -->
+          <div style="padding:32px 24px;">
+
+            <p style="font-size:16px;line-height:1.6;color:#333333;">
+              Hey there,<br><br>
+              We get it — sometimes you need time to decide. Here's our best offer yet to make it easier.
+            </p>
+
+            <!-- Discount block -->
+            <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px;padding:32px;margin:24px 0;text-align:center;">
+              <h2 style="color:#e94560;margin:0 0 12px;font-size:28px;font-weight:800;">20% OFF your cart</h2>
+              <p style="color:#ffffff;font-size:15px;margin:0 0 20px;line-height:1.5;">
+                Don't miss out — this offer expires in just 24 hours.
+              </p>
+              <div style="background:#ffffff;display:inline-block;padding:12px 32px;border-radius:8px;border:2px dashed #e94560;">
+                <span style="font-size:22px;font-weight:700;color:#1a1a2e;letter-spacing:3px;">COMEBACK20</span>
+              </div>
+              <p style="color:#e94560;font-size:13px;margin:16px 0 0;">&#9200; Expires in 24 hours</p>
+            </div>
+
+            <!-- Cart reminder -->
+            <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:24px 0;text-align:center;">
+              <p style="font-size:14px;color:#666666;margin:0 0 4px;">Your saved cart</p>
+              <p style="font-size:18px;font-weight:700;color:#333333;margin:0;">Now 20% cheaper</p>
+            </div>
+
+            <!-- Urgency -->
+            <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:16px 20px;margin:20px 0;border-radius:0 8px 8px 0;">
+              <p style="font-size:14px;color:#856404;margin:0;font-weight:600;">&#9889; Your cart won't wait forever — complete your order before these items are gone.</p>
+            </div>
+
+            <!-- Social proof -->
+            <div style="background:#fafafa;border-radius:8px;padding:24px;margin:20px 0;">
+              <h3 style="color:#333333;margin:0 0 16px;font-size:18px;">Why shop with Oil Slick Pad</h3>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding:0 12px 14px 0;width:30px;vertical-align:top;font-size:20px;">&#9989;</td>
+                  <td style="padding:0 0 14px 0;font-size:14px;color:#333333;line-height:1.5;">Curated selection — every product hand-picked for quality</td>
+                </tr>
+                <tr>
+                  <td style="padding:0 12px 0 0;width:30px;vertical-align:top;font-size:20px;">&#128176;</td>
+                  <td style="padding:0;font-size:14px;color:#333333;line-height:1.5;">Wholesale prices direct to you — skip the markup</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Cross-sell -->
+            <div style="margin:24px 0;text-align:center;">
+              <h3 style="color:#333333;font-size:16px;margin:0 0 8px;">Complete Your Setup</h3>
+              <p style="color:#666666;font-size:14px;margin:0 0 16px;">Popular accessories our customers love:</p>
+              <a href="https://oilslickpad.com/collections/all" style="display:inline-block;padding:10px 24px;background:#f8f8f8;border:1px solid #dddddd;border-radius:8px;color:#333333;font-size:14px;font-weight:600;text-decoration:none;">Browse Accessories &rarr;</a>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin:32px 0;">
+              <a href="{{ abandoned_checkout.recovery_url }}" style="display:inline-block;background:#e94560;color:#ffffff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">Get 20% Off Now</a>
+            </div>
+
+          </div>
+
+          <!-- Footer -->
+          <div style="border-top:1px solid #eeeeee;padding:24px;text-align:center;">
+            <p style="font-size:14px;font-weight:600;color:#333333;margin:0 0 4px;">Oil Slick Pad</p>
+            <p style="font-size:12px;color:#888888;margin:0 0 12px;">Premium extraction supplies &amp; smokeshop</p>
+            <p style="font-size:11px;color:#aaaaaa;margin:0;">
+              You're receiving this because you left items in your cart at oilslickpad.com.<br>
+              <a href="https://oilslickpad.com/policies/privacy-policy" style="color:#aaaaaa;">Privacy Policy</a> |
+              <a href="{{ unsubscribe_url }}" style="color:#aaaaaa;">Unsubscribe</a>
+            </p>
+          </div>
+
+        </div>
+      </body>
+      </html>
+
+
+  # ──────────────────────────────────────────────────────────────────────
+  # EMAIL 5: FINAL PUSH (7 days) — 30% OFF
+  # ──────────────────────────────────────────────────────────────────────
+
+  email_5:
+    template_name: "Cart Recovery 5 - Final 30% Off"
+    subject_line: "Last chance — 30% off before your cart expires"
+    preview_text: "This is our biggest discount. Code LASTCHANCE30 expires in 24 hours."
+    delay: "7 days after checkout abandonment"
+    discount: "30% — code LASTCHANCE30"
+    strategy: "Maximum discount. Final chance urgency. Includes alternative products link and feedback request."
+
+    prompt_for_sidekick: |
+      Create a Shopify Email template called "Cart Recovery 5 - Final 30% Off".
+      Set the subject line to: Last chance — 30% off before your cart expires
+      Set the preview text to: This is our biggest discount. Code LASTCHANCE30 expires in 24 hours.
+      Switch to Code view and paste the following HTML exactly as-is.
+
+    html: |
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Final offer — 30% off</title>
+        <!--[if mso]><style>table{border-collapse:collapse;}</style><![endif]-->
+      </head>
+      <body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+        <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;margin-top:20px;margin-bottom:20px;">
+
+          <!-- Header -->
+          <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:24px;text-align:center;">
+            <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:300;">Oil Slick Pad</h1>
+          </div>
+
+          <!-- Body -->
+          <div style="padding:32px 24px;">
+
+            <p style="font-size:16px;line-height:1.6;color:#333333;">
+              Hi there,<br><br>
+              This is our last note about your cart. Before we let it go, we wanted to give you one final offer — our biggest discount yet.
+            </p>
+
+            <!-- Discount block — MAXIMUM -->
+            <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px;padding:32px;margin:24px 0;text-align:center;">
+              <h2 style="color:#e94560;margin:0 0 12px;font-size:32px;font-weight:800;">30% OFF</h2>
+              <p style="color:#ffffff;font-size:16px;margin:0 0 8px;font-weight:600;">Your biggest discount yet</p>
+              <p style="color:#dddddd;font-size:14px;margin:0 0 20px;line-height:1.5;">
+                This is our best and final offer. Use the code below — it expires in 24 hours.
+              </p>
+              <div style="background:#ffffff;display:inline-block;padding:14px 36px;border-radius:8px;border:2px dashed #e94560;">
+                <span style="font-size:24px;font-weight:700;color:#1a1a2e;letter-spacing:3px;">LASTCHANCE30</span>
+              </div>
+              <p style="color:#e94560;font-size:14px;font-weight:700;margin:16px 0 0;">&#9200; FINAL 24 HOURS</p>
+            </div>
+
+            <!-- Cart reminder -->
+            <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:24px 0;text-align:center;">
+              <p style="font-size:14px;color:#666666;margin:0 0 4px;">Your saved cart</p>
+              <p style="font-size:18px;font-weight:700;color:#333333;margin:0;">Now 30% off — last chance</p>
+            </div>
+
+            <!-- Main CTA -->
+            <div style="text-align:center;margin:32px 0;">
+              <a href="{{ abandoned_checkout.recovery_url }}" style="display:inline-block;background:#e94560;color:#ffffff;padding:18px 56px;border-radius:8px;font-size:20px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">Last Chance — 30% Off</a>
+            </div>
+
+            <!-- Browse alternatives -->
+            <div style="background:#f0f8ff;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+              <h3 style="color:#333333;font-size:16px;margin:0 0 8px;">Not quite right?</h3>
+              <p style="color:#666666;font-size:14px;margin:0;">Browse similar products at different price points.</p>
+              <a href="https://oilslickpad.com/collections/all" style="display:inline-block;margin-top:12px;color:#e94560;font-size:14px;text-decoration:underline;">Browse All Products &rarr;</a>
+            </div>
+
+            <!-- Feedback request -->
+            <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+              <h3 style="color:#333333;font-size:16px;margin:0 0 12px;">We'd love your feedback</h3>
+              <p style="color:#666666;font-size:13px;margin:0 0 16px;">What could we do better? Your input helps us improve.</p>
+              <a href="https://oilslickpad.com/pages/contact" style="display:inline-block;padding:10px 24px;background:#ffffff;border:2px solid #e94560;border-radius:8px;color:#e94560;font-size:13px;font-weight:600;text-decoration:none;">Share Your Thoughts</a>
+            </div>
+
+          </div>
+
+          <!-- Footer -->
+          <div style="border-top:1px solid #eeeeee;padding:24px;text-align:center;">
+            <p style="font-size:14px;font-weight:600;color:#333333;margin:0 0 4px;">Oil Slick Pad</p>
+            <p style="font-size:12px;color:#888888;margin:0 0 12px;">Premium extraction supplies &amp; smokeshop</p>
+            <p style="font-size:11px;color:#aaaaaa;margin:0;">
+              You're receiving this because you left items in your cart at oilslickpad.com.<br>
+              This is the last email in this series — we won't bother you again about this cart.<br>
+              <a href="https://oilslickpad.com/policies/privacy-policy" style="color:#aaaaaa;">Privacy Policy</a> |
+              <a href="{{ unsubscribe_url }}" style="color:#aaaaaa;">Unsubscribe</a>
+            </p>
+          </div>
+
+        </div>
+      </body>
+      </html>
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# SECTION 4: CREATE SHOPIFY FLOW — MAIN AUTOMATION
+# ────────────────────────────────────────────────────────────────────────────
+# This is the core automation. ONE Flow handles the entire 5-email sequence.
+# It triggers on checkout abandonment, waits between emails, checks if the
+# customer completed their purchase before sending the next email, and
+# escalates discounts over time.
+# ────────────────────────────────────────────────────────────────────────────
+
+shopify_flow_main:
+
+  flow_name: "Abandoned Cart Recovery — 5 Email Sequence"
+
+  prompt_for_sidekick: |
+    Create a Shopify Flow automation called "Abandoned Cart Recovery — 5 Email Sequence"
+    with the following logic. This is the most important part of the setup.
+
+    TRIGGER:
+      Checkout abandoned
+
+    SEQUENCE (this is a linear flow with waits and conditions):
+
+    STEP 1 — Send Email 1 (Gentle Reminder)
+      Action: Wait 1 hour
+      Condition: Check "Customer has NOT placed an order since the checkout was abandoned"
+        If TRUE  → Action: Send Shopify Email using template "Cart Recovery 1 - Gentle Reminder"
+        If FALSE → End workflow (customer already purchased)
+
+    STEP 2 — Send Email 2 (Trust Builder)
+      Action: Wait 23 hours (total = 24 hours from abandonment)
+      Condition: Check "Customer has NOT placed an order since the checkout was abandoned"
+        If TRUE  → Action: Send Shopify Email using template "Cart Recovery 2 - Trust Builder"
+        If FALSE → End workflow
+
+    STEP 3 — Send Email 3 (10% Off)
+      Action: Wait 24 hours (total = 48 hours from abandonment)
+      Condition: Check "Customer has NOT placed an order since the checkout was abandoned"
+        If TRUE  → Action: Send Shopify Email using template "Cart Recovery 3 - 10% Off"
+        If FALSE → End workflow
+
+    STEP 4 — Send Email 4 (20% Off)
+      Action: Wait 24 hours (total = 72 hours from abandonment)
+      Condition: Check "Customer has NOT placed an order since the checkout was abandoned"
+        If TRUE  → Action: Send Shopify Email using template "Cart Recovery 4 - 20% Off"
+        If FALSE → End workflow
+
+    STEP 5 — Send Email 5 (Final 30% Off)
+      Action: Wait 96 hours (total = 7 days from abandonment)
+      Condition: Check "Customer has NOT placed an order since the checkout was abandoned"
+        If TRUE  → Action: Send Shopify Email using template "Cart Recovery 5 - Final 30% Off"
+        If FALSE → End workflow
+
+  detailed_flow_structure:
+    trigger:
+      type: "Checkout abandoned"
+      description: "Fires when a customer adds items to cart, begins checkout, enters email, but does not complete payment."
+
+    step_1:
+      action: "Wait"
+      duration: "1 hour"
+      then:
+        condition:
+          field: "Order from this checkout"
+          operator: "does not exist"
+          description: "Only continue if customer has NOT completed purchase"
+        if_true:
+          action: "Send marketing email"
+          template: "Cart Recovery 1 - Gentle Reminder"
+        if_false:
+          action: "End workflow"
+
+    step_2:
+      action: "Wait"
+      duration: "23 hours"
+      then:
+        condition:
+          field: "Order from this checkout"
+          operator: "does not exist"
+        if_true:
+          action: "Send marketing email"
+          template: "Cart Recovery 2 - Trust Builder"
+        if_false:
+          action: "End workflow"
+
+    step_3:
+      action: "Wait"
+      duration: "24 hours"
+      then:
+        condition:
+          field: "Order from this checkout"
+          operator: "does not exist"
+        if_true:
+          action: "Send marketing email"
+          template: "Cart Recovery 3 - 10% Off"
+        if_false:
+          action: "End workflow"
+
+    step_4:
+      action: "Wait"
+      duration: "24 hours"
+      then:
+        condition:
+          field: "Order from this checkout"
+          operator: "does not exist"
+        if_true:
+          action: "Send marketing email"
+          template: "Cart Recovery 4 - 20% Off"
+        if_false:
+          action: "End workflow"
+
+    step_5:
+      action: "Wait"
+      duration: "96 hours"
+      then:
+        condition:
+          field: "Order from this checkout"
+          operator: "does not exist"
+        if_true:
+          action: "Send marketing email"
+          template: "Cart Recovery 5 - Final 30% Off"
+        if_false:
+          action: "End workflow"
+
+  notes: |
+    IMPORTANT NOTES FOR SIDEKICK:
+    - The "Wait" action is cumulative within the flow. Each wait starts
+      AFTER the previous step completes.
+    - The condition "Order from this checkout does not exist" ensures we
+      STOP sending emails the moment the customer completes their purchase.
+    - If Shopify Flow does not support "Order from this checkout" as a
+      native condition, use "Customer / Orders count" has increased as an
+      alternative, or use the "Get order data" action to check.
+    - Each "Send marketing email" action must reference the exact template
+      name created in Section 3.
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# SECTION 5: SHOPIFY FLOW — ALTERNATIVE APPROACH (IF SINGLE FLOW DOESNT WORK)
+# ────────────────────────────────────────────────────────────────────────────
+# Some Shopify plans or Flow versions may not support long wait chains.
+# If that's the case, create 5 separate flows using customer tags instead.
+# ────────────────────────────────────────────────────────────────────────────
+
+shopify_flow_alternative:
+
+  description: |
+    ALTERNATIVE: If the single-flow approach in Section 4 doesn't work on
+    your Shopify plan, use this tag-based approach instead. Create 6 separate
+    flows that use customer tags as triggers.
+
+  prompt_for_sidekick: |
+    If you cannot create a single Flow with multiple wait steps, create these
+    6 separate Shopify Flow automations instead. They use customer tags to
+    trigger each email.
+
+  flow_1_tag_on_abandon:
+    name: "Cart Recovery — Tag on Abandon"
+    prompt: |
+      Create a Shopify Flow:
+      Trigger: Checkout abandoned
+      Action 1: Add customer tag "cart-recovery-active"
+      Action 2: Wait 1 hour
+      Action 3: Add customer tag "cart-recovery-email-1"
+    trigger: "Checkout abandoned"
+    actions:
+      - "Add customer tag: cart-recovery-active"
+      - "Wait 1 hour"
+      - "Add customer tag: cart-recovery-email-1"
+
+  flow_2_email_1:
+    name: "Cart Recovery — Send Email 1"
+    prompt: |
+      Create a Shopify Flow:
+      Trigger: Customer tags added (contains "cart-recovery-email-1")
+      Condition: Customer tags contains "cart-recovery-active"
+      If YES → Send marketing email "Cart Recovery 1 - Gentle Reminder"
+              Then wait 23 hours
+              Then add customer tag "cart-recovery-email-2"
+      If NO → End workflow
+    trigger: "Customer tags added contains cart-recovery-email-1"
+    condition: "Customer tags contains cart-recovery-active"
+    actions:
+      - "Send marketing email: Cart Recovery 1 - Gentle Reminder"
+      - "Wait 23 hours"
+      - "Add customer tag: cart-recovery-email-2"
+
+  flow_3_email_2:
+    name: "Cart Recovery — Send Email 2"
+    prompt: |
+      Create a Shopify Flow:
+      Trigger: Customer tags added (contains "cart-recovery-email-2")
+      Condition: Customer tags contains "cart-recovery-active"
+      If YES → Send marketing email "Cart Recovery 2 - Trust Builder"
+              Then wait 24 hours
+              Then add customer tag "cart-recovery-email-3"
+      If NO → End workflow
+    trigger: "Customer tags added contains cart-recovery-email-2"
+    condition: "Customer tags contains cart-recovery-active"
+    actions:
+      - "Send marketing email: Cart Recovery 2 - Trust Builder"
+      - "Wait 24 hours"
+      - "Add customer tag: cart-recovery-email-3"
+
+  flow_4_email_3:
+    name: "Cart Recovery — Send Email 3"
+    prompt: |
+      Create a Shopify Flow:
+      Trigger: Customer tags added (contains "cart-recovery-email-3")
+      Condition: Customer tags contains "cart-recovery-active"
+      If YES → Send marketing email "Cart Recovery 3 - 10% Off"
+              Then wait 24 hours
+              Then add customer tag "cart-recovery-email-4"
+      If NO → End workflow
+    trigger: "Customer tags added contains cart-recovery-email-3"
+    condition: "Customer tags contains cart-recovery-active"
+    actions:
+      - "Send marketing email: Cart Recovery 3 - 10% Off"
+      - "Wait 24 hours"
+      - "Add customer tag: cart-recovery-email-4"
+
+  flow_5_email_4:
+    name: "Cart Recovery — Send Email 4"
+    prompt: |
+      Create a Shopify Flow:
+      Trigger: Customer tags added (contains "cart-recovery-email-4")
+      Condition: Customer tags contains "cart-recovery-active"
+      If YES → Send marketing email "Cart Recovery 4 - 20% Off"
+              Then wait 96 hours
+              Then add customer tag "cart-recovery-email-5"
+      If NO → End workflow
+    trigger: "Customer tags added contains cart-recovery-email-4"
+    condition: "Customer tags contains cart-recovery-active"
+    actions:
+      - "Send marketing email: Cart Recovery 4 - 20% Off"
+      - "Wait 96 hours"
+      - "Add customer tag: cart-recovery-email-5"
+
+  flow_6_email_5:
+    name: "Cart Recovery — Send Email 5"
+    prompt: |
+      Create a Shopify Flow:
+      Trigger: Customer tags added (contains "cart-recovery-email-5")
+      Condition: Customer tags contains "cart-recovery-active"
+      If YES → Send marketing email "Cart Recovery 5 - Final 30% Off"
+              Then remove customer tags: cart-recovery-active, cart-recovery-email-1,
+              cart-recovery-email-2, cart-recovery-email-3, cart-recovery-email-4,
+              cart-recovery-email-5
+      If NO → End workflow
+    trigger: "Customer tags added contains cart-recovery-email-5"
+    condition: "Customer tags contains cart-recovery-active"
+    actions:
+      - "Send marketing email: Cart Recovery 5 - Final 30% Off"
+      - "Remove tags: cart-recovery-active, cart-recovery-email-1 through 5"
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# SECTION 6: SHOPIFY FLOW — CLEANUP ON PURCHASE
+# ────────────────────────────────────────────────────────────────────────────
+# This flow stops the sequence when a customer completes their purchase.
+# Required for BOTH the main approach and the alternative approach.
+# ────────────────────────────────────────────────────────────────────────────
+
+shopify_flow_cleanup:
+
+  flow_name: "Cart Recovery — Stop on Purchase"
+
+  prompt_for_sidekick: |
+    Create a Shopify Flow automation called "Cart Recovery — Stop on Purchase".
+
+    Trigger: Order created
+    Condition: Customer tags contains "cart-recovery-active"
+    If YES → Remove ALL of these customer tags:
+      - cart-recovery-active
+      - cart-recovery-email-1
+      - cart-recovery-email-2
+      - cart-recovery-email-3
+      - cart-recovery-email-4
+      - cart-recovery-email-5
+    If NO → End workflow (customer wasn't in a recovery sequence)
+
+  trigger: "Order created"
+  condition: "Customer tags contains cart-recovery-active"
+  actions:
+    - type: "Remove customer tags"
+      tags:
+        - "cart-recovery-active"
+        - "cart-recovery-email-1"
+        - "cart-recovery-email-2"
+        - "cart-recovery-email-3"
+        - "cart-recovery-email-4"
+        - "cart-recovery-email-5"
+
+  why: |
+    This is CRITICAL. Without this flow, customers who complete their
+    purchase will continue receiving recovery emails. This flow removes
+    all cart-recovery tags the instant an order is placed, which stops
+    any pending waits in the sequence from triggering the next email.
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# SECTION 7: VERIFICATION CHECKLIST
+# ────────────────────────────────────────────────────────────────────────────
+
+verification:
+
+  prompt_for_sidekick: |
+    Help me verify that my cart recovery system is fully set up. Check each
+    of these items:
+
+  checklist:
+    - item: "Default Shopify abandoned checkout email is DISABLED"
+      where: "Settings > Checkout > Abandoned checkouts"
+
+    - item: "Discount code COMEBACK10 exists and is active (10% off, entire order)"
+      where: "Discounts"
+
+    - item: "Discount code COMEBACK20 exists and is active (20% off, entire order)"
+      where: "Discounts"
+
+    - item: "Discount code LASTCHANCE30 exists and is active (30% off, entire order)"
+      where: "Discounts"
+
+    - item: "Email template 'Cart Recovery 1 - Gentle Reminder' exists"
+      where: "Marketing > Shopify Email > Templates"
+
+    - item: "Email template 'Cart Recovery 2 - Trust Builder' exists"
+      where: "Marketing > Shopify Email > Templates"
+
+    - item: "Email template 'Cart Recovery 3 - 10% Off' exists"
+      where: "Marketing > Shopify Email > Templates"
+
+    - item: "Email template 'Cart Recovery 4 - 20% Off' exists"
+      where: "Marketing > Shopify Email > Templates"
+
+    - item: "Email template 'Cart Recovery 5 - Final 30% Off' exists"
+      where: "Marketing > Shopify Email > Templates"
+
+    - item: "Main Flow 'Abandoned Cart Recovery — 5 Email Sequence' is active"
+      where: "Apps > Shopify Flow"
+
+    - item: "Cleanup Flow 'Cart Recovery — Stop on Purchase' is active"
+      where: "Apps > Shopify Flow"
+
+  test_procedure:
+    prompt: |
+      To test the system without waiting 7 days:
+      1. Create a test customer account
+      2. Add items to cart, begin checkout, enter email, then close the tab
+      3. Wait 1 hour — you should receive Email 1 (Gentle Reminder)
+      4. To test all emails quickly, temporarily change the wait times in
+         the Flow to 1-2 minutes each, test the full sequence, then change
+         them back to the production values.
+
+      Production wait times:
+        Email 1: 1 hour after abandonment
+        Email 2: 24 hours after abandonment (23h wait after email 1)
+        Email 3: 48 hours after abandonment (24h wait after email 2)
+        Email 4: 72 hours after abandonment (24h wait after email 3)
+        Email 5: 7 days after abandonment (96h wait after email 4)
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# SECTION 8: QUICK-COPY PROMPTS FOR SHOPIFY SIDEKICK
+# ────────────────────────────────────────────────────────────────────────────
+# Copy-paste these one at a time into Sidekick for fast setup.
+# ────────────────────────────────────────────────────────────────────────────
+
+quick_prompts:
+
+  step_1: |
+    Disable the default abandoned checkout email in Settings > Checkout.
+    I'm replacing it with a custom Shopify Flow automation.
+
+  step_2: |
+    Create 3 discount codes:
+    1. COMEBACK10 — 10% off entire order, once per customer, $20 minimum, no combining
+    2. COMEBACK20 — 20% off entire order, once per customer, $20 minimum, no combining
+    3. LASTCHANCE30 — 30% off entire order, once per customer, $20 minimum, no combining
+    All should have no end date.
+
+  step_3: |
+    Create 5 Shopify Email templates. I'll give you the HTML for each one.
+    Template names:
+    1. "Cart Recovery 1 - Gentle Reminder"
+    2. "Cart Recovery 2 - Trust Builder"
+    3. "Cart Recovery 3 - 10% Off"
+    4. "Cart Recovery 4 - 20% Off"
+    5. "Cart Recovery 5 - Final 30% Off"
+    Please create the first one and I'll paste the HTML.
+
+  step_4: |
+    Create a Shopify Flow automation called "Abandoned Cart Recovery — 5 Email Sequence".
+    Trigger: Checkout abandoned.
+    The flow should:
+    1. Wait 1 hour → check if order exists → if not, send "Cart Recovery 1 - Gentle Reminder"
+    2. Wait 23 hours → check if order exists → if not, send "Cart Recovery 2 - Trust Builder"
+    3. Wait 24 hours → check if order exists → if not, send "Cart Recovery 3 - 10% Off"
+    4. Wait 24 hours → check if order exists → if not, send "Cart Recovery 4 - 20% Off"
+    5. Wait 96 hours → check if order exists → if not, send "Cart Recovery 5 - Final 30% Off"
+    At each check, if an order DOES exist, stop the workflow — the customer already purchased.
+
+  step_5: |
+    Create a Shopify Flow automation called "Cart Recovery — Stop on Purchase".
+    Trigger: Order created.
+    Condition: Customer tags contains "cart-recovery-active".
+    If yes: Remove all these tags from the customer:
+    cart-recovery-active, cart-recovery-email-1, cart-recovery-email-2,
+    cart-recovery-email-3, cart-recovery-email-4, cart-recovery-email-5.
+
+  step_6: |
+    Verify my cart recovery setup. Check that:
+    - Default abandoned checkout email is OFF
+    - 3 discount codes exist (COMEBACK10, COMEBACK20, LASTCHANCE30)
+    - 5 email templates exist (Cart Recovery 1 through 5)
+    - The main Flow automation is active
+    - The cleanup Flow is active
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# SECTION 9: EXPECTED PERFORMANCE METRICS
+# ────────────────────────────────────────────────────────────────────────────
+
+expected_metrics:
+  email_1:
+    open_rate: "50%"
+    click_rate: "8%"
+    conversion_rate: "4%"
+  email_2:
+    open_rate: "42%"
+    click_rate: "6.5%"
+    conversion_rate: "3%"
+  email_3:
+    open_rate: "38%"
+    click_rate: "7%"
+    conversion_rate: "3.5%"
+  email_4:
+    open_rate: "32%"
+    click_rate: "6%"
+    conversion_rate: "2.5%"
+  email_5:
+    open_rate: "28%"
+    click_rate: "5%"
+    conversion_rate: "2%"
+  overall:
+    target_recovery_rate: "15%"
+    target_revenue_per_recipient: "$5.81"
+    target_unsubscribe_rate: "<0.6%"
