@@ -47,8 +47,10 @@
 
       <!-- Greeting -->
       <p style="font-size:16px;line-height:1.6;color:#333;">
-        Hi {{ first_name }},<br><br>
-        Still thinking about your cart? We've got a little something to help you decide.
+        {{ first_name }}, still on the fence?
+      </p>
+      <p style="font-size:16px;line-height:1.6;color:#333;">
+        Here's something that might help you decide:
       </p>
 
       <!-- Discount block -->
@@ -78,7 +80,7 @@
 
       <!-- Urgency -->
       <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:16px 20px;margin:20px 0;border-radius:0 8px 8px 0;">
-        <p style="font-size:14px;color:#856404;margin:0;font-weight:600;">⚡ Items in your cart are selling fast. We can only hold them so long.</p>
+        <p style="font-size:14px;color:#856404;margin:0;font-weight:600;">⚡ This code expires in 48 hours and won't be reissued. Your cart items aren't reserved — they sell out based on inventory.</p>
       </div>
 
       <!-- Trust badges -->
@@ -100,9 +102,14 @@
       <!-- CTA -->
       <div style="text-align:center;margin:32px 0;">
         <a href="{{ cart_url }}" style="display:inline-block;background:#e94560;color:#fff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">
-          {% if has_discount %}Claim Your {{ discount_percent }}% Off{% else %}Complete Your Order{% endif %}
+          {% if has_discount %}Get My {{ discount_percent }}% Off{% else %}Finish My Order{% endif %}
         </a>
       </div>
+
+      <!-- P.S. -->
+      <p style="font-size:13px;line-height:1.5;color:#666;margin:0;">
+        P.S. — This is a one-time code, just for you. It won't show up on coupon sites and it can't be reused. Use it or lose it.
+      </p>
 
     </div>
 

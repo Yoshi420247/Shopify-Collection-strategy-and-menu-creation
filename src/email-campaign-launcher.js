@@ -598,14 +598,14 @@ function buildEmailHTML(email, styling, productShowcase, discount) {
 
 function getGreetingForStrategy(strategy) {
   const greetings = {
-    exclusivity: `Hey {{first_name}},<br><br>You're getting this before anyone else. As one of our most valued customers, we wanted to give you <strong>exclusive early access</strong> to our biggest smokeshop expansion ever.`,
-    announcement: `Hey {{first_name}},<br><br>Big news — we've just massively expanded our Smoke & Vape collection. We're talking 500+ new pieces from the brands you know and love.`,
-    social_proof: `Hey {{first_name}},<br><br>Our expanded smokeshop collection has been getting a lot of attention. Here are the pieces people are grabbing — and your exclusive discount is still waiting.`,
-    scarcity: `Hey {{first_name}},<br><br>Quick reminder — your exclusive 30% off code is running out. Here's what's worth grabbing before it expires.`,
-    last_chance: `{{first_name}},<br><br>This is it — your 30% off code expires in <strong>24 hours</strong>. After that, it's gone for good.`,
-    reengagement: `Hey {{first_name}},<br><br>It's been a while! We've been busy expanding our smokeshop — 500+ new pieces — and we want to welcome you back with a special offer.`,
-    winback: `Hey {{first_name}},<br><br>A lot has changed at Oil Slick Pad since your last visit. We've built out an entire smokeshop with 500+ bongs, rigs, pipes, and accessories — and we'd love to have you back.`,
-    activation: `Hey {{first_name}},<br><br>We've built the online smokeshop you've been looking for. Wholesale prices, brand-name glass, and 500+ pieces to choose from — all shipped fast and discreet.`,
+    exclusivity: `{{first_name}}, this isn't going out to everyone.<br><br>You're one of the few getting <strong>first access</strong> to our massive smokeshop expansion — 500+ new pieces, live now — before we announce it publicly. Here's the thing: your code below won't last, so take a look while the best glass is still in stock.`,
+    announcement: `500+ new bongs, rigs, pipes, and accessories just dropped, {{first_name}}.<br><br>We rebuilt our entire Smoke & Vape collection from the ground up — brand-name glass at wholesale prices, all in one place. Look — we also set aside a <strong>personal discount code</strong> for you below.`,
+    social_proof: `{{first_name}}, our new smokeshop collection is moving fast.<br><br>Over the past week, dozens of customers have already grabbed pieces from the drop — and <strong>some of our most popular rigs are starting to sell out</strong>. Your exclusive discount is still active, but the inventory won't wait.`,
+    scarcity: `{{first_name}}, your 30% off code has <strong>limited time left</strong>.<br><br>We wanted to give you a heads-up before it expires. The bottom line: the pieces below are worth every penny at full price — at 30% off, it's a no-brainer.`,
+    last_chance: `{{first_name}} — <strong>24 hours</strong>. That's all that's left on your 30% off code.<br><br>After that, it's gone and there's no extending it. If anything below catches your eye, now is the time.`,
+    reengagement: `It's been a minute, {{first_name}} — and honestly, you've been missing out.<br><br>We've added <strong>500+ new smokeshop pieces</strong> since you last stopped by. To make it worth your while, we're giving you an exclusive code to come back and save 30%.`,
+    winback: `Hey {{first_name}}, we get it — life gets busy.<br><br>But Oil Slick Pad has changed a lot since your last order. We've built out an <strong>entire smokeshop</strong> with 500+ bongs, rigs, pipes, and accessories at wholesale prices. We saved you a welcome-back discount below — no strings attached.`,
+    activation: `Tired of overpaying at headshops, {{first_name}}?<br><br>We built the online smokeshop that solves that problem — <strong>500+ brand-name pieces at wholesale prices</strong>, shipped fast and discreet to your door. Here's a code to try us out at 30% off.`,
   };
 
   return greetings[strategy] || greetings.announcement;
@@ -614,18 +614,15 @@ function getGreetingForStrategy(strategy) {
 function buildEmailText(email, productShowcase, discount) {
   const lines = [];
 
-  lines.push(`Hi {{first_name}},`);
-  lines.push('');
-
   const textGreetings = {
-    exclusivity: `You're getting this before anyone else. As one of our most valued customers, we wanted to give you exclusive early access to our biggest smokeshop expansion ever.`,
-    announcement: `Big news - we've just massively expanded our Smoke & Vape collection. We're talking 500+ new pieces from the brands you know and love.`,
-    social_proof: `Our expanded smokeshop collection has been getting a lot of attention. Here are the pieces people are grabbing.`,
-    scarcity: `Quick reminder - your exclusive 30% off code is running out. Here's what's worth grabbing before it expires.`,
-    last_chance: `This is it - your 30% off code expires in 24 hours. After that, it's gone for good.`,
-    reengagement: `It's been a while! We've been busy expanding our smokeshop and we want to welcome you back with a special offer.`,
-    winback: `A lot has changed at Oil Slick Pad since your last visit. We've built out an entire smokeshop with 500+ products.`,
-    activation: `We've built the online smokeshop you've been looking for. Wholesale prices, brand-name glass, 500+ pieces.`,
+    exclusivity: `{{first_name}}, this isn't going out to everyone. You're one of the few getting first access to our massive smokeshop expansion - 500+ new pieces, live now - before we announce it publicly. Here's the thing: your code below won't last, so take a look while the best glass is still in stock.`,
+    announcement: `500+ new bongs, rigs, pipes, and accessories just dropped, {{first_name}}. We rebuilt our entire Smoke & Vape collection from the ground up - brand-name glass at wholesale prices, all in one place. Look - we also set aside a personal discount code for you below.`,
+    social_proof: `{{first_name}}, our new smokeshop collection is moving fast. Over the past week, dozens of customers have already grabbed pieces from the drop - and some of our most popular rigs are starting to sell out. Your exclusive discount is still active, but the inventory won't wait.`,
+    scarcity: `{{first_name}}, your 30% off code has limited time left. We wanted to give you a heads-up before it expires. The bottom line: the pieces below are worth every penny at full price - at 30% off, it's a no-brainer.`,
+    last_chance: `{{first_name}} - 24 hours. That's all that's left on your 30% off code. After that, it's gone and there's no extending it. If anything below catches your eye, now is the time.`,
+    reengagement: `It's been a minute, {{first_name}} - and honestly, you've been missing out. We've added 500+ new smokeshop pieces since you last stopped by. To make it worth your while, we're giving you an exclusive code to come back and save 30%.`,
+    winback: `Hey {{first_name}}, we get it - life gets busy. But Oil Slick Pad has changed a lot since your last order. We've built out an entire smokeshop with 500+ bongs, rigs, pipes, and accessories at wholesale prices. We saved you a welcome-back discount below - no strings attached.`,
+    activation: `Tired of overpaying at headshops, {{first_name}}? We built the online smokeshop that solves that problem - 500+ brand-name pieces at wholesale prices, shipped fast and discreet to your door. Here's a code to try us out at 30% off.`,
   };
 
   lines.push(textGreetings[email.strategy] || textGreetings.announcement);

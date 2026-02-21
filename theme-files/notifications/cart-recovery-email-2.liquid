@@ -37,8 +37,10 @@
 
       <!-- Greeting -->
       <p style="font-size:16px;line-height:1.6;color:#333;">
-        Hi {{ first_name }},<br><br>
-        We noticed you left a few items behind. No pressure — but we thought you might want to know why people choose Oil Slick Pad.
+        Still thinking it over, {{ first_name }}? Fair enough.
+      </p>
+      <p style="font-size:16px;line-height:1.6;color:#333;">
+        Before you decide, here's what 10,000+ customers already figured out about shopping with us:
       </p>
 
       <!-- Cart value callout -->
@@ -51,52 +53,52 @@
       <div style="background:#fafafa;border-radius:8px;padding:24px;margin:20px 0;">
 
         {% if cart_category == "oilSlick" %}
-          <h3 style="color:#333;margin:0 0 16px;font-size:18px;">Why professionals choose Oil Slick</h3>
+          <h3 style="color:#333;margin:0 0 16px;font-size:18px;">Why labs and processors trust Oil Slick</h3>
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
             <span style="font-size:20px;line-height:1;">🏭</span>
-            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;">Medical-grade PTFE — lab-tested, non-stick, solvent-resistant</p>
+            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;"><strong>Medical-grade PTFE</strong> — lab-tested, non-stick, solvent-resistant. The same material used in pharmaceutical manufacturing.</p>
           </div>
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
             <span style="font-size:20px;line-height:1;">📦</span>
-            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;">Trusted by extraction labs and processors nationwide</p>
+            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;"><strong>10,000+ orders shipped</strong> to extraction labs, processors, and professionals since 2012.</p>
           </div>
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
             <span style="font-size:20px;line-height:1;">🚚</span>
-            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;">Most orders ship same day from Colorado</p>
+            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;"><strong>Same-day shipping</strong> from Colorado on orders placed before 2pm MT.</p>
           </div>
-          <p style="font-size:13px;color:#666;text-align:center;margin:12px 0 0;padding-top:12px;border-top:1px solid #eee;">Serving the extraction industry since 2012</p>
+          <p style="font-size:13px;color:#666;text-align:center;margin:12px 0 0;padding-top:12px;border-top:1px solid #eee;">Serving the extraction industry since 2012 — based in Colorado</p>
 
         {% elsif cart_category == "smokeshop" %}
-          <h3 style="color:#333;margin:0 0 16px;font-size:18px;">Why shop with Oil Slick Pad</h3>
+          <h3 style="color:#333;margin:0 0 16px;font-size:18px;">3 reasons customers skip the headshop</h3>
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
-            <span style="font-size:20px;line-height:1;">✅</span>
-            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;">Curated selection — every piece hand-picked for quality</p>
+            <span style="font-size:20px;line-height:1;">💰</span>
+            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;"><strong>Wholesale pricing, direct</strong> — same brands you see in shops, 30-50% less. No middleman markup.</p>
           </div>
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
             <span style="font-size:20px;line-height:1;">📦</span>
-            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;">Discreet, well-padded shipping — arrives in perfect condition</p>
+            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;"><strong>Triple-wrapped glass</strong> — bubble wrap, foam insert, padded box. Zero breakage complaints in the last 6 months.</p>
           </div>
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
-            <span style="font-size:20px;line-height:1;">💰</span>
-            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;">Wholesale prices direct to you — skip the headshop markup</p>
+            <span style="font-size:20px;line-height:1;">✅</span>
+            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;"><strong>700+ hand-picked pieces</strong> — we test and vet every product. If it's in the store, it's because we'd use it ourselves.</p>
           </div>
-          <p style="font-size:13px;color:#666;text-align:center;margin:12px 0 0;padding-top:12px;border-top:1px solid #eee;">Top-rated smoke shop with fast, discreet shipping</p>
+          <p style="font-size:13px;color:#666;text-align:center;margin:12px 0 0;padding-top:12px;border-top:1px solid #eee;">10,000+ orders shipped — fast, discreet, from Colorado</p>
 
         {% else %}
-          <h3 style="color:#333;margin:0 0 16px;font-size:18px;">Why shop with Oil Slick Pad</h3>
+          <h3 style="color:#333;margin:0 0 16px;font-size:18px;">Why 10,000+ customers shop here</h3>
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
-            <span style="font-size:20px;line-height:1;">⭐</span>
-            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;">Premium products at competitive prices</p>
+            <span style="font-size:20px;line-height:1;">💰</span>
+            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;"><strong>Honest pricing</strong> — wholesale rates, no inflated "compare at" tricks.</p>
           </div>
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
             <span style="font-size:20px;line-height:1;">🚚</span>
-            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;">Fast shipping on every order</p>
+            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;"><strong>Same-day shipping</strong> on orders before 2pm MT. 3-5 day delivery.</p>
           </div>
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
-            <span style="font-size:20px;line-height:1;">↩️</span>
-            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;">Easy returns if you're not 100% satisfied</p>
+            <span style="font-size:20px;line-height:1;">📦</span>
+            <p style="font-size:14px;color:#333;margin:0;line-height:1.5;"><strong>Obsessive packaging</strong> — triple-wrapped glass, discreet plain boxes.</p>
           </div>
-          <p style="font-size:13px;color:#666;text-align:center;margin:12px 0 0;padding-top:12px;border-top:1px solid #eee;">Quality products, fast shipping, happy customers</p>
+          <p style="font-size:13px;color:#666;text-align:center;margin:12px 0 0;padding-top:12px;border-top:1px solid #eee;">Based in Colorado — real people, real answers at kris@oilslickpad.com</p>
         {% endif %}
 
       </div>
@@ -119,8 +121,13 @@
 
       <!-- CTA -->
       <div style="text-align:center;margin:32px 0;">
-        <a href="{{ cart_url }}" style="display:inline-block;background:#e94560;color:#fff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">Return to Your Cart</a>
+        <a href="{{ cart_url }}" style="display:inline-block;background:#e94560;color:#fff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">Back to My Cart</a>
       </div>
+
+      <!-- P.S. -->
+      <p style="font-size:13px;line-height:1.5;color:#666;margin:0;">
+        P.S. — Comparing prices? We get it. But we keep our prices at wholesale so there's no "sale" to wait for. What you see today is the real price.
+      </p>
 
     </div>
 

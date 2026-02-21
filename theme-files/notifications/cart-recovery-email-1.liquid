@@ -40,8 +40,10 @@
 
       <!-- Greeting -->
       <p style="font-size:16px;line-height:1.6;color:#333;">
-        Hey {{ first_name }},<br><br>
-        Looks like you were checking out some items at Oil Slick Pad. We saved your cart in case you want to pick up where you left off.
+        {{ first_name }}, you forgot this.
+      </p>
+      <p style="font-size:16px;line-height:1.6;color:#333;">
+        Your cart is still saved and ready to go — no need to re-add anything. Just pick up right where you left off.
       </p>
 
       <!-- Cart value callout -->
@@ -50,26 +52,33 @@
         <p style="font-size:28px;font-weight:700;color:#333;margin:0;">${{ cart_value }}</p>
       </div>
 
-      <!-- Trust badges -->
+      <!-- Trust badges — specific numbers -->
       <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin:24px 0;padding:16px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;">
         <div style="text-align:center;flex:1;min-width:100px;">
           <div style="font-size:20px;">🔒</div>
-          <div style="font-size:11px;font-weight:700;color:#333;margin-top:4px;">Secure Checkout</div>
+          <div style="font-size:11px;font-weight:700;color:#333;margin-top:4px;">256-bit SSL</div>
         </div>
         <div style="text-align:center;flex:1;min-width:100px;">
           <div style="font-size:20px;">🚚</div>
-          <div style="font-size:11px;font-weight:700;color:#333;margin-top:4px;">Fast Shipping</div>
+          <div style="font-size:11px;font-weight:700;color:#333;margin-top:4px;">Ships Same Day</div>
+          <div style="font-size:10px;color:#888;">before 2pm MT</div>
         </div>
         <div style="text-align:center;flex:1;min-width:100px;">
-          <div style="font-size:20px;">↩️</div>
-          <div style="font-size:11px;font-weight:700;color:#333;margin-top:4px;">Easy Returns</div>
+          <div style="font-size:20px;">📦</div>
+          <div style="font-size:11px;font-weight:700;color:#333;margin-top:4px;">Padded Packaging</div>
+          <div style="font-size:10px;color:#888;">glass arrives perfect</div>
         </div>
       </div>
 
       <!-- CTA -->
       <div style="text-align:center;margin:32px 0;">
-        <a href="{{ cart_url }}" style="display:inline-block;background:#e94560;color:#fff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">Complete Your Order</a>
+        <a href="{{ cart_url }}" style="display:inline-block;background:#e94560;color:#fff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">Finish My Order</a>
       </div>
+
+      <!-- P.S. -->
+      <p style="font-size:13px;line-height:1.5;color:#666;margin:0;">
+        P.S. — If something went wrong at checkout or you have a question about your cart, just reply to this email. A real person (Kris) reads every one.
+      </p>
 
     </div>
 

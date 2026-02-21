@@ -47,8 +47,10 @@
 
       <!-- Greeting -->
       <p style="font-size:16px;line-height:1.6;color:#333;">
-        Hey {{ first_name }},<br><br>
-        We get it — sometimes you need time to decide. Here's our best offer to make it easier.
+        {{ first_name }}, let's make this easy.
+      </p>
+      <p style="font-size:16px;line-height:1.6;color:#333;">
+        Your cart's been sitting here for 3 days. We'd rather you have it at a discount than let it expire — so here's our strongest offer yet:
       </p>
 
       <!-- Discount block -->
@@ -78,7 +80,7 @@
 
       <!-- Urgency -->
       <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:16px 20px;margin:20px 0;border-radius:0 8px 8px 0;">
-        <p style="font-size:14px;color:#856404;margin:0;font-weight:600;">⚡ Your cart won't wait forever — complete your order before these items are gone.</p>
+        <p style="font-size:14px;color:#856404;margin:0;font-weight:600;">⚡ This code expires in 24 hours. After that, it's permanently deactivated — we can't extend it even if you ask.</p>
       </div>
 
       <!-- Social proof -->
@@ -128,9 +130,14 @@
       <!-- CTA -->
       <div style="text-align:center;margin:32px 0;">
         <a href="{{ cart_url }}" style="display:inline-block;background:#e94560;color:#fff;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">
-          {% if has_discount %}Get {{ discount_percent }}% Off Now{% else %}Complete Your Order{% endif %}
+          {% if has_discount %}Claim My {{ discount_percent }}% Off{% else %}Finish My Order{% endif %}
         </a>
       </div>
+
+      <!-- P.S. -->
+      <p style="font-size:13px;line-height:1.5;color:#666;margin:0;">
+        P.S. — We only send one more email after this (tomorrow). If this isn't for you, no hard feelings. But if it IS — the clock is ticking on this code.
+      </p>
 
     </div>
 

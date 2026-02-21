@@ -47,8 +47,10 @@
 
       <!-- Greeting -->
       <p style="font-size:16px;line-height:1.6;color:#333;">
-        Hi {{ first_name }},<br><br>
-        This is our last note about your cart. Before we let it go, we wanted to give you one final offer — our biggest discount yet.
+        {{ first_name }} — this is it.
+      </p>
+      <p style="font-size:16px;line-height:1.6;color:#333;">
+        Last email about this cart. Last chance at our biggest discount. After today, this code gets deactivated and your cart gets cleared.
       </p>
 
       <!-- Discount block -->
@@ -80,23 +82,28 @@
       <!-- Main CTA -->
       <div style="text-align:center;margin:32px 0;">
         <a href="{{ cart_url }}" style="display:inline-block;background:#e94560;color:#fff;padding:18px 56px;border-radius:8px;font-size:20px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">
-          {% if has_discount %}Last Chance — {{ discount_percent }}% Off{% else %}Complete Your Order{% endif %}
+          {% if has_discount %}Final Offer — {{ discount_percent }}% Off{% else %}Finish My Order{% endif %}
         </a>
       </div>
 
       <!-- Browse alternatives -->
       <div style="background:#f0f8ff;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
-        <h3 style="color:#333;font-size:16px;margin:0 0 8px;">Not quite right?</h3>
-        <p style="color:#666;font-size:14px;margin:0;">Browse similar products at different price points.</p>
-        <a href="https://oilslickpad.com/collections/all" style="display:inline-block;margin-top:12px;color:#e94560;font-size:14px;text-decoration:underline;">Browse All Products &rarr;</a>
+        <h3 style="color:#333;font-size:16px;margin:0 0 8px;">Wrong product? Right store.</h3>
+        <p style="color:#666;font-size:14px;margin:0;">{% if has_discount %}Your {{ discount_percent }}% off code works on anything — browse 700+ products.{% else %}Browse similar products at every price point.{% endif %}</p>
+        <a href="https://oilslickpad.com/collections/all" style="display:inline-block;margin-top:12px;color:#e94560;font-size:14px;text-decoration:underline;">Browse the Full Store &rarr;</a>
       </div>
 
       <!-- Feedback request -->
       <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
-        <h3 style="color:#333;font-size:16px;margin:0 0 12px;">We'd love your feedback</h3>
-        <p style="color:#666;font-size:13px;margin:0 0 16px;">What could we do better? Your input helps us improve.</p>
-        <a href="https://oilslickpad.com/pages/contact" style="display:inline-block;padding:10px 24px;background:#fff;border:2px solid #e94560;border-radius:8px;color:#e94560;font-size:13px;font-weight:600;text-decoration:none;">Share Your Thoughts</a>
+        <h3 style="color:#333;font-size:16px;margin:0 0 12px;">What stopped you?</h3>
+        <p style="color:#666;font-size:13px;margin:0 0 16px;">Seriously — we read every reply. If something about our store, checkout, or products wasn't right, tell us.</p>
+        <a href="https://oilslickpad.com/pages/contact" style="display:inline-block;padding:10px 24px;background:#fff;border:2px solid #e94560;border-radius:8px;color:#e94560;font-size:13px;font-weight:600;text-decoration:none;">Tell Us What Happened</a>
       </div>
+
+      <!-- P.S. -->
+      <p style="font-size:13px;line-height:1.5;color:#666;margin:0;">
+        P.S. — This is the last email about this cart. We won't follow up again. But if you ever want to come back, we're at oilslickpad.com. Thanks for checking us out, {{ first_name }}.
+      </p>
 
     </div>
 
