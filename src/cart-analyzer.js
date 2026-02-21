@@ -229,7 +229,7 @@ export class CartAnalyzer {
       return {
         isMixed: false,
         strategy: 'single_discount',
-        description: 'Single category cart — use standard discount',
+        description: 'Single category cart - use standard discount',
       };
     }
 
@@ -241,7 +241,7 @@ export class CartAnalyzer {
       return {
         isMixed: true,
         strategy: 'dominant_oilslick',
-        description: 'Oil Slick dominant — use Oil Slick discount ceiling',
+        description: 'Oil Slick dominant - use Oil Slick discount ceiling',
         effectiveMaxDiscount: this.config.productCategories.oilSlick.maxDiscountPercent,
       };
     }
@@ -250,7 +250,7 @@ export class CartAnalyzer {
       return {
         isMixed: true,
         strategy: 'dominant_smokeshop',
-        description: 'Smokeshop dominant — use Smokeshop discount ceiling',
+        description: 'Smokeshop dominant - use Smokeshop discount ceiling',
         effectiveMaxDiscount: this.config.productCategories.smokeshop.maxDiscountPercent,
       };
     }
@@ -264,7 +264,7 @@ export class CartAnalyzer {
     return {
       isMixed: true,
       strategy: 'weighted_discount',
-      description: `Mixed cart (${oilSlickPercent.toFixed(0)}% Oil Slick / ${smokeshopPercent.toFixed(0)}% Smokeshop) — weighted max ${weightedMax.toFixed(0)}%`,
+      description: `Mixed cart (${oilSlickPercent.toFixed(0)}% Oil Slick / ${smokeshopPercent.toFixed(0)}% Smokeshop) - weighted max ${weightedMax.toFixed(0)}%`,
       effectiveMaxDiscount: Math.round(weightedMax),
       oilSlickPercent,
       smokeshopPercent,

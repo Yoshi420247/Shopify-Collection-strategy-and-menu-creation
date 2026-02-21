@@ -99,7 +99,7 @@ const METAFIELD_DEFINITIONS = [
 
 const FLOW_CONFIGS = [
   {
-    name: 'Cart Recovery — Email 1: Gentle Reminder (1hr)',
+    name: 'Cart Recovery - Email 1: Gentle Reminder (1hr)',
     trigger: 'Customer tags added',
     condition: 'Customer tag contains "cart-recovery:email-1"',
     action: 'Send marketing email → "Cart Recovery Email 1"',
@@ -108,7 +108,7 @@ const FLOW_CONFIGS = [
     notes: 'No discount. Friendly reminder with trust badges.',
   },
   {
-    name: 'Cart Recovery — Email 2: Trust Builder (24hr)',
+    name: 'Cart Recovery - Email 2: Trust Builder (24hr)',
     trigger: 'Customer tags added',
     condition: 'Customer tag contains "cart-recovery:email-2"',
     action: 'Send marketing email → "Cart Recovery Email 2"',
@@ -117,7 +117,7 @@ const FLOW_CONFIGS = [
     notes: 'Social proof block, category-aware value propositions.',
   },
   {
-    name: 'Cart Recovery — Email 3: Light Incentive (48hr)',
+    name: 'Cart Recovery - Email 3: Light Incentive (48hr)',
     trigger: 'Customer tags added',
     condition: 'Customer tag contains "cart-recovery:email-3"',
     action: 'Send marketing email → "Cart Recovery Email 3"',
@@ -126,7 +126,7 @@ const FLOW_CONFIGS = [
     notes: 'First discount: Oil Slick 5%, Smokeshop 10%. 48hr expiry.',
   },
   {
-    name: 'Cart Recovery — Email 4: Strong Incentive (72hr)',
+    name: 'Cart Recovery - Email 4: Strong Incentive (72hr)',
     trigger: 'Customer tags added',
     condition: 'Customer tag contains "cart-recovery:email-4"',
     action: 'Send marketing email → "Cart Recovery Email 4"',
@@ -135,7 +135,7 @@ const FLOW_CONFIGS = [
     notes: 'Bigger discount: Oil Slick 8%, Smokeshop 25%. Cross-sells. 24hr expiry.',
   },
   {
-    name: 'Cart Recovery — Email 5: Final Push (7 days)',
+    name: 'Cart Recovery - Email 5: Final Push (7 days)',
     trigger: 'Customer tags added',
     condition: 'Customer tag contains "cart-recovery:email-5"',
     action: 'Send marketing email → "Cart Recovery Email 5"',
@@ -144,7 +144,7 @@ const FLOW_CONFIGS = [
     notes: 'Max discount: Oil Slick 10%, Smokeshop 40%. Alternatives + feedback. Last email.',
   },
   {
-    name: 'Cart Recovery — Cleanup on Purchase',
+    name: 'Cart Recovery - Cleanup on Purchase',
     trigger: 'Order created',
     condition: 'Customer tag contains "cart-recovery:active"',
     action: 'Remove customer tags: cart-recovery:email-1, cart-recovery:email-2, cart-recovery:email-3, cart-recovery:email-4, cart-recovery:email-5, cart-recovery:active, cart-recovery:has-discount, cart-recovery:category-oilSlick, cart-recovery:category-smokeshop, cart-recovery:category-unknown',
@@ -200,13 +200,13 @@ async function createMetafieldDefinitions() {
       } else if (data?.userErrors?.length > 0) {
         const msg = data.userErrors[0].message;
         if (msg.includes('already exists') || msg.includes('has already been taken')) {
-          console.log(`    [SKIP] ${def.namespace}.${def.key} — already exists`);
+          console.log(`    [SKIP] ${def.namespace}.${def.key} - already exists`);
         } else {
-          console.log(`    [WARN] ${def.namespace}.${def.key} — ${msg}`);
+          console.log(`    [WARN] ${def.namespace}.${def.key} - ${msg}`);
         }
       }
     } catch (error) {
-      console.log(`    [ERR] ${def.namespace}.${def.key} — ${error.message}`);
+      console.log(`    [ERR] ${def.namespace}.${def.key} - ${error.message}`);
     }
   }
 }
@@ -244,7 +244,7 @@ async function validateSetup() {
       if (existingKeys.includes(fullKey)) {
         console.log(`    [OK] ${fullKey}`);
       } else {
-        console.log(`    [MISSING] ${fullKey} — run with --create to fix`);
+        console.log(`    [MISSING] ${fullKey} - run with --create to fix`);
         allFound = false;
       }
     }
@@ -263,7 +263,7 @@ async function validateSetup() {
 
 function printFlowInstructions() {
   console.log('\n  ═══════════════════════════════════════════════════════════════');
-  console.log('  SHOPIFY FLOW SETUP — STEP BY STEP');
+  console.log('  SHOPIFY FLOW SETUP - STEP BY STEP');
   console.log('  ═══════════════════════════════════════════════════════════════\n');
 
   console.log('  PREREQUISITE: Create 5 Shopify Email templates first.');
@@ -300,9 +300,9 @@ function printFlowInstructions() {
   console.log('  tags to enhance segmentation. Your segment tags are never removed.\n');
 
   console.log('  ─── Testing ───');
-  console.log('  1. Run: npm run cart-recovery          (dry run — no changes)');
+  console.log('  1. Run: npm run cart-recovery          (dry run - no changes)');
   console.log('  2. Run: npm run cart-recovery:verbose   (dry run + detailed output)');
-  console.log('  3. Run: npm run cart-recovery:execute   (live — tags customers, sends emails)');
+  console.log('  3. Run: npm run cart-recovery:execute   (live - tags customers, sends emails)');
   console.log('  4. Check a customer in Shopify Admin → verify tags and metafields appear\n');
 }
 
@@ -312,7 +312,7 @@ function printFlowInstructions() {
 
 async function main() {
   console.log('═══════════════════════════════════════════════════════════════');
-  console.log('  CART RECOVERY — SHOPIFY FLOW SETUP');
+  console.log('  CART RECOVERY - SHOPIFY FLOW SETUP');
   console.log('  Oil Slick Pad');
   console.log(`  Mode: ${CREATE_MODE ? 'CREATE metafield definitions' : 'VALIDATE + print instructions'}`);
   console.log('═══════════════════════════════════════════════════════════════');

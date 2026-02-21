@@ -62,7 +62,7 @@ export class DiscountEngine {
         shouldDiscount: false,
         discountPercent: 0,
         code: null,
-        reason: 'Loyal customer — use loyalty perks instead of cart discounts',
+        reason: 'Loyal customer - use loyalty perks instead of cart discounts',
         expiryHours: 0,
         valueType: null,
         useAlternativeStrategy: 'loyalty_points',

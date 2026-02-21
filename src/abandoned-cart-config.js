@@ -2,7 +2,7 @@
 // Tailored for Oil Slick Pad (oilslickpad.com)
 //
 // Two product categories with distinct margin profiles:
-//   - Oil Slick (tagged "Oil Slick"): Packaging & extraction — low margin, max 10% discount
+//   - Oil Slick (tagged "Oil Slick"): Packaging & extraction - low margin, max 10% discount
 //   - Smokeshop (tagged "Cloud YHS" or "What You Need"): Higher margin, max 40% discount
 
 export const abandonedCartConfig = {
@@ -47,7 +47,7 @@ export const abandonedCartConfig = {
       criteria: { ordersCount: 0, hasAccount: false },
       priority: 'medium',
       trustLevel: 'low',
-      discountMultiplier: 0.7, // More conservative — earn the sale with trust, not discounts
+      discountMultiplier: 0.7, // More conservative - earn the sale with trust, not discounts
     },
     newCustomer: {
       name: 'New Customer',
@@ -71,7 +71,7 @@ export const abandonedCartConfig = {
       criteria: { ordersCountMin: 4, lifetimeValueMin: 500 },
       priority: 'vip',
       trustLevel: 'highest',
-      discountMultiplier: 0.5, // Use loyalty rewards, not discounts — protect margins
+      discountMultiplier: 0.5, // Use loyalty rewards, not discounts - protect margins
     },
     wholesaleLead: {
       name: 'Wholesale Lead',
@@ -139,7 +139,7 @@ export const abandonedCartConfig = {
     {
       id: 'reminder',
       name: 'Gentle Reminder',
-      delayMinutes: 60, // 1 hour — catches warm intent
+      delayMinutes: 60, // 1 hour - catches warm intent
       strategy: 'no_discount',
       contentFocus: 'product_reminder',
       subjectLineTemplates: [
@@ -159,7 +159,7 @@ export const abandonedCartConfig = {
         ctaText: 'Complete Your Order',
       },
       expectedMetrics: {
-        openRate: 0.50,      // 50% — industry average for first touch
+        openRate: 0.50,      // 50% - industry average for first touch
         clickRate: 0.08,     // 8%
         conversionRate: 0.04, // 4% placed order rate
       },
@@ -201,14 +201,14 @@ export const abandonedCartConfig = {
       strategy: 'light_discount',
       contentFocus: 'incentive_introduction',
       discountEscalation: {
-        oilSlick: { percent: 5, type: 'percentage' },      // 5% — half of max
-        smokeshop: { percent: 10, type: 'percentage' },     // 10% — quarter of max
+        oilSlick: { percent: 5, type: 'percentage' },      // 5% - half of max
+        smokeshop: { percent: 10, type: 'percentage' },     // 10% - quarter of max
       },
       subjectLineTemplates: [
         'A little something to sweeten the deal',
-        '{{discount_percent}}% off your cart — just for you',
+        '{{discount_percent}}% off your cart - just for you',
         'We saved your cart + a special offer',
-        'Your items are going fast — here\'s {{discount_percent}}% off',
+        'Your items are going fast - here\'s {{discount_percent}}% off',
       ],
       elements: {
         showProductImages: true,
@@ -238,12 +238,12 @@ export const abandonedCartConfig = {
       strategy: 'strong_discount',
       contentFocus: 'urgency_plus_incentive',
       discountEscalation: {
-        oilSlick: { percent: 8, type: 'percentage' },       // 8% — near max
-        smokeshop: { percent: 25, type: 'percentage' },      // 25% — strong but not max
+        oilSlick: { percent: 8, type: 'percentage' },       // 8% - near max
+        smokeshop: { percent: 25, type: 'percentage' },      // 25% - strong but not max
       },
       subjectLineTemplates: [
         'Last chance: {{discount_percent}}% off expires soon',
-        'Your cart won\'t wait forever — {{discount_percent}}% off inside',
+        'Your cart won\'t wait forever - {{discount_percent}}% off inside',
         'We really want you to have this, {{first_name}}',
         'Final offer: {{discount_percent}}% off your {{product_name}}',
       ],
@@ -277,11 +277,11 @@ export const abandonedCartConfig = {
       strategy: 'max_discount_or_alternatives',
       contentFocus: 'last_chance_with_alternatives',
       discountEscalation: {
-        oilSlick: { percent: 10, type: 'percentage' },      // 10% — absolute max
-        smokeshop: { percent: 40, type: 'percentage' },      // 40% — absolute max
+        oilSlick: { percent: 10, type: 'percentage' },      // 10% - absolute max
+        smokeshop: { percent: 40, type: 'percentage' },      // 40% - absolute max
       },
       subjectLineTemplates: [
-        'Your biggest discount yet — {{discount_percent}}% off',
+        'Your biggest discount yet - {{discount_percent}}% off',
         'We\'re clearing your cart in 24 hours',
         'One last thing, {{first_name}}...',
         'Before we say goodbye to your cart',
@@ -298,7 +298,7 @@ export const abandonedCartConfig = {
         showTrustBadges: true,
         showAlternativeProducts: true,
         showFeedbackRequest: true,
-        ctaText: 'Last Chance — {{discount_percent}}% Off',
+        ctaText: 'Last Chance - {{discount_percent}}% Off',
       },
       discountExpiry: {
         hours: 24,
@@ -313,14 +313,14 @@ export const abandonedCartConfig = {
   ],
 
   // =========================================================================
-  // SMS SEQUENCE (complement to email — higher open rates)
+  // SMS SEQUENCE (complement to email - higher open rates)
   // Only enabled for medium+ carts with SMS opt-in
   // =========================================================================
   smsSequence: [
     {
       id: 'sms_reminder',
       name: 'SMS Reminder',
-      delayMinutes: 30, // 30 minutes — SMS is more immediate
+      delayMinutes: 30, // 30 minutes - SMS is more immediate
       template: 'Hey {{first_name}}! You left items in your cart at Oil Slick Pad. Complete your order: {{cart_url}}',
       maxChars: 160,
       strategy: 'no_discount',
@@ -328,7 +328,7 @@ export const abandonedCartConfig = {
     {
       id: 'sms_incentive',
       name: 'SMS Incentive',
-      delayMinutes: 2880, // 48 hours — aligns with email #3
+      delayMinutes: 2880, // 48 hours - aligns with email #3
       template: '{{first_name}}, get {{discount_percent}}% off your cart at Oil Slick Pad! Use code {{discount_code}} at checkout. Expires in 48hrs: {{cart_url}}',
       maxChars: 160,
       strategy: 'light_discount',
@@ -352,7 +352,7 @@ export const abandonedCartConfig = {
     triggerConditions: {
       desktop: 'cursor_leaves_viewport',
       mobile: 'rapid_scroll_up',
-      minTimeOnPage: 10, // seconds — don't annoy quick bouncers
+      minTimeOnPage: 10, // seconds - don't annoy quick bouncers
       minCartValue: 20, // Only show for carts worth recovering
       cooldownDays: 7, // Don't show again for 7 days
     },
@@ -402,7 +402,7 @@ export const abandonedCartConfig = {
     codeFormat: 'OILSLICK-{{SEGMENT}}-{{RANDOM6}}', // e.g., OILSLICK-NEW-A3F8K2
     codeExpiry: {
       default: 72, // hours
-      finalPush: 24, // hours — more urgency
+      finalPush: 24, // hours - more urgency
     },
     usageLimit: 1, // Single use per code
     minimumOrderValue: 20, // Must meet store minimum
@@ -489,7 +489,7 @@ export const abandonedCartConfig = {
         element: 'discount_email_position',
         variants: [
           { id: 'email_2', description: 'Introduce discount in email #2 (24hr)' },
-          { id: 'email_3', description: 'Introduce discount in email #3 (48hr) — default' },
+          { id: 'email_3', description: 'Introduce discount in email #3 (48hr) - default' },
           { id: 'email_4', description: 'Introduce discount in email #4 (72hr)' },
         ],
         primaryMetric: 'revenue_per_recipient',
@@ -595,7 +595,7 @@ export const abandonedCartConfig = {
   },
 
   // =========================================================================
-  // CHECKOUT ABANDONMENT (highest intent — different from cart abandonment)
+  // CHECKOUT ABANDONMENT (highest intent - different from cart abandonment)
   // For customers who started checkout but didn't complete payment
   // =========================================================================
   checkoutAbandonment: {
@@ -607,11 +607,11 @@ export const abandonedCartConfig = {
     emailSequence: [
       {
         id: 'checkout_reminder',
-        delayMinutes: 30, // 30 minutes — very high intent, recover fast
+        delayMinutes: 30, // 30 minutes - very high intent, recover fast
         subjectTemplates: [
           'Your order is almost complete, {{first_name}}',
           'One more step to finish your order',
-          'We saved your checkout — pick up where you left off',
+          'We saved your checkout - pick up where you left off',
         ],
         showDiscount: false,
         showTrustSignals: true, // SSL badges, secure payment icons, return policy
@@ -629,7 +629,7 @@ export const abandonedCartConfig = {
         delayMinutes: 1440, // 24 hours
         subjectTemplates: [
           'Complete your order + get {{discount_percent}}% off',
-          'Your items are reserved — with a bonus inside',
+          'Your items are reserved - with a bonus inside',
         ],
         showDiscount: true,
         discountRules: {

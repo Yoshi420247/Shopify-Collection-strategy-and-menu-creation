@@ -472,7 +472,7 @@ function validateCollectionRules(collectionConfigs, products, lookups) {
         severity: SEVERITY.MEDIUM,
         code: 'COLLECTION_EMPTY',
         collection: col.handle,
-        message: `Collection "${col.title}" matches 0 products — rules may be too restrictive`,
+        message: `Collection "${col.title}" matches 0 products - rules may be too restrictive`,
       });
     }
 
@@ -482,7 +482,7 @@ function validateCollectionRules(collectionConfigs, products, lookups) {
         severity: SEVERITY.CRITICAL,
         code: 'COLLECTION_TOO_BROAD',
         collection: col.handle,
-        message: `Collection "${col.title}" matches ${matchingProducts.length} products — likely missing a filter rule`,
+        message: `Collection "${col.title}" matches ${matchingProducts.length} products - likely missing a filter rule`,
         matchCount: matchingProducts.length,
       });
     }

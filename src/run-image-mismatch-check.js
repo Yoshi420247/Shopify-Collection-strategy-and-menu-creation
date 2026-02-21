@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Detect products whose images don't match — flags suspect listings
+// Detect products whose images don't match - flags suspect listings
 // where some images appear to show a completely different product.
 //
 // Usage:
@@ -63,7 +63,7 @@ function printBanner(options) {
   const requestedModel = modelNames[options.analysisModel] || options.analysisModel;
   if (options.analysisModel === 'gemini' && !hasGemini) {
     console.log(`  Analysis model:       ${requestedModel}`);
-    console.log(`  WARNING:              GEMINI_API_KEY not set — falling back to Sonnet ($3/M)`);
+    console.log(`  WARNING:              GEMINI_API_KEY not set - falling back to Sonnet ($3/M)`);
   } else {
     console.log(`  Analysis model:       ${requestedModel}`);
   }

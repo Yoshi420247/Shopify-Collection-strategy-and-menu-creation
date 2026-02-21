@@ -267,4 +267,4 @@ Smoke & Vape (Main)
 
 ---
 
-*Report generated for collection strategy optimization*
+*Last updated: 2026-01-24*

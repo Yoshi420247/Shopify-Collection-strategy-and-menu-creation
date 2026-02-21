@@ -197,8 +197,8 @@ export class ABTestManager {
           lift: winner === v ? 'baseline' : `${(((v.rate - winner.rate) / winner.rate) * 100).toFixed(1)}%`,
         })),
         recommendation: significance >= abTesting.confidenceLevel
-          ? `Implement "${winner.variantId}" as the default — ${(significance * 100).toFixed(1)}% confidence`
-          : `Continue testing — only ${(significance * 100).toFixed(1)}% confidence (need ${(abTesting.confidenceLevel * 100).toFixed(0)}%)`,
+          ? `Implement "${winner.variantId}" as the default - ${(significance * 100).toFixed(1)}% confidence`
+          : `Continue testing - only ${(significance * 100).toFixed(1)}% confidence (need ${(abTesting.confidenceLevel * 100).toFixed(0)}%)`,
       });
     }
 

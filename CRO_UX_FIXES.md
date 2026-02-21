@@ -67,14 +67,14 @@ form[data-payment-form] .payment-terms__text {
 
 **Problem:** When filters returned no products, visitors saw a minimal message with no way to recover or continue browsing.
 
-**Solution:** Enhanced the collection template's empty state with:
+**Solution:** Updated the collection template's empty state with:
 - A clearer "No products found" heading
 - Helpful guidance text
 - "Clear All Filters" button linking to the unfiltered collection
 - "Browse All Products" button linking to /collections/all
 
 **Files Changed:**
-- `sections/collection-template.liquid` - Added enhanced empty state HTML
+- `sections/collection-template.liquid` - Added better empty state HTML
 - `assets/filter-enhancements.css` - Added styling for empty state
 
 **New Empty State Features:**
@@ -99,7 +99,7 @@ form[data-payment-form] .payment-terms__text {
 | Payment terms text | CSS | Hide elements |
 | Internal tags | Product Data | Bulk tag removal |
 | Subheading placeholder | Theme Settings | Set empty values |
-| Empty filter state | Template + CSS | Enhanced HTML/CSS |
+| Empty filter state | Template + CSS | Updated HTML/CSS |
 
 ---
 
@@ -172,7 +172,7 @@ To verify these fixes:
 
 ### 9. Homepage Hero Messaging Update
 
-**Problem:** Hero headline "Welcome to Oil Slick" wasn't specific enough for cold traffic to understand the value proposition.
+**Problem:** Hero headline "Welcome to Oil Slick" didn't tell new visitors what the store actually sells.
 
 **Solution:** Updated hero content to immediately clarify offerings:
 
@@ -202,7 +202,7 @@ To verify these fixes:
 | 1 | Payment terms text | CSS hide |
 | 1 | Internal tags (google/MCF) | Bulk tag removal |
 | 1 | Subheading placeholder | Set empty values |
-| 1 | Empty filter dead ends | Enhanced HTML/CSS |
+| 1 | Empty filter dead ends | Updated HTML/CSS |
 | 2 | Duplicate promo text | Clean promo HTML |
 | 2 | Variant sticker shock | Reorder variants |
 | 2 | Filter taxonomy | Update filter tags |
@@ -220,4 +220,4 @@ These items require admin access or policy decisions:
 
 ---
 
-*All fixes applied directly via Shopify Admin API and GraphQL*
+*Fixes applied via Shopify Admin API and GraphQL. Last updated: 2026-01-25*

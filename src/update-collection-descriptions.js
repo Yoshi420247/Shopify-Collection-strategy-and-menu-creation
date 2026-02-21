@@ -48,9 +48,9 @@ async function updateDescription(collection, newHtml) {
 
 async function run() {
   console.log('='.repeat(70));
-  console.log('  OIL SLICK — Collection Description Updater');
+  console.log('  OIL SLICK - Collection Description Updater');
   console.log('='.repeat(70));
-  console.log(`  Mode: ${DRY_RUN ? 'DRY RUN (use --execute to apply changes)' : 'LIVE — APPLYING CHANGES'}`);
+  console.log(`  Mode: ${DRY_RUN ? 'DRY RUN (use --execute to apply changes)' : 'LIVE - APPLYING CHANGES'}`);
   console.log(`  Descriptions loaded: ${Object.keys(collectionDescriptions).length}`);
   console.log('');
 
@@ -81,14 +81,14 @@ async function run() {
   for (const handle of handles) {
     const newHtml = collectionDescriptions[handle];
     if (!newHtml) {
-      console.log(`  [SKIP] ${handle} — no description defined`);
+      console.log(`  [SKIP] ${handle} - no description defined`);
       skipped++;
       continue;
     }
 
     const collection = collectionMap[handle];
     if (!collection) {
-      console.log(`  [NOT FOUND] ${handle} — collection does not exist in Shopify`);
+      console.log(`  [NOT FOUND] ${handle} - collection does not exist in Shopify`);
       notFound++;
       continue;
     }
@@ -99,13 +99,13 @@ async function run() {
     const newLen = newText.length;
 
     if (currentText === newText) {
-      console.log(`  [UNCHANGED] ${handle} — already up to date (${currentLen} chars)`);
+      console.log(`  [UNCHANGED] ${handle} - already up to date (${currentLen} chars)`);
       skipped++;
       continue;
     }
 
     const status = currentLen === 0 ? 'NEW' : 'UPDATE';
-    console.log(`  [${status}] ${handle} — ${currentLen} → ${newLen} chars (${collection.type})`);
+    console.log(`  [${status}] ${handle} - ${currentLen} → ${newLen} chars (${collection.type})`);
     toUpdate++;
     results.push({ handle, collection, newHtml, status });
   }

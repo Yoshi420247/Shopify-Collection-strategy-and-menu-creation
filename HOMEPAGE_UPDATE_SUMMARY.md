@@ -79,14 +79,9 @@ Existing product images reused:
 
 ---
 
-## SEO Best Practices Applied
+## SEO notes
 
-1. **Category-focused navigation** - Users can quickly browse by product type
-2. **Product count visibility** - Collections with substantial inventory featured prominently
-3. **USA-made emphasis** - Highlights domestic craftsmanship for quality-conscious buyers
-4. **Clear CTAs** - Each section has actionable buttons linking to relevant collections
-5. **Social proof** - Testimonials build trust with new visitors
-6. **Diverse price points** - Mix of accessories and main products for all budgets
+Category pages now act as the main navigation targets, which gives Google clear crawl paths. Collections with the most inventory got top placement. The "Made in USA" section is there because it converts well with quality-conscious buyers. Testimonials were added for trust, and the product mix covers entry-level accessories through premium glass so nobody bounces on price alone.
 
 ---
 
@@ -107,4 +102,4 @@ Updated 6 promotional blocks with smokeshop categories and actual product images
 
 ---
 
-*Homepage optimization completed following e-commerce best practices*
+*Last updated: 2026-01-24*

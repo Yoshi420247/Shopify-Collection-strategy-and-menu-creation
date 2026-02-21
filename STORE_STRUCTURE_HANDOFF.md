@@ -788,4 +788,4 @@ Use natural, descriptive anchor text:
 
 ---
 
-*Document generated for internal linking purposes. All URLs are relative to https://oilslickpad.com*
+*All URLs are relative to https://oilslickpad.com*

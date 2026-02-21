@@ -175,7 +175,7 @@ function printSummary(results, reportPath) {
     const remaining = flagged.filter(p => p.imageCount >= 3);
 
     if (noImages.length > 0) {
-      console.log(`\n  NO IMAGES (${noImages.length} products) — Highest priority`);
+      console.log(`\n  NO IMAGES (${noImages.length} products) - Highest priority`);
       console.log(`${'─'.repeat(70)}`);
       for (const p of noImages) {
         console.log(`  - ${p.title}`);
@@ -185,7 +185,7 @@ function printSummary(results, reportPath) {
     }
 
     if (oneImage.length > 0) {
-      console.log(`\n  1 IMAGE (${oneImage.length} products) — High priority`);
+      console.log(`\n  1 IMAGE (${oneImage.length} products) - High priority`);
       console.log(`${'─'.repeat(70)}`);
       for (const p of oneImage) {
         console.log(`  - ${p.title}`);
@@ -195,7 +195,7 @@ function printSummary(results, reportPath) {
     }
 
     if (twoImages.length > 0) {
-      console.log(`\n  2 IMAGES (${twoImages.length} products) — Medium priority`);
+      console.log(`\n  2 IMAGES (${twoImages.length} products) - Medium priority`);
       console.log(`${'─'.repeat(70)}`);
       for (const p of twoImages) {
         console.log(`  - ${p.title}`);
@@ -272,7 +272,7 @@ function generateMarkdownSummary(results) {
       md += `| Product | ID | Handle | Family | Price | Status |\n`;
       md += `|---------|---:|--------|--------|------:|--------|\n`;
       for (const p of group.items) {
-        md += `| ${p.title} | ${p.id} | ${p.handle} | ${p.family || '—'} | ${p.price} | ${p.status} |\n`;
+        md += `| ${p.title} | ${p.id} | ${p.handle} | ${p.family || '-'} | ${p.price} | ${p.status} |\n`;
       }
       md += `\n`;
     }

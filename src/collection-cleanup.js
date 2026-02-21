@@ -209,30 +209,30 @@ const COLLECTIONS_TO_REVIEW = [
 // IMPORTANT: Rules are ordered MOST SPECIFIC FIRST to prevent false matches.
 // For example, 'silicone nectar' must come before 'nectar collector' so the
 // silicone-specific fix wins. The 'cone' pattern (rolling papers) MUST NOT
-// match 'silicone' — this is handled by an exclusion guard in fixProductTags().
+// match 'silicone' - this is handled by an exclusion guard in fixProductTags().
 const PRODUCT_TAG_FIXES = [
   // =====================================================
   // TIER 1: Highly specific multi-word patterns (most specific first)
   // =====================================================
 
-  // Silicone nectar collectors — MUST come before generic 'nectar collector'
+  // Silicone nectar collectors - MUST come before generic 'nectar collector'
   {
     titleContains: 'silicone nectar',
     currentFamily: 'flower-bowl',
     correctFamily: 'nectar-collector',
     ensureTags: ['material:silicone', 'use:dabbing', 'pillar:smokeshop-device'],
   },
-  // Electric grinder — MUST come before generic 'grinder'
+  // Electric grinder - MUST come before generic 'grinder'
   {
     titleContains: 'electric grinder',
     ensureTags: ['family:grinder', 'use:preparation', 'pillar:accessory', 'style:electric'],
   },
-  // Titanium dab tool — MUST come before generic 'dab tool'
+  // Titanium dab tool - MUST come before generic 'dab tool'
   {
     titleContains: 'titanium dab tool',
     ensureTags: ['material:titanium', 'family:dab-tool', 'use:dabbing', 'pillar:accessory'],
   },
-  // Quartz banger — MUST come before generic 'banger'
+  // Quartz banger - MUST come before generic 'banger'
   {
     titleContains: 'quartz banger',
     ensureTags: ['material:quartz', 'family:banger', 'use:dabbing', 'pillar:accessory'],
@@ -619,7 +619,7 @@ const PRODUCT_TAG_FIXES = [
   },
 
   // =====================================================
-  // TIER 6: Rolling products — use word-boundary-safe patterns
+  // TIER 6: Rolling products - use word-boundary-safe patterns
   // NOTE: 'cone' patterns are EXCLUDED from matching silicone products
   //        via the guard in fixProductTags() below
   // =====================================================
@@ -651,11 +651,11 @@ const PRODUCT_TAG_FIXES = [
     titleContains: 'filter tips',
     ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
   },
-  // 'cone' as a standalone pattern — guarded to avoid matching 'silicone'
+  // 'cone' as a standalone pattern - guarded to avoid matching 'silicone'
   {
     titleContains: ' cone',
     ensureTags: ['family:rolling-paper', 'use:rolling', 'pillar:accessory'],
-    // Exclusion guard: see fixProductTags() — skip if title contains 'silicone'
+    // Exclusion guard: see fixProductTags() - skip if title contains 'silicone'
     excludeIfTitleContains: ['silicone'],
   },
   {
@@ -706,7 +706,7 @@ const TAG_BASED_FAMILY_INFERENCE = [
   { hasTag: 'category:torches', family: 'torch', ensureTags: ['use:dabbing', 'pillar:accessory'] },
   { hasTag: 'category:rolling-papers', family: 'rolling-paper', ensureTags: ['use:rolling', 'pillar:accessory'] },
   { hasTag: 'category:vapes', family: 'vape-battery', ensureTags: ['use:vaping', 'pillar:smokeshop-device'] },
-  // Use-based inference (broadest fallback — only if no category tag matched)
+  // Use-based inference (broadest fallback - only if no category tag matched)
   { hasTag: 'use:rolling', family: 'rolling-paper', ensureTags: ['pillar:accessory'] },
   { hasTag: 'use:storage', family: 'container', ensureTags: ['pillar:accessory'] },
   { hasTag: 'use:dabbing', family: 'dab-tool', ensureTags: ['pillar:accessory'] },

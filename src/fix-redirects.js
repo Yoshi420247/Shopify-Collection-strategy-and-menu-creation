@@ -10,7 +10,7 @@
  * - Google Search Console reporting dead pages
  *
  * Usage:
- *   node src/fix-redirects.js                # Dry run — preview all redirects
+ *   node src/fix-redirects.js                # Dry run - preview all redirects
  *   node src/fix-redirects.js --execute      # Create redirects in Shopify
  *   node src/fix-redirects.js --audit        # Audit existing redirects
  *   node src/fix-redirects.js --cleanup      # Remove outdated redirects
@@ -121,7 +121,7 @@ async function createRedirects(dryRun = true) {
   logSection('CREATING COLLECTION REDIRECTS');
 
   if (dryRun) {
-    log('DRY RUN MODE — No changes will be made', 'yellow');
+    log('DRY RUN MODE - No changes will be made', 'yellow');
   }
 
   const redirectMap = config.redirects || [];
@@ -217,7 +217,7 @@ async function createRedirects(dryRun = true) {
 }
 
 /**
- * Audit existing redirects — find any that point to dead collections
+ * Audit existing redirects - find any that point to dead collections
  * or have issues
  */
 async function auditRedirects() {

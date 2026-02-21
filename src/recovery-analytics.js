@@ -253,7 +253,7 @@ export class RecoveryAnalytics {
    */
   printDashboard(report, revenueImpact) {
     console.log('\n╔══════════════════════════════════════════════════════════════╗');
-    console.log('║      ABANDONED CART RECOVERY — ANALYTICS DASHBOARD         ║');
+    console.log('║      ABANDONED CART RECOVERY - ANALYTICS DASHBOARD         ║');
     console.log('╚══════════════════════════════════════════════════════════════╝\n');
 
     console.log('📊 OVERVIEW');
@@ -281,7 +281,7 @@ export class RecoveryAnalytics {
     console.log('──────────────────────');
     for (const [cat, data] of Object.entries(report.categoryBreakdown)) {
       const pct = ((data.count / report.totalCheckouts) * 100).toFixed(0);
-      console.log(`  ${cat}: ${data.count} carts (${pct}%) — $${data.totalValue.toFixed(0)} total, $${data.avgValue.toFixed(0)} avg`);
+      console.log(`  ${cat}: ${data.count} carts (${pct}%) - $${data.totalValue.toFixed(0)} total, $${data.avgValue.toFixed(0)} avg`);
     }
     console.log('');
 
