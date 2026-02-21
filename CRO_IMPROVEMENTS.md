@@ -55,23 +55,14 @@ The homepage "Best Selling Dab Rigs" featured $8,999 collector pieces as the fir
 
 ---
 
-## Implementation Summary
+## What changed
 
-1. **Two "Front Doors" Created:**
-   - Everyday visitors → Value Dab Rigs + Everyday Essentials (accessible prices)
-   - Collectors → Heady Collector Glass (deliberate high-ticket section)
+The homepage now has two entry paths. Everyday visitors land on Value Dab Rigs and Everyday Essentials (affordable price range). Collectors who want the high-ticket heady glass have to go looking for it, which is the point.
 
-2. **Top Sellers Packaging Strip:** Money categories (jars, PTFE/FEP, paper) now featured prominently
-
-3. **Clean SEO Copy:** All keyword-stuffed descriptions replaced with human-readable, conversion-focused copy
-
-4. **Broken Content Removed:** WordPress remnants and internal pages cleaned up
+The packaging strip now features the money categories: jars, PTFE/FEP, and parchment. Keyword-stuffed descriptions got rewritten into actual copy. WordPress shortcode remnants and the Rewind backup page got removed.
 
 ---
 
-## Expected Impact
+## What this should fix
 
-- **Reduced bounce rate** - visitors see affordable products first
-- **Improved SEO** - clean descriptions without keyword penalties
-- **Better conversion funnel** - clear paths for different customer types
-- **Professional appearance** - no broken shortcodes or placeholder text
+Visitors now see $25-$150 products first instead of $8,999 collector pieces, which should reduce bounces from price shock. The keyword-stuffed descriptions were likely triggering Google's spam filters, so replacing them with real copy should help rankings. And the broken WordPress shortcode on the wholesale page was just embarrassing.

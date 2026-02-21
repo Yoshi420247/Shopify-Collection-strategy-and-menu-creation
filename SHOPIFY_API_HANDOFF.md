@@ -547,4 +547,4 @@ API Version: 2024-01
 
 ---
 
-*Document generated from Shopify store management session. All examples are production-tested.*
+*All examples are from production use on the Oil Slick store.*
