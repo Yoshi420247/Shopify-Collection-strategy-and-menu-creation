@@ -45,14 +45,14 @@ const postSalesMessages = {
 
   orderConfirmation: {
     email: {
-      subject: 'It is happening — order #{{order_number}} is locked in',
-      preheader: 'We are already packing it. Here is what comes next.',
+      subject: "It's happening — order #{{order_number}} is locked in",
+      preheader: "We're already packing it. Here's what comes next.",
       body: `
 {{first_name}}, you just made a great call.
 
-Your order is confirmed and we are on it right now.
+Your order is confirmed and we're on it right now.
 
-Here is what you grabbed:
+Here's what you grabbed:
 
 {{#each line_items}}
   • {{this.title}} (x{{this.quantity}}) — {{this.price}}
@@ -62,21 +62,21 @@ Order total: {{total_price}}
 
 Now for the good part.
 
-Most orders ship same-day if placed before 2pm MT. You will get a tracking number the second it leaves our hands.
+Most orders ship same-day if placed before 2pm MT. You'll get a tracking number the second it leaves our hands.
 
-Every glass piece gets wrapped in bubble wrap and foam by hand — we have shipped 10,000+ orders since 2012 and breakage complaints are basically zero.
+Every glass piece gets wrapped in bubble wrap and foam by hand — we've shipped 10,000+ orders since 2012 and breakage complaints are basically zero.
 
-Here is what to expect:
+What to expect:
 — Shipping: 3-5 business days after it leaves our warehouse.
 — Your tracking link: coming via email as soon as we hand it off.
 — Questions? Reply to this email. A real person reads these — no bots, no ticket numbers.
 
-Tomorrow we will send your tracking info so you can follow it live.
+Tomorrow we'll send your tracking info so you can follow it live.
 
 — Kris and the Oil Slick crew
 kris@oilslickpad.com
 
-P.S. If you want to add anything to your order before we ship, reply in the next 2 hours and we will try to combine it.
+P.S. If you want to add anything to your order before we ship, reply in the next 2 hours and we'll try to combine it.
       `,
     },
     sms: {
@@ -92,8 +92,8 @@ P.S. If you want to add anything to your order before we ship, reply in the next
 
   shippingConfirmation: {
     email: {
-      subject: 'It is on the way (track it live)',
-      preheader: 'Your order just left the building. Here is your tracking link.',
+      subject: "It's on the way (track it live)",
+      preheader: 'Your order just left the building. Tracking link inside.',
       body: `
 {{first_name}}, your order is officially on the move.
 
@@ -104,17 +104,17 @@ Track it here: {{tracking_url}}
 
 Estimated delivery: {{estimated_delivery}}
 
-Here is the thing — tracking sometimes takes 12-24 hours to update after we hand off the package. If it says "label created" for a day, do not panic. That is normal.
+Quick heads up — tracking sometimes takes 12-24 hours to update after we hand off the package. If it says "label created" for a day, don't panic. Totally normal.
 
 Everything is wrapped with care. Bubble wrap, foam inserts, the works.
 
-When your package arrives, check everything before you toss the packaging. If anything got damaged in shipping, snap a couple photos and email kris@oilslickpad.com — we will make it right. No runaround.
+When your package arrives, check everything before you toss the packaging. If anything got damaged in shipping, snap a couple photos and email kris@oilslickpad.com — we'll make it right. No runaround.
 
 Enjoy the new gear.
 
 — Oil Slick
 
-P.S. We will check in after delivery to make sure everything landed in one piece.
+P.S. We'll check in after delivery to make sure everything landed in one piece.
       `,
     },
     sms: {
@@ -131,21 +131,19 @@ P.S. We will check in after delivery to make sure everything landed in one piece
   deliveryFollowUp: {
     email: {
       subject: 'Everything land in one piece?',
-      preheader: 'If not, we will fix it. No questions asked.',
+      preheader: "If not, we'll fix it. No questions asked.",
       body: `
 {{first_name}}, quick question.
 
 Your order should have arrived by now. Did everything show up in good shape?
 
-If something got damaged or is not what you expected — do not stress. Just shoot us an email at kris@oilslickpad.com with a photo and your order number. We will sort it out fast.
+If something got damaged or isn't what you expected — don't stress. Just shoot us an email at kris@oilslickpad.com with a photo and your order number. We'll sort it out fast.
 
 No hoops to jump through. No "submit a ticket and wait 5 days." Just real support from real people.
 
-But here is what most people tell us...
+Most people open the box, see how well we packed it, and are already thinking about their next order. If that's you — that's what we like to hear.
 
-They open the box, see how well we packed it, and are already thinking about their next order. If that is you — that is what we like to hear.
-
-In a few days we will send a quick link to leave a review. Takes 30 seconds and it genuinely helps other people figure out what to buy.
+In a few days we'll send a quick link to leave a review. Takes 30 seconds and it helps other people figure out what to buy.
 
 — The Oil Slick crew
 
@@ -162,25 +160,23 @@ P.S. Already putting your new piece to work? Reply and tell us how it hits. We l
 
   reviewRequest: {
     email: {
-      subject: '30 seconds — how is your {{product_title}}?',
+      subject: "30 seconds — how's your {{product_title}}?",
       preheader: 'One quick sentence helps the next person decide.',
       body: `
-{{first_name}}, you have had your {{product_title}} for about a week now.
+{{first_name}}, you've had your {{product_title}} for about a week now.
 
-Here is why we are asking for a review:
-
-Last month, 74% of our first-time buyers said they read reviews before adding to cart. Your honest take — even one sentence — helps the next person decide if it is worth it.
+Why we're asking: 74% of our first-time buyers said they read reviews before adding to cart. Your honest take — even one sentence — helps the next person decide if it's worth it.
 
 Leave a review here: {{review_url}}
 
 A few things people usually mention:
-— How is the build quality?
+— How's the build quality?
 — Does it hit the way you expected?
 — Would you buy it again?
 
-That is it. Maybe 30 seconds.
+That's it. Maybe 30 seconds.
 
-Look — if you are NOT happy with it, skip the review and email us instead at kris@oilslickpad.com. We would rather fix the problem than have you leave a frustrated review.
+If you're NOT happy with it, skip the review and email us instead at kris@oilslickpad.com. We'd rather fix the problem than have you leave a frustrated review.
 
 — Oil Slick
 
@@ -200,23 +196,23 @@ P.S. Everyone who leaves a review gets a thank-you discount code for their next 
 
   postReviewThankYou: {
     email: {
-      subject: 'Your review is live — here is a thank you',
+      subject: "Your review is live — here's a thank you",
       preheader: 'We read every single one. Plus: 10% off inside.',
       body: `
 {{first_name}}, we just saw your review come through.
 
 Seriously — thank you. We read every single one and they directly shape what we stock and what we drop.
 
-Here is 10% off your next order as a thank you:
+Here's 10% off your next order as a thank you:
 
 Code: THANKS10
 Expires: {{expiry_date_30days}}
 
-No minimum. Works on anything in the store. Use it whenever you are ready.
+No minimum. Works on anything in the store. Use it whenever you're ready.
 
 — Oil Slick
 
-P.S. Know someone who would like our stuff? Forward them this email — the code is one-time use for you, but we will take care of them too if they reach out.
+P.S. Know someone who'd like our stuff? Forward them this email — the code is one-time use for you, but we'll take care of them too if they reach out.
       `,
     },
   },
@@ -235,23 +231,23 @@ P.S. Know someone who would like our stuff? Forward them this email — the code
         subject: 'The 4 things every bong owner grabs next',
         preheader: 'One of these will change how your bong hits. Seriously.',
         body: `
-{{first_name}}, now that you have had a couple weeks with your new bong, here is what your setup is probably missing.
+{{first_name}}, couple weeks in with the new bong — here's what your setup is probably missing.
 
 These are the 4 things our repeat bong buyers order most:
 
-Ash Catchers — Go 2-3x longer between water changes. Your bong stays clean, your hits stay smooth, and you waste less time on maintenance. Once you use one, you will wonder why you waited.
+Ash Catchers — Go 2-3x longer between water changes. Your bong stays clean, your hits stay smooth, and you waste less time on maintenance. Once you use one, you'll wonder why you waited.
 {{link_to_collection_ash_catchers}}
 
 Flower Bowls — The stock bowl works, but a thicker aftermarket bowl holds heat better and gives you more control. We carry 10mm, 14mm, and 18mm.
 {{link_to_collection_flower_bowls}}
 
-Downstems — A diffused downstem can completely change how your bong hits. More percolation, smoother draws. Worth the $15-20 upgrade if you are still running the stock one.
+Downstems — A diffused downstem can completely change how your bong hits. More percolation, smoother draws. Worth the $15-20 upgrade if you're still running the stock one.
 {{link_to_collection_downstems}}
 
 Cleaning Supplies — Res caps, plugs, and cleaning solutions. A 5-minute clean once a week keeps your glass tasting fresh for months.
 {{link_to_collection_cleaning_supplies}}
 
-No pressure. Just figured you should know what is out there.
+No pressure. Just figured you should know what's out there.
 
 — Oil Slick
 
@@ -268,25 +264,25 @@ P.S. Most of these are under $25 and they ship free when you add them to a quali
         body: `
 {{first_name}}, got your dab rig dialed in yet?
 
-Here is the thing — the rig is just the foundation. These are the pieces that take your sessions from decent to dialed:
+The rig is just the foundation. These are the pieces that take your sessions from decent to dialed:
 
 Quartz Bangers — If your rig came with a basic banger, upgrading to thicker quartz makes a real difference. Better heat retention means better flavor and more efficient use of your concentrates. A $20 banger upgrade pays for itself in wasted-concentrate savings.
 {{link_to_collection_quartz_bangers}}
 
-Carb Caps — Lets you dab at lower temps. Lower temps = better flavor + less waste. It seems optional until you try it — then it is the piece you will never session without.
+Carb Caps — Lets you dab at lower temps. Lower temps = better flavor + less waste. Seems optional until you try it — then it's the piece you'll never session without.
 {{link_to_collection_carb_caps}}
 
-Dab Tools — The right tool for the consistency you are working with (shatter vs. badder vs. sauce) makes loading 10x easier and wastes less material.
+Dab Tools — The right tool for the consistency you're working with (shatter vs. badder vs. sauce) makes loading 10x easier and wastes less material.
 {{link_to_collection_dab_tools}}
 
-Torches — If you are using a cheap hardware store torch, a proper dab torch heats more evenly, lasts longer, and gives you better temp control.
+Torches — If you're using a cheap hardware store torch, a proper dab torch heats more evenly, lasts longer, and gives you better temp control.
 {{link_to_collection_torches}}
 
 Just some ideas. No rush.
 
 — Oil Slick
 
-P.S. Not sure what joint size fits your rig? Reply with a photo and we will tell you exactly what you need.
+P.S. Not sure what joint size fits your rig? Reply with a photo and we'll tell you exactly what you need.
         `,
       },
     },
@@ -299,9 +295,9 @@ P.S. Not sure what joint size fits your rig? Reply with a photo and we will tell
         body: `
 {{first_name}}, enjoying the new pipe?
 
-Here are a couple things that make the experience noticeably better:
+A couple things that make the experience noticeably better:
 
-Grinders — If you are still breaking up flower by hand, this is the single biggest upgrade you can make. Even grind = even burn = smoother, more flavorful hits. A $15 grinder changes everything.
+Grinders — If you're still breaking up flower by hand, this is the single biggest upgrade you can make. Even grind = even burn = smoother, more flavorful hits. A $15 grinder changes everything.
 {{link_to_collection_grinders}}
 
 Screens — A $2 pack of screens keeps ash and scooby snacks out of your mouth. Tiny investment, huge difference in every session.
@@ -326,15 +322,15 @@ P.S. Thinking about upgrading to a bong? Check out our starter bongs under $50 �
         subject: 'Your rolling setup is missing something',
         preheader: 'The thing that turns messy rolls into perfect ones every time.',
         body: `
-{{first_name}}, papers and cones run out fast. Before you need to restock, here is what levels up your rolling game:
+{{first_name}}, papers and cones run out fast. Before you need to restock, here's what levels up your rolling game:
 
-Grinders — This is the difference between messy, uneven rolls and perfect, slow-burning ones. Consistent grind = consistent roll. Period. If you do not have one, a $15 grinder will change your life.
+Grinders — The difference between messy, uneven rolls and perfect, slow-burning ones. Consistent grind = consistent roll. Period. If you don't have one, a $15 grinder will change your life.
 {{link_to_collection_grinders}}
 
 Rolling Trays — Keeps your workspace clean and catches everything. No more losing flower in your lap or between couch cushions. We carry a bunch of styles and sizes.
 {{link_to_collection_rolling_trays}}
 
-More Papers and Cones — When you are ready to restock: RAW, Vibes, Elements, Zig Zag, and more. All in stock and ready to ship.
+More Papers and Cones — When you're ready to restock: RAW, Vibes, Elements, Zig Zag, and more. All in stock and ready to ship.
 {{link_to_collection_rolling_papers}}
 
 Storage — Doob tubes, stash jars, and containers to keep your pre-rolls fresh for days instead of hours.
@@ -357,15 +353,15 @@ P.S. Rolling not your thing anymore? Check out our hand pipes for zero-prep sess
 
 {{recommended_products_block}}
 
-These are not random suggestions. They are what other customers who bought similar gear ended up grabbing next.
+Not random suggestions — it's what other customers who bought similar gear ended up grabbing next.
 
 Everything ships from the US with the same careful packaging we used on your last order. Free shipping on qualifying orders.
 
-If none of this is your thing, no worries. We will not keep bugging you.
+If none of this is your thing, no worries. We won't keep bugging you.
 
 — Oil Slick
 
-P.S. Want a personalized recommendation? Reply to this email with what you are looking for and we will point you in the right direction.
+P.S. Want a personalized recommendation? Reply to this email with what you're looking for and we'll point you in the right direction.
         `,
       },
     },
@@ -380,26 +376,26 @@ P.S. Want a personalized recommendation? Reply to this email with what you are l
 
   restockReminder: {
     email: {
-      subject: 'You are probably running low on {{product_title}}',
-      preheader: 'Reorder in 30 seconds before you are stuck without it.',
+      subject: "You're probably running low on {{product_title}}",
+      preheader: "Reorder in 30 seconds before you're stuck without it.",
       body: `
-{{first_name}}, it has been about {{days_since_purchase}} days since you grabbed {{product_title}}.
+{{first_name}}, it's been about {{days_since_purchase}} days since you grabbed {{product_title}}.
 
-If your rotation is anything like ours, you are probably getting close to the bottom.
+If your rotation is anything like ours, you're probably getting close to the bottom.
 
-The bottom line: running out mid-session is the worst. Do not let it happen.
+Running out mid-session is the worst. Don't let it happen.
 
 Reorder the same thing here: {{product_url}}
 
 Same product, same price, ships same-day before 2pm MT.
 
-But here is what most people do not realize — if you want to switch it up, these are solid alternatives that other customers swear by:
+If you want to switch it up, these are solid alternatives that other customers swear by:
 
 {{related_products_block}}
 
 — Oil Slick
 
-P.S. We keep these stocked year-round, but if you ever need something we are out of, reply and we will let you know when it is back.
+P.S. We keep these stocked year-round, but if you ever need something we're out of, reply and we'll let you know when it's back.
       `,
     },
     sms: {
@@ -418,11 +414,11 @@ P.S. We keep these stocked year-round, but if you ever need something we are out
     reminder1: {
       email: {
         subject: 'You forgot this (still saving it for you)',
-        preheader: 'Your cart is not going anywhere — but stock might.',
+        preheader: "Your cart isn't going anywhere — but stock might.",
         body: `
 {{first_name}}, looks like you left before finishing checkout.
 
-No worries — we saved your cart. Here is what is still in it:
+No worries — we saved your cart. Here's what's still in it:
 
 {{#each cart_items}}
   • {{this.title}} — {{this.price}}
@@ -430,7 +426,7 @@ No worries — we saved your cart. Here is what is still in it:
 
 Pick up where you left off: {{checkout_url}}
 
-If you ran into a problem at checkout — a weird error, a question about shipping, anything — just reply to this email. We are around and happy to help.
+If you ran into a problem at checkout — a weird error, a question about shipping, anything — just reply to this email. We're around and happy to help.
 
 — Oil Slick
 
@@ -445,8 +441,8 @@ P.S. If it was a price thing, keep an eye on your inbox. We might have something
     // Part 2: 24 hours after abandonment
     reminder2: {
       email: {
-        subject: 'This is not a marketing email',
-        preheader: 'Just checking if you had a question about your cart.',
+        subject: 'Quick question about your cart',
+        preheader: 'Did something go wrong at checkout? We can help.',
         body: `
 {{first_name}}, still thinking it over?
 
@@ -456,19 +452,19 @@ Your cart at Oil Slick still has:
   • {{this.title}} — {{this.price}}
 {{/each}}
 
-Here is why 10,000+ people have ordered from us since 2012:
+Why 10,000+ people have ordered from us since 2012:
 
-— Every glass piece ships with bubble wrap and foam. We have not had a breakage complaint in months.
+— Every glass piece ships with bubble wrap and foam. Haven't had a breakage complaint in months.
 — Free shipping on qualifying orders. Check if yours qualifies at checkout.
-— We keep our prices competitive. We would rather earn a customer for life than squeeze you on one order.
+— We keep our prices competitive. We'd rather earn a customer for life than squeeze you on one order.
 
 Finish your order: {{checkout_url}}
 
-If the price is what is holding you back, reply to this email. We might be able to work something out.
+If the price is what's holding you back, reply to this email. We might be able to work something out.
 
 — Oil Slick
 
-P.S. Tomorrow is your last chance to grab these at this price before we clear saved carts.
+P.S. Tomorrow's your last chance to grab these at this price before we clear saved carts.
         `,
       },
     },
@@ -487,18 +483,18 @@ Your cart still has:
   • {{this.title}} — {{this.price}}
 {{/each}}
 
-Look — we want you to have this stuff. So here is 10% off:
+Look — we want you to have this stuff. So here's 10% off:
 
 Code: COMEBACK10
 Expires: {{expiry_date_7days}}
 
 Use it here: {{checkout_url}}
 
-After this, we will leave your cart alone. But the code works on anything in the store for the next 7 days if you want to shop around.
+After this, we'll leave your cart alone. But the code works on anything in the store for the next 7 days if you want to shop around.
 
 — Oil Slick
 
-P.S. This code is single-use and expires in 7 days. After that, it is gone for good.
+P.S. This code is single-use and expires in 7 days. After that, it's gone for good.
         `,
       },
       sms: {
@@ -524,15 +520,15 @@ No sales pitch. Just wanted to make sure you saw everything you needed to make a
 
 Take another look: {{browsed_product_url}}
 
-Here is the thing — if you had questions about sizing, joint compatibility, glass thickness, or anything else, reply to this email. We actually know this stuff and can save you from ordering the wrong size.
+If you had questions about sizing, joint compatibility, glass thickness, or anything else — reply to this email. We actually know this stuff and can save you from ordering the wrong size.
 
-If you were comparing options, here are a few similar products our customers like:
+Comparing options? A few similar products our customers like:
 
 {{related_products_block}}
 
 — Oil Slick
 
-P.S. Not sure what you need? Tell us what you are looking for and we will give you an honest recommendation — even if it means pointing you to a cheaper option.
+P.S. Not sure what you need? Tell us what you're looking for and we'll give you an honest recommendation — even if it means pointing you to a cheaper option.
       `,
     },
   },
@@ -550,24 +546,24 @@ P.S. Not sure what you need? Tell us what you are looking for and we will give y
         subject: '7 new things since your last order',
         preheader: 'Plus free shipping this week on orders over $50.',
         body: `
-{{first_name}}, it has been about a month since your last order.
+{{first_name}}, it's been about a month since your last order.
 
-A lot has changed since then. Here is what is new:
+A lot has changed since then. Here's what's new:
 
 {{new_products_block}}
 
-And here is what everyone else is buying right now:
+And here's what everyone else is buying right now:
 {{bestseller_products_block}}
 
-Same deal as always — ships from the US, packed by hand, and if anything is not right we make it right. No runaround.
+Same deal as always — ships from the US, packed by hand, and if anything isn't right we make it right.
 
-We are also running free shipping on orders over $50 this week.
+We're also running free shipping on orders over $50 this week.
 
 Browse new arrivals: {{new_arrivals_url}}
 
 — Oil Slick
 
-P.S. In a few weeks we will have something special for loyal customers. Stay tuned.
+P.S. In a few weeks we'll have something special for loyal customers. Stay tuned.
         `,
       },
     },
@@ -578,25 +574,25 @@ P.S. In a few weeks we will have something special for loyal customers. Stay tun
         subject: 'Been a minute, {{first_name}} — 10% to come back',
         preheader: 'We added a bunch of new glass. Come take a look.',
         body: `
-{{first_name}}, it has been a couple months. No guilt trip — just wanted to make sure you know we are still here.
+{{first_name}}, it's been a couple months. No guilt trip — just wanted to make sure you know we're still here.
 
-Since your last visit we have added:
+Since your last visit we've added:
 — New Made in USA glass pieces from independent blowers
 — Expanded dab accessories with more banger and carb cap options
 — Restocked popular items that were sold out
 
-Here is 10% off if something catches your eye:
+Here's 10% off if something catches your eye:
 
 Code: MISSYOU10
 Expires: {{expiry_date_14days}}
 
 Shop now: {{store_url}}
 
-But here is what most people do not realize — if you left because something went wrong with an order, reply to this email. We take that stuff seriously and genuinely want to make it right.
+And if you left because something went wrong with an order — reply to this email. We take that stuff seriously and want to make it right.
 
 — Oil Slick
 
-P.S. If nothing changes in the next 30 days, we will send you our best offer. Just once. Then we will back off.
+P.S. If nothing changes in the next 30 days, we'll send you our best offer. Just once. Then we'll back off.
         `,
       },
     },
@@ -604,12 +600,12 @@ P.S. If nothing changes in the next 30 days, we will send you our best offer. Ju
     // Part 3: 90 days since last purchase
     lastChance: {
       email: {
-        subject: 'Our best offer — then we will stop emailing',
+        subject: "Our best offer — then we'll stop emailing",
         preheader: '15% off everything. One last shot.',
         body: `
-{{first_name}}, this is the last time we will reach out for a while.
+{{first_name}}, this is the last time we'll reach out for a while.
 
-We do not want to be that store that spams your inbox. So here is our best offer — better than what we give anyone else:
+We don't want to be that store that spams your inbox. So here's our best offer — better than what we give anyone else:
 
 15% off anything in the store:
 
@@ -618,15 +614,15 @@ Expires: {{expiry_date_14days}}
 
 Shop now: {{store_url}}
 
-If you are not interested anymore, that is completely fine. Unsubscribe below and no hard feelings.
+If you're not interested anymore, that's completely fine. Unsubscribe below and no hard feelings.
 
-But if you DO come back, we think you will be surprised by how much we have expanded the catalog since you were last around.
+But if you DO come back, you'll be surprised by how much we've expanded the catalog since you were last around.
 
-Thanks for being a customer in the first place. That matters to us.
+Thanks for being a customer in the first place.
 
 — Kris at Oil Slick
 
-P.S. This 15% code works on everything — including new arrivals and sale items. It is the biggest discount we give outside of birthdays.
+P.S. This 15% code works on everything — including new arrivals and sale items. It's the biggest discount we give outside of birthdays.
         `,
       },
       sms: {
@@ -644,23 +640,23 @@ P.S. This 15% code works on everything — including new arrivals and sale items
   sunsetFlow: {
     email: {
       subject: 'Should we stop emailing you?',
-      preheader: 'Honest question — click one button and you are set either way.',
+      preheader: "Honest question — click one button and you're set either way.",
       body: `
 {{first_name}}, straight up — do you still want to hear from us?
 
-We have not seen you around in a while. We would rather have 500 customers who want our emails than 5,000 who do not.
+Haven't seen you around in a while. We'd rather have 500 customers who want our emails than 5,000 who don't.
 
 If you want to stay on the list:
-Click here and you are all set: {{resubscribe_url}}
+Click here and you're all set: {{resubscribe_url}}
 
-If you are done:
-No need to do anything. We will remove you from our email list in 7 days. You can always come back to oilslickpad.com and sign up again if you change your mind.
+If you're done:
+No need to do anything. We'll remove you from our email list in 7 days. You can always come back to oilslickpad.com and sign up again if you change your mind.
 
 No hard feelings either way.
 
 — Oil Slick
 
-P.S. If you stay, we promise: no more than 2-3 emails per month. New products, real sales, and the occasional discount just for subscribers. That is it.
+P.S. If you stay, we promise: no more than 2-3 emails per month. New products, real sales, and the occasional discount just for subscribers. That's it.
       `,
     },
   },
@@ -675,17 +671,17 @@ P.S. If you stay, we promise: no more than 2-3 emails per month. New products, r
     // Part 1: Immediately after signup
     welcome: {
       email: {
-        subject: 'Your 10% off code is inside (plus what to buy first)',
-        preheader: '700+ products. Here is where to start.',
+        subject: "Your 10% off code is inside (plus what to buy first)",
+        preheader: "700+ products. Here's where to start.",
         body: `
-{{first_name}}, welcome. Here is what you get for signing up:
+{{first_name}}, welcome. Here's what you get for signing up:
 
 10% off your first order:
 
 Code: WELCOME10
 Expires: {{expiry_date_30days}}
 
-Now, here is what is in it for you.
+Now — here's what's in it for you.
 
 We carry 700+ products — bongs, dab rigs, hand pipes, bubblers, rolling papers, vape gear, and every accessory you can think of. All vetted by people who actually use this stuff.
 
@@ -695,13 +691,13 @@ We carry 700+ products — bongs, dab rigs, hand pipes, bubblers, rolling papers
 
 2. We stock a full Made in USA glass collection from independent American glassblowers. Not just Chinese imports with markup.
 
-3. Real people answer emails. If you have a question, email kris@oilslickpad.com and you will get an actual answer from someone who knows the products.
+3. Real people answer emails. If you have a question, email kris@oilslickpad.com and you'll get an actual answer from someone who knows the products.
 
 Browse the shop: {{store_url}}
 
 — Kris and the Oil Slick crew
 
-P.S. In 3 days, we will send you the products everyone is buying right now. If you are not sure where to start, that email will make it easy.
+P.S. In 3 days, we'll send you the products everyone's buying right now. If you're not sure where to start, that email will make it easy.
         `,
       },
       sms: {
@@ -715,13 +711,13 @@ P.S. In 3 days, we will send you the products everyone is buying right now. If y
         subject: 'The 5 things everyone buys first',
         preheader: 'This is where most people start (and why).',
         body: `
-{{first_name}}, remember when we said we would show you what everyone is buying?
+{{first_name}}, remember when we said we'd show you what everyone's buying?
 
-Here are our top sellers right now:
+Our top sellers right now:
 
 {{bestseller_products_block}}
 
-Not sure which category is right for you? Here is the quick breakdown:
+Not sure which category is right for you? Quick breakdown:
 
 Bongs — For flower smokers who want smooth, water-filtered hits. Our most popular category.
 {{link_to_collection_bongs}}
@@ -739,7 +735,7 @@ Your 10% off code WELCOME10 is still active. Just saying.
 
 — Oil Slick
 
-P.S. In a few days we will share some real customer reviews so you can see what people are saying. Spoiler: the packaging gets mentioned a lot.
+P.S. In a few days we'll share some real customer reviews so you can see what people are saying. Spoiler: the packaging gets mentioned a lot.
         `,
       },
     },
@@ -747,10 +743,10 @@ P.S. In a few days we will share some real customer reviews so you can see what 
     // Part 3: 7 days after signup (if no purchase yet)
     trustBuilder: {
       email: {
-        subject: 'Do not just take our word for it',
-        preheader: 'Here is what 3 real customers said after their first order.',
+        subject: "Don't just take our word for it",
+        preheader: "Here's what 3 real customers said after their first order.",
         body: `
-{{first_name}}, we know there are hundreds of smokeshops online. So instead of telling you why we are different, we will let our customers do it:
+{{first_name}}, we know there are hundreds of smokeshops online. So instead of telling you why we're different, we'll let our customers do it:
 
 "Best glass selection online. Ordered a beaker bong and it arrived in perfect condition. Packaging was insane — like three layers of bubble wrap." — Marcus T.
 
@@ -758,17 +754,17 @@ P.S. In a few days we will share some real customer reviews so you can see what 
 
 "I stock my shop with Oil Slick products. Consistent quality, good margins, and they actually communicate when there are delays." — David M.
 
-The bottom line: We have earned those reviews by doing the basics right. Good products. Honest prices. Careful packaging. And responding when people reach out.
+We've earned those reviews by doing the basics right. Good products. Honest prices. Careful packaging. And responding when people reach out.
 
 Your 10% off code WELCOME10 expires in {{days_until_expiry}} days.
 
 Use it here: {{store_url}}
 
-After this, we will dial back the emails. Just the occasional update when we get new products or run a real sale. No spam — we promise.
+After this, we'll dial back the emails. Just the occasional update when we get new products or run a real sale. No spam — we promise.
 
 — Oil Slick
 
-P.S. Still not sure what to get? Reply to this email with your budget and what you are looking for. We will send you a personal recommendation within 24 hours.
+P.S. Still not sure what to get? Reply to this email with your budget and what you're looking for. We'll send you a personal recommendation within 24 hours.
         `,
       },
     },
@@ -782,21 +778,21 @@ P.S. Still not sure what to get? Reply to this email with your budget and what y
 
   vipRecognition: {
     email: {
-      subject: 'This is not a marketing email, {{first_name}}',
-      preheader: 'You have earned something most customers do not get.',
+      subject: "{{first_name}}, this one's personal",
+      preheader: "You've earned something most customers don't get.",
       body: `
 {{first_name}}, real talk.
 
-You have ordered from us {{order_count}} times now. Most people buy once and move on — you keep coming back. That genuinely means a lot to a small operation like ours.
+You've ordered from us {{order_count}} times now. Most people buy once and move on — you keep coming back. That means a lot to a small operation like ours.
 
-So here is what you get for being a real one:
+So here's what you get for being a real one:
 
 15% off your next order — no minimum, no restrictions, no expiration tricks:
 
 Code: VIP15
 Good for: {{expiry_date_60days}}
 
-But here is the part that matters more than the discount.
+But here's the part that matters more than the discount.
 
 From now on, if you need help picking out a piece, want a recommendation, or need to sort out an issue — you go to the front of the line. Reply to this email and it comes straight to Kris.
 
@@ -804,7 +800,7 @@ Thanks for sticking with us.
 
 — Kris and the Oil Slick crew
 
-P.S. We do not have a formal loyalty program with points and tiers. We just take care of the people who take care of us. This code is our way of doing that.
+P.S. We don't have a formal loyalty program with points and tiers. We just take care of the people who take care of us. This code is our way of doing that.
       `,
     },
     sms: {
@@ -825,17 +821,17 @@ P.S. We do not have a formal loyalty program with points and tiers. We just take
       body: `
 {{first_name}}, remember {{product_title}}?
 
-It is back. And you are one of the first to know.
+It's back. And you're one of the first to know.
 
 Grab it here: {{product_url}}
 
-Here is the thing — this one sold out last time, and we can not guarantee how long this batch will last. There are {{waitlist_count}} other people on the notification list.
+This one sold out last time, and we can't guarantee how long this batch will last. There are {{waitlist_count}} other people on the notification list.
 
-If you want it, do not sit on it.
+If you want it, don't sit on it.
 
 — Oil Slick
 
-P.S. If it sells out again before you grab it, reply to this email and we will put you at the top of the next restock list.
+P.S. If it sells out again before you grab it, reply to this email and we'll put you at the top of the next restock list.
       `,
     },
     sms: {
@@ -863,11 +859,11 @@ Now: {{current_price}}
 
 Check it out: {{product_url}}
 
-Now for the important part — we do not do fake markups or inflated "compare at" prices. When we drop a price, it is a real drop. This could change depending on inventory, so if you were on the fence before, now is the time.
+We don't do fake markups or inflated "compare at" prices. When we drop a price, it's a real drop. This could change depending on inventory, so if you were on the fence before, now's the time.
 
 — Oil Slick
 
-P.S. Price drops do not last forever. Once stock at this price is gone, it goes back up.
+P.S. Price drops don't last forever. Once stock at this price is gone, it goes back up.
       `,
     },
     sms: {
@@ -920,17 +916,17 @@ P.S. Seriously — treat yourself. You have been eyeing something in the shop, w
       subject: 'Give your friend 15% off (you get 15% too)',
       preheader: 'The easiest way to hook up a friend and save on your next order.',
       body: `
-{{first_name}}, got a friend who is into glass or smoking gear?
+{{first_name}}, got a friend who's into glass or smoking gear?
 
-Here is how this works:
+Here's how this works:
 
 1. Send them your referral link: {{referral_link}}
 2. They get 15% off their first order.
 3. You get 15% off your next order.
 
-That is it. No catch. No limits on how many people you refer. Every time someone uses your link, you earn another 15% code.
+That's it. No catch. No limits on how many people you refer. Every time someone uses your link, you earn another 15% code.
 
-It is the easiest way to hook up your friends and save yourself money at the same time.
+Easiest way to hook up your friends and save yourself money at the same time.
 
 — Oil Slick
 
@@ -948,13 +944,13 @@ P.S. Some of our best customers came from referrals. Your recommendation carries
   wholesaleFollowUp: {
     email: {
       subject: 'Quick question about your recent order',
-      preheader: 'If you are buying for a shop, we should talk numbers.',
+      preheader: "If you're buying for a shop, we should talk numbers.",
       body: `
 {{first_name}}, we noticed your recent order was on the larger side.
 
 Quick question — are you stocking a retail shop, buying for a lounge, or just someone who likes to buy in bulk?
 
-If any of those apply, we have wholesale pricing that could save you a significant amount on future orders.
+If any of those apply, we've got wholesale pricing that could save you a significant amount on future orders.
 
 What our wholesale customers get:
 — Tiered discounts based on order volume (up to 30% off retail)
@@ -962,9 +958,9 @@ What our wholesale customers get:
 — Dedicated support line for order issues
 — Net terms available for qualified accounts
 
-Here is what most people do not realize — there is no lengthy application or minimum commitment. We keep it simple because we know how shops actually work.
+No lengthy application or minimum commitment. We keep it simple because we know how shops actually work.
 
-Reply to this email or reach out to kris@oilslickpad.com and we will get you set up.
+Reply to this email or reach out to kris@oilslickpad.com and we'll get you set up.
 
 Either way, thanks for the business. We appreciate big orders just as much as small ones.
 
