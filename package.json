@@ -83,7 +83,12 @@
     "bulk-tag:test": "node src/bulk-wholesale-tagger.js --max=5",
     "bulk-tag:product": "node src/bulk-wholesale-tagger.js --product-ids=",
     "bulk-tag:rollback": "node src/bulk-wholesale-tagger.js --rollback",
-    "bulk-tag:reset": "node src/bulk-wholesale-tagger.js --reset-log"
+    "bulk-tag:reset": "node src/bulk-wholesale-tagger.js --reset-log",
+    "image-report": "node src/check-product-images.js",
+    "image-report:strict": "node src/check-product-images.js --threshold=4",
+    "image-report:test": "node src/check-product-images.js --max=10",
+    "image-report:csv": "node src/check-product-images.js --csv",
+    "image-report:product": "node src/check-product-images.js --product-ids="
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
