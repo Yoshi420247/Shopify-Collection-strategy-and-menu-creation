@@ -293,6 +293,9 @@ function validateProduct(product, lookups) {
     'wood ': 'wood',
     'metal ': 'metal',
     'stainless': 'metal',
+    'fep': 'fep',
+    'ptfe': 'ptfe',
+    'parchment': 'parchment',
   };
   for (const [keyword, material] of Object.entries(materialKeywords)) {
     if (titleLower.includes(keyword) && !tags.materials.includes(material)) {
@@ -625,6 +628,16 @@ function inferFamilyFromTitle(titleLower, lookups) {
     { pattern: /\blighter\b/, family: 'lighter' },
     { pattern: /\bscreen\b/, family: 'screen' },
     { pattern: /\bclip\b/, family: 'clip' },
+    // Extraction & Packaging
+    { pattern: /\bfep\b/i, family: 'fep-sheet' },
+    { pattern: /\bptfe\b/i, family: 'ptfe-sheet' },
+    { pattern: /\bparchment\b/, family: 'parchment-sheet' },
+    { pattern: /\bsilicone pad\b/, family: 'silicone-pad' },
+    { pattern: /\bsilicone mat\b/, family: 'silicone-pad' },
+    { pattern: /\bdab mat\b/, family: 'silicone-pad' },
+    { pattern: /\bmylar bag\b/, family: 'mylar-bag' },
+    { pattern: /\bjoint tube\b/, family: 'joint-tube' },
+    { pattern: /\bdoob tube\b/, family: 'joint-tube' },
   ];
 
   for (const { pattern, family } of titlePatterns) {
@@ -880,6 +893,7 @@ async function main() {
       ...config.collections.categories,
       ...config.collections.accessories,
       ...(config.collections.additionalCategories || []),
+      ...(config.collections.extractionCollections || []),
     ];
     // Expand brand/feature collections
     for (const brand of config.collections.brands) {
