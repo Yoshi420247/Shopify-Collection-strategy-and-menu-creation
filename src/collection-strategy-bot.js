@@ -335,6 +335,15 @@ function generateOptimalTags(product, analysis) {
   if (titleLower.includes('titanium') && !optimalTags.has('material:titanium')) {
     optimalTags.add('material:titanium');
   }
+  if (titleLower.includes('fep') && !optimalTags.has('material:fep')) {
+    optimalTags.add('material:fep');
+  }
+  if (titleLower.includes('ptfe') && !optimalTags.has('material:ptfe')) {
+    optimalTags.add('material:ptfe');
+  }
+  if (titleLower.includes('parchment') && !optimalTags.has('material:parchment')) {
+    optimalTags.add('material:parchment');
+  }
 
   return Array.from(optimalTags);
 }
@@ -459,6 +468,7 @@ async function createOrUpdateCollections(existingCollections, dryRun = true) {
     ...config.collections.categories,
     ...config.collections.accessories,
     ...(config.collections.additionalCategories || []),
+    ...(config.collections.extractionCollections || []),
   ];
 
   for (const collectionConfig of allCollections) {

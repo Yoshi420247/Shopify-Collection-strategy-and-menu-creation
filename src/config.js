@@ -28,6 +28,7 @@ export const config = {
       'vaping': 'For vaporizers and e-devices',
       'preparation': 'For preparation (grinders, scales)',
       'storage': 'For storing products',
+      'extraction': 'For extraction surfaces, liners, and packaging',
     },
 
     // Product families - organized by category
@@ -84,6 +85,15 @@ export const config = {
       // Merch
       'merch-pendant': { use: null, pillar: 'merch', display: 'Pendants' },
       'merch-apparel': { use: null, pillar: 'merch', display: 'Apparel' },
+
+      // Extraction & Packaging
+      'fep-sheet': { use: 'extraction', pillar: 'packaging', display: 'FEP Sheets & Rolls' },
+      'ptfe-sheet': { use: 'extraction', pillar: 'packaging', display: 'PTFE Sheets & Rolls' },
+      'silicone-pad': { use: 'extraction', pillar: 'packaging', display: 'Silicone Pads & Mats' },
+      'parchment-sheet': { use: 'extraction', pillar: 'packaging', display: 'Parchment Paper' },
+      'glass-jar': { use: 'storage', pillar: 'packaging', display: 'Glass Jars' },
+      'mylar-bag': { use: 'storage', pillar: 'packaging', display: 'Mylar Bags' },
+      'joint-tube': { use: 'storage', pillar: 'packaging', display: 'Joint Tubes' },
     },
 
     // Expected material associations per family (for cross-validation)
@@ -97,7 +107,7 @@ export const config = {
     },
 
     // Materials (keep these - useful for filtering)
-    materials: ['glass', 'silicone', 'quartz', 'metal', 'borosilicate', 'titanium', 'ceramic', 'wood'],
+    materials: ['glass', 'silicone', 'quartz', 'metal', 'borosilicate', 'titanium', 'ceramic', 'wood', 'fep', 'ptfe', 'parchment'],
 
     // Joint specs (keep these - important for compatibility)
     jointSpecs: {
@@ -464,6 +474,90 @@ export const config = {
         rules: [
           { column: 'tag', relation: 'equals', condition: 'material:silicone' },
           { column: 'tag', relation: 'equals', condition: 'family:container' },
+        ],
+        disjunctive: false,
+      },
+    ],
+
+    // Extraction & Packaging collections (Oil Slick vendor)
+    extractionCollections: [
+      {
+        handle: 'extraction-packaging',
+        title: 'Extraction & Packaging',
+        rules: [
+          { column: 'vendor', relation: 'equals', condition: 'Oil Slick' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'fep-sheets',
+        title: 'FEP Sheets & Rolls',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:fep' },
+          { column: 'vendor', relation: 'equals', condition: 'Oil Slick' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'ptfe-sheets',
+        title: 'PTFE Sheets & Rolls',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:ptfe' },
+          { column: 'vendor', relation: 'equals', condition: 'Oil Slick' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'silicone-pads',
+        title: 'Silicone Pads & Mats',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:silicone-pad' },
+          { column: 'vendor', relation: 'equals', condition: 'Oil Slick' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'parchment-paper',
+        title: 'Parchment Paper',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'material:parchment' },
+          { column: 'vendor', relation: 'equals', condition: 'Oil Slick' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'glass-jars',
+        title: 'Glass Jars',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:glass-jar' },
+          { column: 'vendor', relation: 'equals', condition: 'Oil Slick' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'concentrate-containers',
+        title: 'Concentrate Containers',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:container' },
+          { column: 'vendor', relation: 'equals', condition: 'Oil Slick' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'mylar-bags',
+        title: 'Mylar Bags',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:mylar-bag' },
+          { column: 'vendor', relation: 'equals', condition: 'Oil Slick' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'joint-tubes',
+        title: 'Joint Tubes',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'family:joint-tube' },
+          { column: 'vendor', relation: 'equals', condition: 'Oil Slick' },
         ],
         disjunctive: false,
       },

@@ -430,6 +430,105 @@ const PRODUCT_TAG_FIXES = [
   },
 
   // =====================================================
+  // TIER 4B: Extraction & Packaging materials (FEP, PTFE, parchment, etc.)
+  // =====================================================
+  {
+    titleContains: 'fep sheet',
+    ensureTags: ['material:fep', 'family:fep-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'fep roll',
+    ensureTags: ['material:fep', 'family:fep-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'fep film',
+    ensureTags: ['material:fep', 'family:fep-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'fep liner',
+    ensureTags: ['material:fep', 'family:fep-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  // Catch-all for any FEP product not matched above
+  {
+    titleContains: 'fep',
+    ensureTags: ['material:fep', 'family:fep-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'ptfe sheet',
+    ensureTags: ['material:ptfe', 'family:ptfe-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'ptfe roll',
+    ensureTags: ['material:ptfe', 'family:ptfe-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'ptfe film',
+    ensureTags: ['material:ptfe', 'family:ptfe-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'ptfe liner',
+    ensureTags: ['material:ptfe', 'family:ptfe-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  // Catch-all for any PTFE product not matched above
+  {
+    titleContains: 'ptfe',
+    ensureTags: ['material:ptfe', 'family:ptfe-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'parchment paper',
+    ensureTags: ['material:parchment', 'family:parchment-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'parchment sheet',
+    ensureTags: ['material:parchment', 'family:parchment-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'parchment roll',
+    ensureTags: ['material:parchment', 'family:parchment-sheet', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'silicone pad',
+    ensureTags: ['material:silicone', 'family:silicone-pad', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'silicone mat',
+    ensureTags: ['material:silicone', 'family:silicone-pad', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'dab mat',
+    ensureTags: ['material:silicone', 'family:silicone-pad', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'oil slick pad',
+    ensureTags: ['material:silicone', 'family:silicone-pad', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'oil slick slab',
+    ensureTags: ['material:silicone', 'family:silicone-pad', 'use:extraction', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'mylar bag',
+    ensureTags: ['family:mylar-bag', 'use:storage', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'mylar pouch',
+    ensureTags: ['family:mylar-bag', 'use:storage', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'joint tube',
+    ensureTags: ['family:joint-tube', 'use:storage', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'doob tube',
+    ensureTags: ['family:joint-tube', 'use:storage', 'pillar:packaging'],
+  },
+  {
+    titleContains: 'pre-roll tube',
+    ensureTags: ['family:joint-tube', 'use:storage', 'pillar:packaging'],
+    excludeIfTitleContains: ['paper'],
+  },
+
+  // =====================================================
   // TIER 5: Generic device and accessory patterns
   // =====================================================
   {
@@ -1129,6 +1228,22 @@ async function fixProductTags(dryRun = true) {
       needsUpdate = true;
       logProduct();
       console.log(`    Adding missing tag: material:silicone (inferred from title)`);
+    }
+
+    // --- Cross-validation: FEP products must have material:fep ---
+    if (title.includes('fep') && !newTags.has('material:fep')) {
+      newTags.add('material:fep');
+      needsUpdate = true;
+      logProduct();
+      console.log(`    Adding missing tag: material:fep (inferred from title)`);
+    }
+
+    // --- Cross-validation: PTFE products must have material:ptfe ---
+    if (title.includes('ptfe') && !newTags.has('material:ptfe')) {
+      newTags.add('material:ptfe');
+      needsUpdate = true;
+      logProduct();
+      console.log(`    Adding missing tag: material:ptfe (inferred from title)`);
     }
 
     // --- Guard: silicone products should NOT have rolling-paper tags ---
