@@ -10,7 +10,7 @@ on:
         type: choice
         options:
           - dry-run         # Preview FEP tag changes without applying
-          - execute         # Apply FEP tag fixes and update collections in Shopify
+          - execute         # Apply FEP tag fixes to Oil Slick products in Shopify
 
 jobs:
   fix-fep-tags:
@@ -30,18 +30,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Fix FEP Product Tags
+      - name: Fix FEP Product Tags (Oil Slick only)
         env:
           SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
         run: |
-          echo "=== Step 1: Fix FEP/PTFE/extraction product tags ==="
+          echo "=== Tagging Oil Slick FEP/PTFE/extraction products ==="
           if [ "${{ inputs.action }}" == "execute" ]; then
-            echo "Applying FEP product tag fixes..."
-            node src/collection-cleanup.js --execute --fix-tags --validate
+            echo "Applying FEP product tag fixes to Oil Slick products..."
+            node src/fix-fep-tags.js --execute
           else
-            echo "Dry run - previewing FEP tag changes..."
-            node src/collection-cleanup.js --fix-tags --validate
+            echo "Dry run - previewing FEP tag changes (Oil Slick only)..."
+            node src/fix-fep-tags.js
           fi
 
       - name: Update Extraction Collections
@@ -49,7 +49,7 @@ jobs:
           SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
         run: |
-          echo "=== Step 2: Create/update extraction collections ==="
+          echo "=== Create/update extraction collection rules ==="
           if [ "${{ inputs.action }}" == "execute" ]; then
             echo "Creating/updating extraction collections..."
             node src/collection-strategy-bot.js --execute --skip-tags --skip-menus
@@ -65,13 +65,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Scope:** Oil Slick vendor products only" >> $GITHUB_STEP_SUMMARY
           echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ inputs.action }}" == "execute" ]; then
-            echo "### Tags Applied" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "FEP/PTFE/extraction product tags have been updated." >> $GITHUB_STEP_SUMMARY
+            echo "### Tags Applied (Oil Slick products only)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**What was fixed:**" >> $GITHUB_STEP_SUMMARY
             echo "- Added \`material:fep\` to all FEP sheet/roll/film/liner products" >> $GITHUB_STEP_SUMMARY
@@ -79,7 +78,9 @@ jobs:
             echo "- Added \`material:parchment\` to all parchment paper products" >> $GITHUB_STEP_SUMMARY
             echo "- Added \`family:fep-sheet\`, \`family:ptfe-sheet\`, \`family:silicone-pad\`, etc." >> $GITHUB_STEP_SUMMARY
             echo "- Added \`use:extraction\` and \`pillar:packaging\` tags" >> $GITHUB_STEP_SUMMARY
-            echo "- Created/updated extraction collection rules (fep-sheets, ptfe-sheets, etc.)" >> $GITHUB_STEP_SUMMARY
+            echo "- Created/updated extraction collection rules" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "> **Note:** Only Oil Slick vendor products were modified. What You Need and Cloud YHS products were NOT touched." >> $GITHUB_STEP_SUMMARY
           else
             echo "This was a **dry run**. No changes were made." >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -87,18 +88,18 @@ jobs:
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Collections Updated" >> $GITHUB_STEP_SUMMARY
+          echo "### Extraction Collections" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Collection | Rule |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| FEP Sheets & Rolls | \`material:fep\` + vendor:Oil Slick |" >> $GITHUB_STEP_SUMMARY
-          echo "| PTFE Sheets & Rolls | \`material:ptfe\` + vendor:Oil Slick |" >> $GITHUB_STEP_SUMMARY
-          echo "| Silicone Pads & Mats | \`family:silicone-pad\` + vendor:Oil Slick |" >> $GITHUB_STEP_SUMMARY
-          echo "| Parchment Paper | \`material:parchment\` + vendor:Oil Slick |" >> $GITHUB_STEP_SUMMARY
-          echo "| Glass Jars | \`family:glass-jar\` + vendor:Oil Slick |" >> $GITHUB_STEP_SUMMARY
-          echo "| Concentrate Containers | \`family:container\` + vendor:Oil Slick |" >> $GITHUB_STEP_SUMMARY
-          echo "| Mylar Bags | \`family:mylar-bag\` + vendor:Oil Slick |" >> $GITHUB_STEP_SUMMARY
-          echo "| Joint Tubes | \`family:joint-tube\` + vendor:Oil Slick |" >> $GITHUB_STEP_SUMMARY
+          echo "| Collection | Tag Filter | Vendor |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| FEP Sheets & Rolls | \`material:fep\` | Oil Slick |" >> $GITHUB_STEP_SUMMARY
+          echo "| PTFE Sheets & Rolls | \`material:ptfe\` | Oil Slick |" >> $GITHUB_STEP_SUMMARY
+          echo "| Silicone Pads & Mats | \`family:silicone-pad\` | Oil Slick |" >> $GITHUB_STEP_SUMMARY
+          echo "| Parchment Paper | \`material:parchment\` | Oil Slick |" >> $GITHUB_STEP_SUMMARY
+          echo "| Glass Jars | \`family:glass-jar\` | Oil Slick |" >> $GITHUB_STEP_SUMMARY
+          echo "| Concentrate Containers | \`family:container\` | Oil Slick |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mylar Bags | \`family:mylar-bag\` | Oil Slick |" >> $GITHUB_STEP_SUMMARY
+          echo "| Joint Tubes | \`family:joint-tube\` | Oil Slick |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
