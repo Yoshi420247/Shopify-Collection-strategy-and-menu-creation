@@ -119,18 +119,20 @@ async function assignMenusToHeader(settings, dryRun = true) {
 
   const header = sections.header.settings;
   const mainHandle = config.menuStructure.main.handle;
-  const sidebarHandle = config.menuStructure.sidebar.handle;
 
   console.log(`\nCurrent menu assignments:`);
   console.log(`  main_linklist: ${header.main_linklist || '(not set)'}`);
   console.log(`  main_linklist2: ${header.main_linklist2 || '(not set)'}`);
   console.log(`\nNew menu assignments:`);
   console.log(`  main_linklist → ${mainHandle}`);
-  console.log(`  main_linklist2 → ${sidebarHandle}`);
+  console.log(`  main_linklist2 → '' (empty — sidebar-menu is for mobile drawer only, not the header)`);
 
   if (!dryRun) {
     header.main_linklist = mainHandle;
-    header.main_linklist2 = sidebarHandle;
+    // Do NOT assign sidebar-menu to main_linklist2 — the theme renders both
+    // linklists in the header nav bar, which causes the menu to appear twice.
+    // The sidebar-menu is used by the mobile drawer (assigned separately in theme).
+    header.main_linklist2 = '';
     sections.header.settings = header;
     settings.current.sections = sections;
     log('  Menu handles assigned to header.', 'green');
