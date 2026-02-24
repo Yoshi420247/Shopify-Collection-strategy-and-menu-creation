@@ -16,6 +16,8 @@
     "menu:auto:execute": "node src/auto-menu-setup.js --execute",
     "menu:auto:main": "node src/auto-menu-setup.js --menu=main",
     "menu:auto:sidebar": "node src/auto-menu-setup.js --menu=sidebar",
+    "menu:auto:cleanup": "node src/auto-menu-setup.js --cleanup",
+    "menu:auto:cleanup:execute": "node src/auto-menu-setup.js --cleanup --execute",
     "menu:nav": "node src/menu-navigator.js",
     "menu:nav:collections": "node src/menu-navigator.js --collections",
     "menu:nav:menus": "node src/menu-navigator.js --menus",

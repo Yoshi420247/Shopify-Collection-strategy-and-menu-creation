@@ -10,6 +10,8 @@
  *   npm run menu:auto:execute      # Apply all menus to Shopify
  *   npm run menu:auto -- --menu=main     # Only main menu
  *   npm run menu:auto -- --menu=sidebar  # Only sidebar menu
+ *   npm run menu:auto -- --cleanup       # Only delete legacy menus (dry run)
+ *   npm run menu:auto -- --cleanup --execute  # Delete legacy menus for real
  */
 
 import 'dotenv/config';
@@ -359,11 +361,63 @@ async function processMenu(menuDef, existingMenus, dryRun) {
   return result;
 }
 
+// ─── Delete legacy menus listed in config.legacyMenusToDelete ────────
+async function cleanupLegacyMenus(existingMenus, dryRun) {
+  const legacyHandles = config.legacyMenusToDelete || [];
+  if (legacyHandles.length === 0) {
+    log('\nNo legacy menus configured for deletion.', 'dim');
+    return;
+  }
+
+  log(`\n${'═'.repeat(60)}`, 'bright');
+  log('  LEGACY MENU CLEANUP', 'bright');
+  log(`${'═'.repeat(60)}`, 'bright');
+
+  const toDelete = existingMenus.filter(m => legacyHandles.includes(m.handle));
+  const notFound = legacyHandles.filter(h => !existingMenus.some(m => m.handle === h));
+
+  if (notFound.length > 0) {
+    log(`\n  ${notFound.length} legacy menu(s) already removed:`, 'dim');
+    for (const h of notFound) {
+      console.log(`    ${C.dim}✓ ${h}${C.reset}`);
+    }
+  }
+
+  if (toDelete.length === 0) {
+    log('\n  All legacy menus already cleaned up.', 'green');
+    return;
+  }
+
+  log(`\n  ${toDelete.length} legacy menu(s) to delete:`, 'yellow');
+  for (const m of toDelete) {
+    console.log(`    ${C.red}✗${C.reset} ${m.handle} — "${m.title}" (${m.id})`);
+  }
+
+  if (dryRun) {
+    log('\n  [DRY RUN] No menus deleted.', 'yellow');
+    return;
+  }
+
+  for (const m of toDelete) {
+    log(`\n  Deleting "${m.title}" (${m.handle})...`, 'yellow');
+    const deleted = await deleteMenu(m.id);
+    if (deleted) {
+      log(`    ✓ Deleted`, 'green');
+    } else {
+      log(`    ✗ Failed to delete`, 'red');
+    }
+    await sleep(500);
+  }
+
+  log(`\n  Legacy menu cleanup complete.`, 'green');
+}
+
 // ─── Main ───────────────────────────────────────────────────────────
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = !args.includes('--execute');
   const menuFilter = args.find(a => a.startsWith('--menu='))?.split('=')[1];
+  const cleanupOnly = args.includes('--cleanup');
 
   if (!STORE_URL || !ACCESS_TOKEN) {
     log('\nError: SHOPIFY_STORE_URL and SHOPIFY_ACCESS_TOKEN must be set in .env', 'red');
@@ -380,38 +434,42 @@ async function main() {
     log('  Mode: EXECUTING CHANGES', 'green');
   }
 
-  if (menuFilter) {
+  if (cleanupOnly) {
+    log('  Task: Legacy menu cleanup only', 'cyan');
+  } else if (menuFilter) {
     log(`  Filter: ${menuFilter} menu only`, 'cyan');
   }
 
   try {
-    const menuDefs = config.menuStructure;
-    const menusToProcess = [];
-
-    if (!menuFilter || menuFilter === 'main') {
-      menusToProcess.push(menuDefs.main);
-    }
-    if (!menuFilter || menuFilter === 'sidebar') {
-      menusToProcess.push(menuDefs.sidebar);
+    // Fetch existing menus (needed for replace and cleanup)
+    log('\nFetching existing menus from Shopify...', 'cyan');
+    const existingMenus = await fetchExistingMenus();
+    for (const m of existingMenus) {
+      console.log(`  ${m.handle} — "${m.title}"`);
     }
 
-    if (menusToProcess.length === 0) {
-      log(`\nNo menu matching "${menuFilter}" found in config.`, 'red');
-      process.exit(1);
-    }
+    // Always run legacy menu cleanup (before menu updates)
+    await cleanupLegacyMenus(existingMenus, dryRun);
 
-    // Fetch existing menus (needed for replace)
-    let existingMenus = [];
-    if (!dryRun) {
-      log('\nFetching existing menus from Shopify...', 'cyan');
-      existingMenus = await fetchExistingMenus();
-      for (const m of existingMenus) {
-        console.log(`  ${m.handle} — "${m.title}"`);
+    if (!cleanupOnly) {
+      const menuDefs = config.menuStructure;
+      const menusToProcess = [];
+
+      if (!menuFilter || menuFilter === 'main') {
+        menusToProcess.push(menuDefs.main);
       }
-    }
+      if (!menuFilter || menuFilter === 'sidebar') {
+        menusToProcess.push(menuDefs.sidebar);
+      }
 
-    for (const menuDef of menusToProcess) {
-      await processMenu(menuDef, existingMenus, dryRun);
+      if (menusToProcess.length === 0) {
+        log(`\nNo menu matching "${menuFilter}" found in config.`, 'red');
+        process.exit(1);
+      }
+
+      for (const menuDef of menusToProcess) {
+        await processMenu(menuDef, existingMenus, dryRun);
+      }
     }
 
     log('\n' + '═'.repeat(70), 'bright');
@@ -419,11 +477,13 @@ async function main() {
       log('DRY RUN COMPLETE — run with --execute to apply', 'yellow');
     } else {
       log('ALL MENUS APPLIED', 'green');
-      console.log('\nNext steps:');
-      console.log('1. Go to Shopify Admin → Online Store → Navigation');
-      console.log('2. Verify the menus appear correctly');
-      console.log('3. In Theme Customizer → Header, assign the main menu');
-      console.log('4. In Theme Customizer → Drawer/Sidebar, assign the sidebar menu');
+      if (!cleanupOnly) {
+        console.log('\nNext steps:');
+        console.log('1. Go to Shopify Admin → Online Store → Navigation');
+        console.log('2. Verify the menus appear correctly');
+        console.log('3. In Theme Customizer → Header, assign the main menu');
+        console.log('4. In Theme Customizer → Drawer/Sidebar, assign the sidebar menu');
+      }
     }
     log('═'.repeat(70), 'bright');
 

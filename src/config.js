@@ -693,6 +693,8 @@ export const config = {
           ],
         },
         {
+          // TODO: Create a dedicated /collections/brands landing page so this
+          // has a fallback URL instead of '#' (dropdown-only, no click target)
           title: 'Brands',
           url: '#',
           children: [
@@ -714,6 +716,8 @@ export const config = {
           ],
         },
         {
+          // TODO: Create a dedicated /collections/featured landing page so this
+          // has a fallback URL instead of '#' (dropdown-only, no click target)
           title: 'Featured',
           url: '#',
           children: [
@@ -796,6 +800,7 @@ export const config = {
           ],
         },
         {
+          // TODO: Create a dedicated /collections/brands landing page
           title: 'Brands',
           url: '#',
           children: [
@@ -817,6 +822,7 @@ export const config = {
           ],
         },
         {
+          // TODO: Create a dedicated /collections/featured landing page
           title: 'Featured',
           url: '#',
           children: [
@@ -836,6 +842,23 @@ export const config = {
       ],
     },
   },
+
+  // Legacy menus to delete — these are outdated/duplicate menus still in Shopify
+  // that should be removed. Only main-menu, sidebar-menu, and footer are needed.
+  legacyMenusToDelete: [
+    'online-headshop',      // Old version of main menu, missing many current items
+    'smoke-vape-menu',      // Outdated standalone Smoke & Vape menu
+    'smoke-vape',           // Another Smoke & Vape duplicate with wrong categorization
+    'accessories',          // Legacy accessories dropdown, missing 6+ sub-categories
+    'brands',               // Old brands dropdown with only 6 of 15 brands
+    'silicone-pipes',       // Orphan references to silicone sub-collections
+    'quick-links',          // References orphan collections
+    'quick-filters',        // 17 orphan filter references, sidebar is disabled
+    'filter-by-price',      // Duplicate of quick-filters price section
+    'filter-by-material',   // Duplicate of quick-filters material section
+    'filter-by-use',        // Duplicate of quick-filters use section
+    'shop-by-type',         // Duplicate of quick-filters type section
+  ],
 
   // Tags to remove (obsolete/redundant)
   // URL redirects: legacy/dead collection URLs → correct active collection URLs
@@ -898,9 +921,9 @@ export const config = {
     // =====================================================
     // Duplicate accessory/rolling collections
     // =====================================================
-    { from: '/collections/rolling-accessories', to: '/collections/rolling-papers' },
+    { from: '/collections/rolling-accessories', to: '/collections/rolling-papers-cones' },
     { from: '/collections/ash-catchers-downstems', to: '/collections/ash-catchers' },
-    { from: '/collections/papers', to: '/collections/rolling-papers' },
+    { from: '/collections/papers', to: '/collections/rolling-papers-cones' },
     { from: '/collections/spoons', to: '/collections/hand-pipes' },
 
     // =====================================================
