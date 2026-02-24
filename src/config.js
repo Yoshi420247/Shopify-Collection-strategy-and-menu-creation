@@ -717,6 +717,9 @@ export const config = {
           title: 'Featured',
           url: '#',
           children: [
+            { title: 'New Arrivals', url: '/collections/new-arrivals' },
+            { title: 'Best Sellers', url: '/collections/best-sellers' },
+            { title: 'On Sale', url: '/collections/on-sale' },
             { title: 'Heady Glass', url: '/collections/heady-glass' },
             { title: 'Made In USA', url: '/collections/made-in-usa' },
             { title: 'Novelty & Character Pipes', url: '/collections/novelty-character-pipes' },
@@ -817,6 +820,9 @@ export const config = {
           title: 'Featured',
           url: '#',
           children: [
+            { title: 'New Arrivals', url: '/collections/new-arrivals' },
+            { title: 'Best Sellers', url: '/collections/best-sellers' },
+            { title: 'On Sale', url: '/collections/on-sale' },
             { title: 'Heady Glass', url: '/collections/heady-glass' },
             { title: 'Made In USA', url: '/collections/made-in-usa' },
             { title: 'Novelty & Character Pipes', url: '/collections/novelty-character-pipes' },

@@ -216,9 +216,38 @@ async function fetchExistingMenus() {
   return result.data?.menus?.edges?.map(e => e.node) || [];
 }
 
-// ─── Delete + recreate a menu ───────────────────────────────────────
-async function replaceMenu(menuId, items, title, handle) {
-  // Delete existing
+// ─── Update a menu in-place (preserves handle) ─────────────────────
+async function updateMenu(menuId, items, title) {
+  // menuUpdate uses MenuItemUpdateInput (not MenuItemCreateInput)
+  // Omitting item IDs causes Shopify to replace all items with the new set
+  const updateMutation = `
+    mutation menuUpdate($id: ID!, $title: String!, $items: [MenuItemUpdateInput!]!) {
+      menuUpdate(id: $id, title: $title, items: $items) {
+        menu {
+          id
+          title
+          handle
+        }
+        userErrors { field message }
+      }
+    }
+  `;
+
+  const result = await graphqlRequest(updateMutation, { id: menuId, title, items });
+
+  if (result.data?.menuUpdate?.userErrors?.length > 0) {
+    log('\nErrors:', 'red');
+    for (const error of result.data.menuUpdate.userErrors) {
+      console.log(`  ${error.field}: ${error.message}`);
+    }
+    return null;
+  }
+
+  return result.data?.menuUpdate?.menu;
+}
+
+// ─── Delete a menu by ID ────────────────────────────────────────────
+async function deleteMenu(menuId) {
   const deleteMutation = `
     mutation menuDelete($id: ID!) {
       menuDelete(id: $id) {
@@ -231,16 +260,13 @@ async function replaceMenu(menuId, items, title, handle) {
   try {
     const deleteResult = await graphqlRequest(deleteMutation, { id: menuId });
     if (deleteResult.data?.menuDelete?.deletedMenuId) {
-      log(`  Deleted existing menu: ${menuId}`, 'yellow');
+      log(`  Deleted menu: ${menuId}`, 'yellow');
+      return true;
     }
   } catch (e) {
     log(`  Could not delete menu: ${e.message}`, 'yellow');
   }
-
-  await sleep(1000);
-
-  // Create new
-  return await createMenu(items, title, handle);
+  return false;
 }
 
 async function createMenu(items, title, handle) {
@@ -295,13 +321,28 @@ async function processMenu(menuDef, existingMenus, dryRun) {
     graphqlItems.push(await convertItem(item));
   }
 
-  // Find existing menu by handle
+  // Find existing menu by handle (exact match first, then prefix match for duplicates)
   const existing = existingMenus.find(m => m.handle === menuDef.handle);
+
+  // Also find and delete any duplicates (e.g. main-menu-1, main-menu-2)
+  const duplicates = existingMenus.filter(m =>
+    m.handle !== menuDef.handle &&
+    m.handle.match(new RegExp(`^${menuDef.handle}-\\d+$`))
+  );
+
+  if (duplicates.length > 0) {
+    log(`\nCleaning up ${duplicates.length} duplicate menu(s)...`, 'yellow');
+    for (const dup of duplicates) {
+      log(`  Deleting duplicate "${dup.title}" (${dup.handle}, ${dup.id})...`, 'yellow');
+      await deleteMenu(dup.id);
+      await sleep(500);
+    }
+  }
 
   let result;
   if (existing) {
-    log(`\nReplacing existing menu "${existing.title}" (${existing.id})...`, 'cyan');
-    result = await replaceMenu(existing.id, graphqlItems, menuDef.title, menuDef.handle);
+    log(`\nUpdating existing menu "${existing.title}" (${existing.id}) in-place...`, 'cyan');
+    result = await updateMenu(existing.id, graphqlItems, menuDef.title);
   } else {
     log(`\nCreating new menu "${menuDef.title}"...`, 'cyan');
     result = await createMenu(graphqlItems, menuDef.title, menuDef.handle);
@@ -310,7 +351,6 @@ async function processMenu(menuDef, existingMenus, dryRun) {
   if (result) {
     log(`\n✓ ${menuDef.title} applied successfully!`, 'green');
     console.log(`  ID: ${result.id}`);
-    console.log(`  Handle: ${result.handle}`);
     console.log(`  Handle: ${result.handle}`);
   } else {
     log(`\n✗ Failed to apply ${menuDef.title}`, 'red');
