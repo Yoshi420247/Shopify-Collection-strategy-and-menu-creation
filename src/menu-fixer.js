@@ -9,6 +9,9 @@
 import 'dotenv/config';
 import { config } from './config.js';
 import { execSync } from 'child_process';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 const STORE_URL = process.env.SHOPIFY_STORE_URL || config.shopify.storeUrl;
 const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN || config.shopify.accessToken;
@@ -51,17 +54,26 @@ function log(message, color = 'reset') {
 }
 
 function curlRequest(url, method = 'GET', body = null) {
-  let cmd = `curl -s --max-time 60 -X ${method} "${url}" `;
+  let cmd = `curl -s --max-time 120 -X ${method} "${url}" `;
   cmd += `-H "X-Shopify-Access-Token: ${ACCESS_TOKEN}" `;
   cmd += `-H "Content-Type: application/json" `;
 
+  let tmpFile = null;
   if (body) {
-    const escapedBody = JSON.stringify(body).replace(/'/g, "'\\''");
-    cmd += `-d '${escapedBody}'`;
+    // Write body to temp file to avoid ENAMETOOLONG on large payloads
+    tmpFile = path.join(os.tmpdir(), `shopify-body-${Date.now()}.json`);
+    fs.writeFileSync(tmpFile, JSON.stringify(body));
+    cmd += `-d @${tmpFile}`;
   }
 
-  const result = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
-  return JSON.parse(result);
+  try {
+    const result = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
+    return JSON.parse(result);
+  } finally {
+    if (tmpFile) {
+      try { fs.unlinkSync(tmpFile); } catch (_) {}
+    }
+  }
 }
 
 async function getThemeSettings() {
@@ -137,74 +149,24 @@ async function configureMegaMenus(settings, dryRun = true) {
   const current = settings.current || {};
   const sections = current.sections || {};
 
-  // Configure Mega Menu 1 for "Smoke & Vape" / "Smoking Devices"
+  // Disable mega menus — they override standard dropdowns with broken sub-menu references.
+  // The standard dropdown behavior will show children from the main menu data instead.
   const megaMenu1Config = {
     type: 'mega-menu-1',
     settings: {
-      parent: 'smoking-devices'  // This should match the menu item handle
+      parent: ''
     },
-    blocks: {
-      'smoke-devices-col1': {
-        type: 'column',
-        settings: {
-          richtext_top: '<h4>Smoking Devices</h4>',
-          menu_1: 'smoking-devices-menu',
-          menu_1_link: '/collections/smoke-and-vape'
-        }
-      },
-      'smoke-devices-col2': {
-        type: 'column',
-        settings: {
-          richtext_top: '<h4>Concentrate Devices</h4>',
-          menu_1: 'concentrate-devices-menu',
-          menu_1_link: '/collections/dab-rigs'
-        }
-      },
-      'smoke-devices-col3': {
-        type: 'column',
-        settings: {
-          richtext_top: '<h4>Featured</h4>',
-          menu_1: 'featured-menu',
-          menu_1_link: '/collections/made-in-usa'
-        }
-      }
-    },
-    block_order: ['smoke-devices-col1', 'smoke-devices-col2', 'smoke-devices-col3']
+    blocks: {},
+    block_order: []
   };
 
-  // Configure Mega Menu 2 for "Accessories"
   const megaMenu2Config = {
     type: 'mega-menu-2',
     settings: {
-      parent: 'accessories'
+      parent: ''
     },
-    blocks: {
-      'accessories-col1': {
-        type: 'column',
-        settings: {
-          richtext_top: '<h4>Dab Accessories</h4>',
-          menu_1: 'dab-accessories-menu',
-          menu_1_link: '/collections/quartz-bangers'
-        }
-      },
-      'accessories-col2': {
-        type: 'column',
-        settings: {
-          richtext_top: '<h4>Flower Accessories</h4>',
-          menu_1: 'flower-accessories-menu',
-          menu_1_link: '/collections/flower-bowls'
-        }
-      },
-      'accessories-col3': {
-        type: 'column',
-        settings: {
-          richtext_top: '<h4>Brands</h4>',
-          menu_1: 'brands-menu',
-          menu_1_link: '/collections/monark'
-        }
-      }
-    },
-    block_order: ['accessories-col1', 'accessories-col2', 'accessories-col3']
+    blocks: {},
+    block_order: []
   };
 
   if (dryRun) {
@@ -218,9 +180,9 @@ async function configureMegaMenus(settings, dryRun = true) {
     sections['mega-menu-1'] = megaMenu1Config;
     sections['mega-menu-2'] = megaMenu2Config;
 
-    // Enable mega menus
-    current.mega_menu_1 = true;
-    current.mega_menu_2 = true;
+    // Disable mega menus — let standard dropdowns render from menu children
+    current.mega_menu_1 = false;
+    current.mega_menu_2 = false;
 
     settings.current = current;
     settings.current.sections = sections;
@@ -293,8 +255,6 @@ Go to Shopify Admin → Online Store → Navigation:
   console.log(instructions);
 
   // Also save to a file
-  const fs = await import('fs');
-  const path = await import('path');
   const guidePath = path.join(process.cwd(), 'MENU_SETUP_GUIDE.md');
   fs.writeFileSync(guidePath, `# Menu Setup Guide\n${instructions}`);
   log(`\nInstructions saved to ${guidePath}`, 'green');
