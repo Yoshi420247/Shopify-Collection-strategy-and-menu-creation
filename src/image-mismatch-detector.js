@@ -3,7 +3,7 @@
 // images don't match the actual product (wrong product photos mixed in).
 //
 // Uses Gemini Flash (cheap) or Claude Sonnet (accurate) for vision analysis.
-import Anthropic from '@anthropic-ai/sdk';
+import { createMessage } from './anthropic-client.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { PRICING } from './variant-analyzer.js';
 
@@ -172,8 +172,6 @@ async function analyzeWithGemini(product, imageData, apiKey) {
 // ── Sonnet analysis ───────────────────────────────────────────────────────────
 
 async function analyzeWithSonnet(product, imageData, apiKey) {
-  const anthropic = new Anthropic({ apiKey });
-
   const messageContent = [];
   for (let i = 0; i < imageData.length; i++) {
     messageContent.push({ type: 'text', text: `Image ${i + 1}:` });
@@ -184,7 +182,7 @@ async function analyzeWithSonnet(product, imageData, apiKey) {
   }
   messageContent.push({ type: 'text', text: buildMismatchPrompt(product) });
 
-  const response = await anthropic.messages.create({
+  const response = await createMessage(apiKey, {
     model: SONNET_MODEL,
     max_tokens: 1024,
     messages: [{ role: 'user', content: messageContent }],

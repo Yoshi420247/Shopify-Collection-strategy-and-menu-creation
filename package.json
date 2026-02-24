@@ -95,7 +95,7 @@
     "image-report:product": "node src/check-product-images.js --product-ids="
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "@anthropic-ai/sdk": "^0.78.0",
     "@google/generative-ai": "^0.24.1",
     "@shopify/shopify-api": "^9.0.0",
     "dotenv": "^16.3.1",
