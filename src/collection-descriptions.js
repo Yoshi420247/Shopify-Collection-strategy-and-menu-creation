@@ -483,6 +483,88 @@ const collectionDescriptions = {
 `,
 
   // ===========================
+  // NEW: ACCESSORY SUB-LANDING PAGES
+  // ===========================
+
+  'dab-accessories': `
+<h2>Dab Accessories - Bangers, Carb Caps, Dab Tools &amp; Torches</h2>
+<p>Everything you need to complete your dab rig setup, all in one place. Our dab accessories collection brings together quartz bangers, carb caps, dab tools, torches, and other concentrate-specific gear so you can find exactly what you need without sorting through flower accessories you do not care about.</p>
+<p>Dabbing requires more specialized equipment than flower smoking. You need a banger or nail to vaporize your concentrates, a carb cap to control airflow and pressure, a dab tool to handle sticky extracts, and a torch to heat everything up. Each piece plays a role in the quality of your dab - cheap out on any one of them and you will notice the difference.</p>
+<h3>Building the Perfect Dab Setup</h3>
+<p>Start with a quality quartz banger that matches your rig's joint size and gender. Add a carb cap - spinner caps with terp pearls are the current gold standard for full vaporization. Grab a dab tool with the right tip shape for your preferred concentrate consistency. And invest in a reliable torch from brands like Maven or Scorch that will ignite every time without fail.</p>
+<p>If you already have a rig and just need to upgrade or replace individual components, use the sub-collections below to jump straight to the category you need.</p>
+`,
+
+  'flower-accessories': `
+<h2>Flower Accessories - Bowls, Ash Catchers, Downstems &amp; More</h2>
+<p>Upgrade your bong or water pipe with our full selection of flower smoking accessories. This collection covers everything that goes with a flower piece - replacement bowls, ash catchers for cleaner water, downstems for better diffusion, grinders for consistent grinding, and all the small parts that make a difference in your daily sessions.</p>
+<p>Whether you need to replace a broken bowl, add an ash catcher to keep your bong cleaner, or upgrade your downstem to a diffused version for smoother hits, this is where to start. All accessories are organized by joint size and gender so finding compatible parts for your specific piece is straightforward.</p>
+<h3>Most Replaced Flower Accessories</h3>
+<p>Flower bowls and downstems are the two most frequently replaced bong parts. Bowls crack from heat stress, and downstems break during cleaning. Keep a spare of each on hand so you are never stuck without a working piece. Ash catchers are the most popular upgrade - once you see how much cleaner your bong water stays with one, you will wonder why you waited.</p>
+<p>For rolling enthusiasts, we also carry papers, cones, rolling trays, and grinders in this section.</p>
+`,
+
+  // ===========================
+  // NEW: MISSING HIGH-VALUE COLLECTIONS
+  // ===========================
+
+  'novelty-character-pipes': `
+<h2>Novelty &amp; Character Pipes - Fun, Unique Smoking Pieces</h2>
+<p>Sometimes you want a pipe that does more than just work well - you want one that makes people smile. Our novelty and character pipe collection features over 100 fun, creative smoking pieces shaped like animals, characters, food, and other unexpected designs. These are fully functional glass pipes and rigs that happen to double as conversation pieces and shelf art.</p>
+<p>From octopus rigs and dinosaur pipes to mushroom bubblers and alien hand pipes, our glassblowers have turned just about every concept into a smokeable piece of art. Every piece is hand-made from borosilicate glass, so you get the same quality and flavor as a standard pipe with a lot more personality.</p>
+<h3>Great Gift Options</h3>
+<p>Novelty pipes make some of the best gifts in our entire store. They are personal, unique, and functional - the trifecta of a good present. Whether someone is into cats, skulls, sea creatures, or pop culture references, there is probably a pipe in this collection that matches their vibe.</p>
+<h3>Collectible Quality</h3>
+<p>Many of our character pipes feature detailed lampwork, color layering, and sculptural techniques that qualify as heady glass art. These are not cheap novelty items - they are well-made functional pieces that happen to have creative, eye-catching designs. Some of the more intricate pieces are one-of-a-kind and will not be restocked once sold.</p>
+`,
+
+  'glass-pendants': `
+<h2>Glass Pendants - Wearable Glass Art by Independent Artists</h2>
+<p>Our glass pendant collection features handmade borosilicate glass pendants created by skilled lampwork artists. Each pendant is a miniature work of functional art - crafted using the same techniques glassblowers use on pipes and rigs, scaled down to wearable size. Fuming, millies, wig wag patterns, encasements, and sculptural designs are all represented here.</p>
+<p>Glass pendants have deep roots in smoking culture. They are wearable signals of appreciation for the glass art community, and many collectors wear their favorites as daily jewelry. Every pendant in this collection is unique - no two are exactly alike because each is individually handmade.</p>
+<h3>Materials and Durability</h3>
+<p>Our pendants are made from borosilicate glass, the same durable material used in our pipes and rigs. While glass pendants should be treated with care, they are tougher than they look. Most come ready to string on a cord, chain, or hemp necklace. They make excellent gifts for anyone who appreciates glass art, whether they smoke or not.</p>
+`,
+
+  'cleaning-supplies': `
+<h2>Cleaning Supplies - Glass Cleaners &amp; Pipe Cleaning Accessories</h2>
+<p>A clean piece hits better, tastes better, and lasts longer. Our cleaning supplies collection has everything you need to keep your glass bongs, rigs, pipes, and accessories spotless - from cleaning solutions and brushes to plugs and soaking supplies.</p>
+<p>Regular cleaning is the single best thing you can do for your smoking experience. Resin buildup restricts airflow, traps bacteria, and ruins the flavor of your smoke. A quick clean every few sessions keeps your piece performing like new and extends its lifespan significantly.</p>
+<h3>Cleaning Tips</h3>
+<p>For glass pieces, isopropyl alcohol (91% or higher) with coarse salt is the classic method. Pour it in, cover the openings, shake vigorously, and rinse with warm water. For stubborn buildup, let the piece soak for 30 minutes before shaking. Our dedicated glass cleaners offer even faster results with less effort. Pipe cleaners and brushes are essential for reaching downstems and narrow passages.</p>
+`,
+
+  'adapters': `
+<h2>Adapters &amp; Drop Downs - Joint Converters for Bongs &amp; Rigs</h2>
+<p>Adapters and drop downs solve one of the most common compatibility problems in glass - mismatched joint sizes and genders. Need to use a 14mm bowl on an 18mm bong? There is an adapter for that. Want to lower your banger away from your rig to prevent heat damage? That is what a drop down does.</p>
+<p>Our adapter collection includes size converters (10mm, 14mm, 18mm), gender converters (male to female, female to male), and drop down adapters that extend your joint downward to protect your rig from torch heat. These small, affordable accessories can make any bong or rig compatible with any bowl or banger.</p>
+<h3>Drop Downs for Dab Rigs</h3>
+<p>Drop downs are especially popular with dabbers. They move the banger further from your rig's joint, which prevents the intense torch heat from reaching and potentially cracking the glass on your rig. They also reclaim any concentrate that runs down during a dab, keeping your rig cleaner. If you dab regularly, a drop down is a smart investment in your rig's longevity.</p>
+`,
+
+  // ===========================
+  // NEW: BRAND COLLECTIONS
+  // ===========================
+
+  'peaselburg': `
+<h2>Peaselburg Glass - Handcrafted American Glass Art</h2>
+<p>Peaselburg brings a distinctive artistic vision to functional glass. Their pieces feature bold colors, unique shapes, and the kind of craftsmanship that comes from years of dedicated lampworking. Each piece is handmade with attention to detail that you can see and feel.</p>
+<p>Our Peaselburg collection includes hand pipes, pendants, and specialty pieces. If you appreciate glass art that stands out from production-line pieces, Peaselburg delivers originality and quality in every creation.</p>
+`,
+
+  'only-quartz': `
+<h2>Only Quartz - Premium Quartz Bangers &amp; Dab Accessories</h2>
+<p>Only Quartz specializes in one thing and does it well - high-quality quartz bangers and dab accessories. Their bangers are cut from genuine quartz crystal with precise tolerances that ensure a proper seal with your rig's joint. Clean welds, consistent wall thickness, and smooth finishes set Only Quartz apart from generic imported bangers.</p>
+<p>Browse our Only Quartz selection for flat tops, beveled edges, terp slurpers, and specialty banger designs. If your dab setup deserves better quartz, this is where to find it.</p>
+`,
+
+  'eo-vape': `
+<h2>EO Vape - Electronic Vaporizer Devices &amp; Accessories</h2>
+<p>EO Vape produces electronic smoking devices designed for concentrate and dry herb vaporization. Their products focus on delivering consistent, flavorful vapor through well-engineered heating systems and intuitive controls.</p>
+<p>Our EO Vape collection features their vaporizers and compatible accessories. If you are looking for an electronic option that balances performance with affordability, EO Vape offers a solid entry point into the world of electronic vaporization.</p>
+`,
+
+  // ===========================
   // ADDITIONAL CATEGORIES
   // ===========================
 
