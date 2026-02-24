@@ -894,6 +894,7 @@ async function main() {
       ...config.collections.accessories,
       ...(config.collections.additionalCategories || []),
       ...(config.collections.extractionCollections || []),
+      ...(config.collections.featured || []),
     ];
     // Expand brand/feature collections
     for (const brand of config.collections.brands) {

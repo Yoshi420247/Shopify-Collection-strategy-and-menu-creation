@@ -81,9 +81,18 @@ function getActiveCollectionHandles() {
     handles.add(feature.handle);
   }
 
+  // Featured/curated collections
+  for (const col of (config.collections.featured || [])) {
+    handles.add(col.handle);
+  }
+
+  // Extraction collections
+  for (const col of (config.collections.extractionCollections || [])) {
+    handles.add(col.handle);
+  }
+
   // Special
   handles.add('all');
-  handles.add('clearance');
 
   return handles;
 }

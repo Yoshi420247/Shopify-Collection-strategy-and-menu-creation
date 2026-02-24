@@ -226,6 +226,16 @@ export const config = {
         ],
         disjunctive: false,
       },
+      // Vapes & Electronics - includes vape devices + vape accessories (batteries, carts, etc.)
+      {
+        handle: 'vapes-electronics',
+        title: 'Vapes & Electronics',
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'use:vaping' },
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+      },
     ],
 
     // Accessory collections - split into sub-landing pages + individual categories
@@ -356,15 +366,7 @@ export const config = {
         ],
         disjunctive: false,
       },
-      {
-        handle: 'vapes-electronics',
-        title: 'Vapes & Electronics',
-        rules: [
-          { column: 'tag', relation: 'equals', condition: 'use:vaping' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
-        ],
-        disjunctive: false,
-      },
+      // NOTE: vapes-electronics moved to categories array (it's a device category in menu, not an accessory)
       {
         handle: 'storage-containers',
         title: 'Storage & Containers',
@@ -443,6 +445,49 @@ export const config = {
       { handle: 'gifts', title: 'Gifts', tag: 'style:gift' },
     ],
 
+    // Featured/curated collections — referenced in menu under "Featured"
+    featured: [
+      {
+        handle: 'new-arrivals',
+        title: 'New Arrivals',
+        // Sort by date added (newest first) — no date filter rule available in Shopify
+        // automated collections; rely on sort_order = 'created-descending'
+        rules: [
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+        sortOrder: 'created-descending',
+      },
+      {
+        handle: 'best-sellers',
+        title: 'Best Sellers',
+        // Sort by best-selling — Shopify sort_order = 'best-selling'
+        rules: [
+          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
+        ],
+        disjunctive: false,
+        sortOrder: 'best-selling',
+      },
+      {
+        handle: 'on-sale',
+        title: 'On Sale',
+        // Products with a compare-at price (i.e. currently discounted)
+        rules: [
+          { column: 'variant_compare_at_price', relation: 'greater_than', condition: '0' },
+        ],
+        disjunctive: false,
+      },
+      {
+        handle: 'clearance',
+        title: 'Clearance',
+        // Tag-based: products marked for clearance
+        rules: [
+          { column: 'tag', relation: 'equals', condition: 'clearance' },
+        ],
+        disjunctive: false,
+      },
+    ],
+
     // Additional category collections
     additionalCategories: [
       {
@@ -465,16 +510,7 @@ export const config = {
         ],
         disjunctive: false,
       },
-      {
-        handle: 'electric-grinders',
-        title: 'Electric Grinders',
-        rules: [
-          { column: 'tag', relation: 'equals', condition: 'family:grinder' },
-          { column: 'tag', relation: 'equals', condition: 'style:electric' },
-          { column: 'vendor', relation: 'equals', condition: 'What You Need' },
-        ],
-        disjunctive: false,
-      },
+      // REMOVED: electric-grinders — 0 products, style:electric not defined in taxonomy, moved to toDelete
       {
         handle: 'non-stick-silicone-dab-containers',
         title: 'Non-Stick Silicone Dab Containers',
@@ -624,6 +660,8 @@ export const config = {
       'silicone-water-pipes',   // 2 products - consolidated into silicone-rigs-bongs
       'silicone-smoking-devices', // Superset overlap with silicone-rigs-bongs
       'made-in-usa-glass',      // 90%+ overlap with made-in-usa
+      // Dead collections (0 products, undefined tags)
+      'electric-grinders',      // style:electric not defined in taxonomy, 0 products
     ],
   },
 
@@ -1001,6 +1039,11 @@ export const config = {
     // Legacy browsing paths → new collections
     // =====================================================
     { from: '/collections/pendants-collection', to: '/collections/glass-pendants' },
+
+    // =====================================================
+    // Dead collections (0 products) → parent category
+    // =====================================================
+    { from: '/collections/electric-grinders', to: '/collections/grinders' },
   ],
 
   tagsToRemove: [
