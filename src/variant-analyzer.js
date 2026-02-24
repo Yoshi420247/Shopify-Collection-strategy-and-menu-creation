@@ -1,7 +1,7 @@
 // AI-powered product variant analyzer
 // Default: Gemini Flash for both screening and analysis (~$0.50/1000 products)
 // Escalates to Sonnet only for low-confidence results
-import Anthropic from '@anthropic-ai/sdk';
+import { createMessage } from './anthropic-client.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const SONNET_MODEL = 'claude-sonnet-4-5-20250929';
@@ -189,8 +189,6 @@ async function analyzeWithGemini(product, imageData, apiKey) {
 // ── Sonnet analysis ───────────────────────────────────────────────────────────
 
 async function analyzeWithSonnet(product, imageData, apiKey) {
-  const anthropic = new Anthropic({ apiKey });
-
   const messageContent = [
     ...imageData.map(img => ({
       type: 'image',
@@ -199,7 +197,7 @@ async function analyzeWithSonnet(product, imageData, apiKey) {
     { type: 'text', text: buildAnalysisPrompt(product) },
   ];
 
-  const response = await anthropic.messages.create({
+  const response = await createMessage(apiKey, {
     model: SONNET_MODEL,
     max_tokens: 1024,
     messages: [{ role: 'user', content: messageContent }],
@@ -368,9 +366,7 @@ async function screenWithGemini(imgData, apiKey) {
 }
 
 async function screenWithHaiku(imgData, apiKey) {
-  const anthropic = new Anthropic({ apiKey });
-
-  const response = await anthropic.messages.create({
+  const response = await createMessage(apiKey, {
     model: HAIKU_MODEL,
     max_tokens: 150,
     messages: [{
