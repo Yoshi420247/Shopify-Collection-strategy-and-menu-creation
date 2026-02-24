@@ -9,6 +9,9 @@
 import 'dotenv/config';
 import { config } from './config.js';
 import { execSync } from 'child_process';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 const STORE_URL = process.env.SHOPIFY_STORE_URL || config.shopify.storeUrl;
 const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN || config.shopify.accessToken;
@@ -51,17 +54,26 @@ function log(message, color = 'reset') {
 }
 
 function curlRequest(url, method = 'GET', body = null) {
-  let cmd = `curl -s --max-time 60 -X ${method} "${url}" `;
+  let cmd = `curl -s --max-time 120 -X ${method} "${url}" `;
   cmd += `-H "X-Shopify-Access-Token: ${ACCESS_TOKEN}" `;
   cmd += `-H "Content-Type: application/json" `;
 
+  let tmpFile = null;
   if (body) {
-    const escapedBody = JSON.stringify(body).replace(/'/g, "'\\''");
-    cmd += `-d '${escapedBody}'`;
+    // Write body to temp file to avoid ENAMETOOLONG for large payloads
+    tmpFile = path.join(os.tmpdir(), `shopify-body-${Date.now()}.json`);
+    fs.writeFileSync(tmpFile, JSON.stringify(body));
+    cmd += `-d @${tmpFile}`;
   }
 
-  const result = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
-  return JSON.parse(result);
+  try {
+    const result = execSync(cmd, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 });
+    return JSON.parse(result);
+  } finally {
+    if (tmpFile) {
+      try { fs.unlinkSync(tmpFile); } catch {}
+    }
+  }
 }
 
 async function getThemeSettings() {
