@@ -10,8 +10,30 @@ import 'dotenv/config';
 import { config } from './config.js';
 import { execSync } from 'child_process';
 
-const BASE_URL = `https://${config.shopify.storeUrl}/admin/api/${config.shopify.apiVersion}`;
-const THEME_ID = '140853018904'; // Active theme
+const STORE_URL = process.env.SHOPIFY_STORE_URL || config.shopify.storeUrl;
+const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN || config.shopify.accessToken;
+const API_VERSION = process.env.SHOPIFY_API_VERSION || config.shopify.apiVersion;
+const BASE_URL = `https://${STORE_URL}/admin/api/${API_VERSION}`;
+
+// Auto-detect active theme instead of hardcoding
+let THEME_ID = null;
+
+async function getActiveThemeId() {
+  if (THEME_ID) return THEME_ID;
+
+  log('\nDetecting active theme...', 'cyan');
+  const response = curlRequest(`${BASE_URL}/themes.json`);
+  const themes = response.themes || [];
+  const active = themes.find(t => t.role === 'main');
+
+  if (!active) {
+    throw new Error('No active (main) theme found');
+  }
+
+  THEME_ID = active.id;
+  log(`  Active theme: "${active.name}" (ID: ${THEME_ID})`, 'green');
+  return THEME_ID;
+}
 
 // ANSI colors
 const colors = {
@@ -30,7 +52,7 @@ function log(message, color = 'reset') {
 
 function curlRequest(url, method = 'GET', body = null) {
   let cmd = `curl -s --max-time 60 -X ${method} "${url}" `;
-  cmd += `-H "X-Shopify-Access-Token: ${config.shopify.accessToken}" `;
+  cmd += `-H "X-Shopify-Access-Token: ${ACCESS_TOKEN}" `;
   cmd += `-H "Content-Type: application/json" `;
 
   if (body) {
@@ -43,20 +65,22 @@ function curlRequest(url, method = 'GET', body = null) {
 }
 
 async function getThemeSettings() {
+  const themeId = await getActiveThemeId();
   log('\nFetching current theme settings...', 'cyan');
 
   const response = curlRequest(
-    `${BASE_URL}/themes/${THEME_ID}/assets.json?asset%5Bkey%5D=config/settings_data.json`
+    `${BASE_URL}/themes/${themeId}/assets.json?asset%5Bkey%5D=config/settings_data.json`
   );
 
   return JSON.parse(response.asset.value);
 }
 
 async function updateThemeSettings(settings) {
+  const themeId = await getActiveThemeId();
   log('\nUpdating theme settings...', 'cyan');
 
   const response = curlRequest(
-    `${BASE_URL}/themes/${THEME_ID}/assets.json`,
+    `${BASE_URL}/themes/${themeId}/assets.json`,
     'PUT',
     {
       asset: {
@@ -67,6 +91,42 @@ async function updateThemeSettings(settings) {
   );
 
   return response;
+}
+
+async function assignMenusToHeader(settings, dryRun = true) {
+  log('\n' + '='.repeat(70), 'bright');
+  log('ASSIGNING MENUS TO THEME HEADER', 'bright');
+  log('='.repeat(70), 'bright');
+
+  const current = settings.current || {};
+  const sections = current.sections || {};
+
+  if (!sections.header) {
+    sections.header = { type: 'header', settings: {} };
+  }
+
+  const header = sections.header.settings;
+  const mainHandle = config.menuStructure.main.handle;
+  const sidebarHandle = config.menuStructure.sidebar.handle;
+
+  console.log(`\nCurrent menu assignments:`);
+  console.log(`  main_linklist: ${header.main_linklist || '(not set)'}`);
+  console.log(`  main_linklist2: ${header.main_linklist2 || '(not set)'}`);
+  console.log(`\nNew menu assignments:`);
+  console.log(`  main_linklist → ${mainHandle}`);
+  console.log(`  main_linklist2 → ${sidebarHandle}`);
+
+  if (!dryRun) {
+    header.main_linklist = mainHandle;
+    header.main_linklist2 = sidebarHandle;
+    sections.header.settings = header;
+    settings.current.sections = sections;
+    log('  Menu handles assigned to header.', 'green');
+  } else {
+    log('\n  [DRY RUN] No changes applied.', 'yellow');
+  }
+
+  return settings;
 }
 
 async function configureMegaMenus(settings, dryRun = true) {
@@ -154,7 +214,7 @@ async function configureMegaMenus(settings, dryRun = true) {
     console.log('\nMega Menu 2 Config:');
     console.log(JSON.stringify(megaMenu2Config, null, 2));
   } else {
-    // Update settings
+    // Update settings (saved later in main())
     sections['mega-menu-1'] = megaMenu1Config;
     sections['mega-menu-2'] = megaMenu2Config;
 
@@ -165,12 +225,7 @@ async function configureMegaMenus(settings, dryRun = true) {
     settings.current = current;
     settings.current.sections = sections;
 
-    try {
-      await updateThemeSettings(settings);
-      log('\nMega menus configured successfully!', 'green');
-    } catch (error) {
-      log(`\nError updating settings: ${error.message}`, 'red');
-    }
+    log('\nMega menu config staged (will be saved with other changes).', 'green');
   }
 }
 
@@ -239,8 +294,10 @@ Go to Shopify Admin → Online Store → Navigation:
 
   // Also save to a file
   const fs = await import('fs');
-  fs.writeFileSync('/home/user/Shopify-Collection-strategy-and-menu-creation/MENU_SETUP_GUIDE.md', `# Menu Setup Guide\n${instructions}`);
-  log('\nInstructions saved to MENU_SETUP_GUIDE.md', 'green');
+  const path = await import('path');
+  const guidePath = path.join(process.cwd(), 'MENU_SETUP_GUIDE.md');
+  fs.writeFileSync(guidePath, `# Menu Setup Guide\n${instructions}`);
+  log(`\nInstructions saved to ${guidePath}`, 'green');
 }
 
 async function analyzeCurrentMenus() {
@@ -290,8 +347,21 @@ async function main() {
     // Analyze current menus
     const settings = await analyzeCurrentMenus();
 
+    // Assign menu handles to theme header
+    await assignMenusToHeader(settings, dryRun);
+
     // Configure mega menus
     await configureMegaMenus(settings, dryRun);
+
+    // Save all theme changes in one write
+    if (!dryRun) {
+      try {
+        await updateThemeSettings(settings);
+        log('\nAll theme settings applied successfully!', 'green');
+      } catch (error) {
+        log(`\nError updating theme settings: ${error.message}`, 'red');
+      }
+    }
 
     // Generate instructions
     await generateMenuInstructions();
@@ -302,7 +372,6 @@ async function main() {
 
     if (dryRun) {
       log('\nRun with --execute to apply theme changes.', 'yellow');
-      log('Manual navigation menu setup is required in Shopify Admin.', 'yellow');
     }
 
   } catch (error) {
