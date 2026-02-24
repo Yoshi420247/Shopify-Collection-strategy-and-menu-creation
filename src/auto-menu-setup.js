@@ -206,7 +206,6 @@ async function fetchExistingMenus() {
             id
             title
             handle
-            itemsCount
           }
         }
       }
@@ -252,7 +251,6 @@ async function createMenu(items, title, handle) {
           id
           title
           handle
-          itemsCount
         }
         userErrors { field message }
       }
@@ -313,7 +311,7 @@ async function processMenu(menuDef, existingMenus, dryRun) {
     log(`\n✓ ${menuDef.title} applied successfully!`, 'green');
     console.log(`  ID: ${result.id}`);
     console.log(`  Handle: ${result.handle}`);
-    console.log(`  Items: ${result.itemsCount}`);
+    console.log(`  Handle: ${result.handle}`);
   } else {
     log(`\n✗ Failed to apply ${menuDef.title}`, 'red');
   }
@@ -368,7 +366,7 @@ async function main() {
       log('\nFetching existing menus from Shopify...', 'cyan');
       existingMenus = await fetchExistingMenus();
       for (const m of existingMenus) {
-        console.log(`  ${m.handle} — "${m.title}" (${m.itemsCount} items)`);
+        console.log(`  ${m.handle} — "${m.title}"`);
       }
     }
 

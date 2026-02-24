@@ -86,7 +86,7 @@ async function fetchAllCollections() {
               id
               title
               handle
-              productsCount
+              productsCount { count }
               updatedAt
               ruleSet { rules { column relation condition } }
             }
@@ -98,7 +98,10 @@ async function fetchAllCollections() {
     const result = await graphqlRequest(query);
     const edges = result.data?.collections?.edges || [];
     for (const edge of edges) {
-      collections.push(edge.node);
+      const node = edge.node;
+      // Normalize productsCount from { count: N } to plain number
+      node.productsCount = node.productsCount?.count ?? 0;
+      collections.push(node);
       cursor = edge.cursor;
     }
 
@@ -119,7 +122,6 @@ async function fetchMenus() {
             id
             title
             handle
-            itemsCount
             items {
               title
               type
@@ -196,7 +198,7 @@ async function cmdMenus() {
   const menus = await fetchMenus();
 
   for (const menu of menus) {
-    log(`\n${menu.title} (handle: ${menu.handle}, ${menu.itemsCount} items)`, 'cyan');
+    log(`\n${menu.title} (handle: ${menu.handle}, ${menu.items?.length || 0} top-level items)`, 'cyan');
     log(`  ID: ${menu.id}`, 'dim');
 
     for (const item of menu.items) {
