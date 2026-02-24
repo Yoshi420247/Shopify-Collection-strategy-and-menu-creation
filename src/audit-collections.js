@@ -140,7 +140,8 @@ const COLLECTION_AUDIT_RULES = {
     requiredTag: 'family:flower-bowl',
     titleKeywords: ['flower bowl', 'bowl piece', 'slide bowl', 'glass bowl', 'funnel bowl',
                     'snapper bowl', 'push bowl'],
-    excludeKeywords: ['grinder'],
+    // Exclude hand pipes that "come with" a glass bowl - they aren't standalone bowls
+    excludeKeywords: ['grinder', 'hand pipe', 'w/ glass bowl', 'w/ bowl'],
     description: 'Flower bowls / slide bowls for bongs',
   },
   'ash-catchers': {
@@ -179,8 +180,11 @@ const COLLECTION_AUDIT_RULES = {
   'vapes-electronics': {
     requiredTag: 'use:vaping',
     titleKeywords: ['vape', '510 battery', 'vaporizer', 'e-rig', 'electric rig',
-                    'lookah', 'puffco', 'g pen', 'g-pen', 'cbd battery', 'battery device'],
-    excludeKeywords: ['vape cleaner'],
+                    'cbd battery', 'battery device'],
+    // NOTE: 'lookah' and 'puffco' removed as keywords because they match brand accessories
+    // (carb caps, pendants) that aren't vapes. Lookah/Puffco DEVICES are caught by
+    // 'vaporizer', 'electric rig', 'vape', and mAh-based detection.
+    excludeKeywords: ['vape cleaner', 'pendant', 'carb cap', 'necklace'],
     description: 'Vapes, batteries, and electronic smoking devices',
   },
   'storage-containers': {
