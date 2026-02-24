@@ -180,51 +180,59 @@ async function generateMenuInstructions() {
   log('='.repeat(70), 'bright');
 
   const instructions = `
-To complete the menu setup, go to Shopify Admin → Online Store → Navigation:
+AUTOMATED MENU TOOLS (recommended):
+────────────────────────────────────
+  npm run menu:nav              # Full inspection report
+  npm run menu:nav:validate     # Verify config vs store
+  npm run menu:auto             # Preview menu changes (dry run)
+  npm run menu:auto:execute     # Apply all menus to Shopify
 
-1. CREATE OR EDIT THE MAIN MENU (best-selling):
-   ─────────────────────────────────────────────
-   • Extraction & Packaging → /collections/extraction-packaging
+MANUAL SETUP (if automated tools unavailable):
+───────────────────────────────────────────────
+Go to Shopify Admin → Online Store → Navigation:
+
+1. MAIN MENU (handle: main-menu):
+   • Shop All → /collections/all
    • Smoke & Vape → /collections/smoke-and-vape
      ├── Bongs & Water Pipes → /collections/bongs-water-pipes
      ├── Dab Rigs → /collections/dab-rigs
      ├── Hand Pipes → /collections/hand-pipes
      ├── Bubblers → /collections/bubblers
      ├── Nectar Collectors → /collections/nectar-collectors
-     └── One Hitters & Chillums → /collections/one-hitters-chillums
+     ├── One Hitters & Chillums → /collections/one-hitters-chillums
+     ├── Steamrollers → /collections/steamrollers
+     ├── Silicone Pieces → /collections/silicone-rigs-bongs
+     ├── Vapes & Electronics → /collections/vapes-electronics
+     └── Shop All Smoke & Vape → /collections/smoke-and-vape
    • Accessories → /collections/accessories
      ├── Quartz Bangers → /collections/quartz-bangers
      ├── Carb Caps → /collections/carb-caps
      ├── Dab Tools → /collections/dab-tools
      ├── Flower Bowls → /collections/flower-bowls
      ├── Ash Catchers → /collections/ash-catchers
+     ├── Adapters & Drop Downs → /collections/adapters
+     ├── Ashtrays → /collections/ashtrays
      ├── Torches → /collections/torches
      ├── Grinders → /collections/grinders
-     └── Rolling Papers → /collections/rolling-papers
-   • Brands
-     ├── Monark → /collections/monark
-     ├── Zig Zag → /collections/zig-zag
-     ├── Cookies → /collections/cookies
-     ├── Maven → /collections/maven
-     ├── Vibes → /collections/vibes
-     └── RAW → /collections/raw
-   • Clearance → /collections/clearance
+     └── Rolling Papers & Cones → /collections/rolling-papers-cones
+   • Extraction & Packaging → /collections/extraction-packaging
+   • Brands → # (dropdown with all brand collections)
+     ├── RAW, Zig Zag, Vibes, Elements, Cookies, Monark, Maven
+     ├── Puffco, Lookah, G Pen, 710 SCI, Scorch
+     └── Peaselburg, Only Quartz, EO Vape
+   • Featured → # (dropdown)
+     ├── Heady Glass, Made In USA, Travel Friendly
+     ├── Pendants & Merch, Glass Pendants
+     └── Gifts, Clearance
 
-2. UPDATE HOMEPAGE BUTTONS:
-   ─────────────────────────
-   • "Extraction & Packaging" button → /collections/extraction-packaging
-   • "Smoke & Vape" button → /collections/smoke-and-vape
-
-3. FIX BROKEN MENU LINKS:
+2. FIX BROKEN MENU LINKS:
    ───────────────────────
-   Any menu items showing 404 should be updated to the collections above.
+   • rolling-papers → rolling-papers-cones (canonical collection)
+   • Any 404s should be updated to the collections above.
 
-4. OPTIONAL - MEGA MENU SETUP:
-   ───────────────────────────
+3. MEGA MENU (optional):
    In Theme Customizer → Header → Mega Menus:
-   • Enable Mega Menu 1
-   • Set Parent to match "Smoke & Vape" menu handle
-   • Configure columns with sub-menus
+   • Enable and configure columns with sub-menus
 `;
 
   console.log(instructions);
