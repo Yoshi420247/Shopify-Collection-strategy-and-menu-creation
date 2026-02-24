@@ -289,6 +289,12 @@ const PRODUCT_TAG_FIXES = [
     titleContains: 'silicone ashtray',
     ensureTags: ['material:silicone', 'family:ashtray', 'use:flower-smoking', 'pillar:accessory'],
   },
+  // Generic ashtray (non-silicone) - MUST come after silicone ashtray
+  {
+    titleContains: 'ashtray',
+    ensureTags: ['family:ashtray', 'use:flower-smoking', 'pillar:accessory'],
+    excludeIfTitleContains: ['ash catcher', 'ashcatcher'],
+  },
   {
     titleContains: 'silicone container',
     ensureTags: ['material:silicone', 'family:container', 'use:storage', 'pillar:accessory'],
@@ -311,7 +317,8 @@ const PRODUCT_TAG_FIXES = [
   },
   {
     titleContains: 'glass pipe',
-    ensureTags: ['material:glass', 'use:flower-smoking', 'pillar:smokeshop-device'],
+    ensureTags: ['material:glass', 'family:spoon-pipe', 'use:flower-smoking', 'pillar:smokeshop-device'],
+    excludeIfTitleContains: ['water pipe'],
   },
   {
     titleContains: 'glass rig',
@@ -319,7 +326,7 @@ const PRODUCT_TAG_FIXES = [
   },
   {
     titleContains: 'glass jar',
-    ensureTags: ['material:glass', 'family:container', 'use:storage', 'pillar:accessory'],
+    ensureTags: ['material:glass', 'family:glass-jar', 'use:storage', 'pillar:packaging'],
   },
 
   // =====================================================
@@ -517,6 +524,15 @@ const PRODUCT_TAG_FIXES = [
     ensureTags: ['family:glass-rig', 'use:dabbing', 'pillar:smokeshop-device'],
   },
   {
+    titleContains: 'oil rig',
+    ensureTags: ['family:glass-rig', 'use:dabbing', 'pillar:smokeshop-device'],
+    excludeIfTitleContains: ['oil container', 'oil jar', 'oil slick'],
+  },
+  {
+    titleContains: 'mini rig',
+    ensureTags: ['family:glass-rig', 'use:dabbing', 'pillar:smokeshop-device'],
+  },
+  {
     titleContains: 'nectar collector',
     ensureTags: ['family:nectar-collector', 'use:dabbing', 'pillar:smokeshop-device'],
   },
@@ -525,11 +541,23 @@ const PRODUCT_TAG_FIXES = [
     ensureTags: ['family:nectar-collector', 'use:dabbing', 'pillar:smokeshop-device'],
   },
   {
+    titleContains: 'nectar straw',
+    ensureTags: ['family:nectar-collector', 'use:dabbing', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'dab straw',
+    ensureTags: ['family:nectar-collector', 'use:dabbing', 'pillar:smokeshop-device'],
+  },
+  {
     titleContains: 'bubbler',
     ensureTags: ['family:bubbler', 'use:flower-smoking', 'pillar:smokeshop-device'],
   },
   {
     titleContains: 'one hitter',
+    ensureTags: ['family:chillum-onehitter', 'use:flower-smoking', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'one-hitter',
     ensureTags: ['family:chillum-onehitter', 'use:flower-smoking', 'pillar:smokeshop-device'],
   },
   {
@@ -546,6 +574,18 @@ const PRODUCT_TAG_FIXES = [
   },
   {
     titleContains: 'carb cap',
+    ensureTags: ['family:carb-cap', 'use:dabbing', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'directional cap',
+    ensureTags: ['family:carb-cap', 'use:dabbing', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'spinner cap',
+    ensureTags: ['family:carb-cap', 'use:dabbing', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'bubble cap',
     ensureTags: ['family:carb-cap', 'use:dabbing', 'pillar:accessory'],
   },
   {
@@ -569,7 +609,19 @@ const PRODUCT_TAG_FIXES = [
     ensureTags: ['family:ash-catcher', 'use:flower-smoking', 'pillar:accessory'],
   },
   {
+    titleContains: 'ashcatcher',
+    ensureTags: ['family:ash-catcher', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  {
     titleContains: 'downstem',
+    ensureTags: ['family:downstem', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'down stem',
+    ensureTags: ['family:downstem', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'diffuser stem',
     ensureTags: ['family:downstem', 'use:flower-smoking', 'pillar:accessory'],
   },
   {
@@ -578,6 +630,28 @@ const PRODUCT_TAG_FIXES = [
   },
   {
     titleContains: 'bowl piece',
+    ensureTags: ['family:flower-bowl', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  // Glass bowls (slide bowls for bongs) - "Big 9 holes glass bowl" etc.
+  {
+    titleContains: 'glass bowl',
+    ensureTags: ['material:glass', 'family:flower-bowl', 'use:flower-smoking', 'pillar:accessory'],
+    excludeIfTitleContains: ['bong', 'water pipe'],
+  },
+  {
+    titleContains: 'slide bowl',
+    ensureTags: ['family:flower-bowl', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'snapper bowl',
+    ensureTags: ['family:flower-bowl', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'funnel bowl',
+    ensureTags: ['family:flower-bowl', 'use:flower-smoking', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'push bowl',
     ensureTags: ['family:flower-bowl', 'use:flower-smoking', 'pillar:accessory'],
   },
   // Adapter / dropdown products (missing from original list)
@@ -606,6 +680,26 @@ const PRODUCT_TAG_FIXES = [
     titleContains: 'cleaning solution',
     ensureTags: ['family:cleaning-supply', 'pillar:accessory'],
   },
+  {
+    titleContains: 'bong cleaner',
+    ensureTags: ['family:cleaning-supply', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'grunge off',
+    ensureTags: ['family:cleaning-supply', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'res gel',
+    ensureTags: ['family:cleaning-supply', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'isopropyl',
+    ensureTags: ['family:cleaning-supply', 'pillar:accessory'],
+  },
+  {
+    titleContains: 'cleaning brush',
+    ensureTags: ['family:cleaning-supply', 'pillar:accessory'],
+  },
   // Vapes
   {
     titleContains: 'vape battery',
@@ -619,10 +713,25 @@ const PRODUCT_TAG_FIXES = [
     titleContains: 'vape pen',
     ensureTags: ['family:vape-battery', 'use:vaping', 'pillar:smokeshop-device'],
   },
+  // CBD battery devices (Cloud YHS products like "Monster internal CBD battery device")
+  {
+    titleContains: 'cbd battery',
+    ensureTags: ['family:vape-battery', 'use:vaping', 'pillar:smokeshop-device'],
+  },
+  {
+    titleContains: 'battery device',
+    ensureTags: ['family:vape-battery', 'use:vaping', 'pillar:smokeshop-device'],
+  },
   // Generic banger (after specific quartz/titanium/ceramic patterns)
   {
     titleContains: 'banger',
     ensureTags: ['family:banger', 'use:dabbing', 'pillar:accessory'],
+  },
+  // Generic bong (without "glass" prefix) - silicone handled in TIER 2
+  {
+    titleContains: 'bong',
+    ensureTags: ['family:glass-bong', 'use:flower-smoking', 'pillar:smokeshop-device'],
+    excludeIfTitleContains: ['silicone', 'bong cleaner'],
   },
   // Beaker bongs (silicone beakers handled in TIER 2)
   {
