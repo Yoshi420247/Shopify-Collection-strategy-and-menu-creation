@@ -44,38 +44,9 @@ function logSection(title) {
 
 // Collections that are broken and need rule fixes
 const BROKEN_COLLECTIONS = {
-  'silicone-pipes': {
-    issue: 'Missing material:silicone rule - matches ALL 751 products',
-    fix: {
-      rules: [
-        { column: 'vendor', relation: 'equals', condition: 'What You Need' },
-        { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-        { column: 'tag', relation: 'equals', condition: 'family:spoon-pipe' },
-      ],
-      disjunctive: false,
-    },
-  },
-  'silicone-water-pipes': {
-    issue: 'Missing material:silicone rule - matches ALL 751 products',
-    fix: {
-      rules: [
-        { column: 'vendor', relation: 'equals', condition: 'What You Need' },
-        { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-        { column: 'tag', relation: 'equals', condition: 'family:glass-bong' },
-      ],
-      disjunctive: false,
-    },
-  },
-  'silicone-smoking-devices': {
-    issue: 'Missing material:silicone rule - matches ALL 751 products',
-    fix: {
-      rules: [
-        { column: 'vendor', relation: 'equals', condition: 'What You Need' },
-        { column: 'tag', relation: 'equals', condition: 'material:silicone' },
-      ],
-      disjunctive: false,
-    },
-  },
+  // NOTE: silicone-pipes, silicone-water-pipes, silicone-smoking-devices
+  // are no longer "fix" targets — they are in the DELETE list (consolidated
+  // into silicone-rigs-bongs). Only silicone-rigs-bongs needs fixing.
   'silicone-rigs-bongs': {
     issue: 'Too broad - matches silicone accessories/containers, not just rigs & bongs',
     fix: {
@@ -116,7 +87,7 @@ const DUPLICATE_COLLECTIONS_TO_DELETE = [
   'grinders-collection',      // Keep: grinders
   'torches-collection',       // Keep: torches
   'heady-glass-collection',   // Keep: heady-glass
-  'pendants-collection',      // Keep: pendants-merch
+  'pendants-collection',      // Keep: glass-pendants
   'one-hitter-and-chillums-collection', // Keep: one-hitters-chillums
   'nectar-collectors-collection', // Keep: nectar-collectors
   'carb-caps-collection',     // Keep: carb-caps
@@ -139,39 +110,41 @@ const DUPLICATE_COLLECTIONS_TO_DELETE = [
   'all-headshop',             // Keep: smoke-and-vape
   'shop-all-what-you-need',   // Keep: smoke-and-vape
   'smoking',                  // Keep: smoke-and-vape
-  'smoking-devices',          // Keep: smoke-and-vape (or create category)
+  'smoking-devices',          // Keep: smoke-and-vape
 
   // Duplicate accessory collections
-  'rolling-accessories',      // Keep: rolling-papers (or merge)
-  'ash-catchers-downstems',   // Keep: ash-catchers (we'll create downstems separately)
+  'rolling-accessories',      // Keep: rolling-papers-cones
+  'ash-catchers-downstems',   // Keep: ash-catchers + downstems (separate)
 
   // Old/miscellaneous
-  'spooky-haloween-sale',     // Seasonal - can delete if past
+  'spooky-haloween-sale',     // Seasonal dead weight
   'custom',                   // Not needed
   'other',                    // Not needed
-  'large-pipes-and-rigs',     // Too vague
-  'medium-pipes-and-rigs',    // Too vague
-  'small-pipes-rigs',         // Too vague
 
-  // Duplicate silicone collections (after fixing)
-  'silicone-beaker-bongs',    // Keep: silicone-rigs-bongs
-  'silicone-glass-hybrid-rigs-and-bubblers', // Keep: silicone-rigs-bongs
-  'cute-silicone-rigs',       // Keep: silicone-rigs-bongs
-  'top-selling-silicone-rigs', // Keep: silicone-rigs-bongs
-  'silicone-ashtrays',        // Keep: ashtrays (add silicone filter)
+  // Size-based (too vague, not how customers search)
+  'large-pipes-and-rigs',
+  'medium-pipes-and-rigs',
+  'small-pipes-rigs',
+
+  // Duplicate silicone collections → consolidated into silicone-rigs-bongs
+  'silicone-beaker-bongs',
+  'silicone-glass-hybrid-rigs-and-bubblers',
+  'cute-silicone-rigs',
+  'top-selling-silicone-rigs',
+  'silicone-ashtrays',        // Keep: ashtrays
 
   // Duplicate extraction/packaging
-  'extract-packaging-jars-and-nonstick', // Keep: extraction-packaging
-  'extraction-materials-packaging', // Keep: extraction-packaging
-  'extraction-supplies',      // Keep: extraction-packaging
-  'nonstick-materials-for-extraction', // Keep specific collections
+  'extract-packaging-jars-and-nonstick',
+  'extraction-materials-packaging',
+  'extraction-supplies',
+  'nonstick-materials-for-extraction',
   'non-stick-paper-and-ptfe', // Keep: ptfe-sheets
   'glass-jars-extract-packaging', // Keep: glass-jars
   'non-stick-containers',     // Keep: concentrate-containers
   'packaging-storage',        // Keep: storage-containers
   'storage-packaging',        // Keep: storage-containers
   'storage',                  // Keep: storage-containers
-  'parchment-papers',         // Keep: parchment-paper (singular)
+  'parchment-papers',         // Keep: parchment-paper
 
   // Vaporizer
   'vaporizer-parts-and-accessories', // Keep: vapes-electronics
@@ -182,23 +155,31 @@ const DUPLICATE_COLLECTIONS_TO_DELETE = [
   // Additional duplicates
   'spoons',                   // Keep: hand-pipes
 
-  // Wholesale/display (may need review)
-  'wholesale-pipes',          // Review - might be needed
-  'grinders-in-retail-bulk-display', // Keep if bulk business
+  // Wholesale/display
+  'wholesale-pipes',          // Redirect: hand-pipes
+  'grinders-in-retail-bulk-display', // Redirect: grinders
 
-  // Cloud YHS is a vendor tag, not a collection
-  'cloud-yhs',               // Products belong in category collections, not vendor collection
+  // Cloud YHS is a vendor tag, not a browsing collection
+  'cloud-yhs',
+
+  // =====================================================
+  // Merged redundant pairs (from action plan)
+  // =====================================================
+  'bongs',                    // Identical rules to bongs-water-pipes
+  'rolling-papers',           // Identical rules to rolling-papers-cones
+  'silicone-pipes',           // 4 products → consolidated into silicone-rigs-bongs
+  'silicone-water-pipes',     // 2 products → consolidated into silicone-rigs-bongs
+  'silicone-smoking-devices', // Superset overlap with silicone-rigs-bongs
+  'made-in-usa-glass',        // 90%+ overlap with made-in-usa
 ];
 
 // Collections to KEEP but may need cleanup
 const COLLECTIONS_TO_REVIEW = [
-  'dabbing',                  // May overlap with dab-rigs
-  'papers',                   // May overlap with rolling-papers
+  'dabbing',                  // May overlap with dab-rigs → add to delete if confirmed
+  'papers',                   // May overlap with rolling-papers-cones → add to delete if confirmed
   'bulk-ptfe-fep',           // Keep if bulk business
   'custom-packaging-options', // Keep if custom orders
-  'eo-vape',                  // Brand collection - keep
-  'peaselburg',               // Brand collection - keep
-  'only-quartz',              // Brand collection - keep
+  // NOTE: eo-vape, peaselburg, only-quartz now have proper brand collections in config
 ];
 
 // ============================================================================
@@ -846,7 +827,9 @@ const CLEAN_MENU_STRUCTURE = {
           { title: 'Bubblers', url: '/collections/bubblers' },
           { title: 'Nectar Collectors', url: '/collections/nectar-collectors' },
           { title: 'One Hitters & Chillums', url: '/collections/one-hitters-chillums' },
+          { title: 'Steamrollers', url: '/collections/steamrollers' },
           { title: 'Silicone Pieces', url: '/collections/silicone-rigs-bongs' },
+          { title: 'Novelty & Character Pipes', url: '/collections/novelty-character-pipes' },
           { title: 'Shop All Smoke & Vape', url: '/collections/smoke-and-vape' },
         ],
       },
@@ -854,17 +837,21 @@ const CLEAN_MENU_STRUCTURE = {
         title: 'Accessories',
         url: '/collections/accessories',
         children: [
+          { title: 'Dab Accessories', url: '/collections/dab-accessories' },
           { title: 'Quartz Bangers', url: '/collections/quartz-bangers' },
           { title: 'Carb Caps', url: '/collections/carb-caps' },
           { title: 'Dab Tools', url: '/collections/dab-tools' },
+          { title: 'Torches', url: '/collections/torches' },
+          { title: 'Flower Accessories', url: '/collections/flower-accessories' },
           { title: 'Flower Bowls', url: '/collections/flower-bowls' },
           { title: 'Ash Catchers', url: '/collections/ash-catchers' },
-          { title: 'Torches', url: '/collections/torches' },
+          { title: 'Downstems', url: '/collections/downstems' },
           { title: 'Grinders', url: '/collections/grinders' },
-          { title: 'Rolling Papers & Cones', url: '/collections/rolling-papers' },
+          { title: 'Rolling Papers & Cones', url: '/collections/rolling-papers-cones' },
           { title: 'Vapes & Electronics', url: '/collections/vapes-electronics' },
           { title: 'Storage & Containers', url: '/collections/storage-containers' },
           { title: 'Trays & Work Surfaces', url: '/collections/trays-work-surfaces' },
+          { title: 'Cleaning Supplies', url: '/collections/cleaning-supplies' },
         ],
       },
       {
@@ -881,6 +868,8 @@ const CLEAN_MENU_STRUCTURE = {
           { title: 'Puffco', url: '/collections/puffco' },
           { title: 'Lookah', url: '/collections/lookah' },
           { title: 'G Pen', url: '/collections/g-pen' },
+          { title: '710 SCI', url: '/collections/710-sci' },
+          { title: 'Scorch', url: '/collections/scorch' },
         ],
       },
       {
@@ -889,7 +878,10 @@ const CLEAN_MENU_STRUCTURE = {
         children: [
           { title: 'Heady Glass', url: '/collections/heady-glass' },
           { title: 'Made In USA', url: '/collections/made-in-usa' },
+          { title: 'Novelty & Character Pipes', url: '/collections/novelty-character-pipes' },
+          { title: 'Glass Pendants', url: '/collections/glass-pendants' },
           { title: 'Travel Friendly', url: '/collections/travel-friendly' },
+          { title: 'Gifts', url: '/collections/gifts' },
           { title: 'Clearance', url: '/collections/clearance' },
         ],
       },
@@ -910,12 +902,16 @@ const CLEAN_MENU_STRUCTURE = {
           { title: 'Bubblers', url: '/collections/bubblers' },
           { title: 'Nectar Collectors', url: '/collections/nectar-collectors' },
           { title: 'One Hitters & Chillums', url: '/collections/one-hitters-chillums' },
+          { title: 'Silicone Pieces', url: '/collections/silicone-rigs-bongs' },
+          { title: 'Novelty & Character Pipes', url: '/collections/novelty-character-pipes' },
         ],
       },
       {
         title: 'Accessories',
         url: '/collections/accessories',
         children: [
+          { title: 'Dab Accessories', url: '/collections/dab-accessories' },
+          { title: 'Flower Accessories', url: '/collections/flower-accessories' },
           { title: 'Quartz Bangers', url: '/collections/quartz-bangers' },
           { title: 'Carb Caps', url: '/collections/carb-caps' },
           { title: 'Dab Tools', url: '/collections/dab-tools' },
@@ -923,21 +919,23 @@ const CLEAN_MENU_STRUCTURE = {
           { title: 'Ash Catchers', url: '/collections/ash-catchers' },
           { title: 'Torches', url: '/collections/torches' },
           { title: 'Grinders', url: '/collections/grinders' },
-          { title: 'Rolling Papers', url: '/collections/rolling-papers' },
+          { title: 'Rolling Papers & Cones', url: '/collections/rolling-papers-cones' },
         ],
       },
       {
         title: 'Brands',
         url: '#',
         children: [
+          { title: 'RAW', url: '/collections/raw' },
           { title: 'Monark', url: '/collections/monark' },
           { title: 'Zig Zag', url: '/collections/zig-zag' },
           { title: 'Cookies', url: '/collections/cookies' },
           { title: 'Maven', url: '/collections/maven' },
           { title: 'Vibes', url: '/collections/vibes' },
-          { title: 'RAW', url: '/collections/raw' },
+          { title: 'Puffco', url: '/collections/puffco' },
         ],
       },
+      { title: 'Featured', url: '/collections/heady-glass' },
       { title: 'Clearance', url: '/collections/clearance' },
     ],
   },
@@ -1391,23 +1389,27 @@ async function generateCleanupReport(collections, issues) {
     'all', 'smoke-and-vape', 'accessories', 'extraction-packaging',
     // Devices
     'bongs-water-pipes', 'dab-rigs', 'hand-pipes', 'bubblers',
-    'nectar-collectors', 'one-hitters-chillums',
-    // Accessories
+    'nectar-collectors', 'one-hitters-chillums', 'steamrollers',
+    'silicone-rigs-bongs', 'novelty-character-pipes',
+    // Accessory sub-landings
+    'dab-accessories', 'flower-accessories',
+    // Individual accessories
     'quartz-bangers', 'carb-caps', 'dab-tools', 'flower-bowls',
-    'ash-catchers', 'torches', 'grinders', 'rolling-papers',
-    'vapes-electronics', 'storage-containers', 'trays-work-surfaces',
+    'ash-catchers', 'torches', 'grinders', 'rolling-papers-cones',
+    'downstems', 'ashtrays', 'vapes-electronics', 'storage-containers',
+    'trays-work-surfaces', 'pendants-merch', 'cleaning-supplies', 'adapters',
     // Extraction
     'silicone-pads', 'fep-sheets', 'ptfe-sheets', 'parchment-paper',
     'glass-jars', 'concentrate-containers', 'mylar-bags', 'joint-tubes',
-    'rosin-extraction',
-    // Brands
+    // Additional categories
+    'glass-pipes', 'concentrate-jars', 'electric-grinders',
+    'non-stick-silicone-dab-containers', 'glass-pendants',
+    // Brands (all with 10+ products)
     'raw', 'zig-zag', 'vibes', 'elements', 'cookies', 'puffco',
     'lookah', 'maven', 'g-pen', 'monark', '710-sci', 'scorch',
+    'peaselburg', 'only-quartz', 'eo-vape',
     // Featured
-    'heady-glass', 'made-in-usa', 'travel-friendly', 'clearance',
-    'silicone-rigs-bongs', 'pendants-merch',
-    // Bongs alternate
-    'bongs',
+    'heady-glass', 'made-in-usa', 'travel-friendly', 'clearance', 'gifts',
   ];
 
   for (const handle of keepCollections) {
