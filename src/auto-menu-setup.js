@@ -2,12 +2,19 @@
 /**
  * Automated Menu Setup
  *
- * This script automatically creates and updates Shopify navigation menus
- * using the GraphQL Admin API.
+ * Reads menu structure from config.js (single source of truth) and applies
+ * it to Shopify via the GraphQL Admin API.
+ *
+ * Usage:
+ *   npm run menu:auto              # Dry run — preview changes
+ *   npm run menu:auto:execute      # Apply all menus to Shopify
+ *   npm run menu:auto -- --menu=main     # Only main menu
+ *   npm run menu:auto -- --menu=sidebar  # Only sidebar menu
  */
 
 import 'dotenv/config';
 import { execSync } from 'child_process';
+import { config } from './config.js';
 
 const STORE_URL = process.env.SHOPIFY_STORE_URL;
 const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -16,22 +23,27 @@ const API_VERSION = process.env.SHOPIFY_API_VERSION || '2024-01';
 const GRAPHQL_URL = `https://${STORE_URL}/admin/api/${API_VERSION}/graphql.json`;
 
 // Colors for output
-const colors = {
+const C = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
+  dim: '\x1b[2m',
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   cyan: '\x1b[36m',
   red: '\x1b[31m',
+  magenta: '\x1b[35m',
 };
 
-function log(message, color = 'reset') {
-  console.log(`${colors[color]}${message}${colors.reset}`);
+function log(msg, color = 'reset') {
+  console.log(`${C[color]}${msg}${C.reset}`);
 }
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// ─── Collection ID Cache ────────────────────────────────────────────
+const collectionCache = new Map();
 
 async function graphqlRequest(query, variables = {}, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
@@ -61,8 +73,12 @@ async function graphqlRequest(query, variables = {}, retries = 3) {
   }
 }
 
-// Get collection ID by handle
+// Get collection ID by handle (with cache)
 async function getCollectionId(handle) {
+  if (collectionCache.has(handle)) {
+    return collectionCache.get(handle);
+  }
+
   const query = `
     query getCollection($handle: String!) {
       collectionByHandle(handle: $handle) {
@@ -74,154 +90,140 @@ async function getCollectionId(handle) {
 
   try {
     const result = await graphqlRequest(query, { handle });
-    return result.data?.collectionByHandle?.id || null;
+    const id = result.data?.collectionByHandle?.id || null;
+    collectionCache.set(handle, id);
+    return id;
   } catch (e) {
+    collectionCache.set(handle, null);
     return null;
   }
 }
 
-// Build menu items with collection IDs
-async function buildMenuItems() {
-  log('\nBuilding menu structure with collection IDs...', 'cyan');
-
-  const menuStructure = [
-    {
-      title: 'Shop All',
-      handle: 'all',
-      type: 'COLLECTION',
-    },
-    {
-      title: 'Extraction & Packaging',
-      handle: 'extraction-packaging',
-      type: 'COLLECTION',
-      children: [
-        { title: 'Silicone Pads & Mats', handle: 'silicone-pads', type: 'COLLECTION' },
-        { title: 'FEP Sheets & Rolls', handle: 'fep-sheets', type: 'COLLECTION' },
-        { title: 'PTFE Sheets & Rolls', handle: 'ptfe-sheets', type: 'COLLECTION' },
-        { title: 'Parchment Paper', handle: 'parchment-paper', type: 'COLLECTION' },
-        { title: 'Glass Jars', handle: 'glass-jars', type: 'COLLECTION' },
-        { title: 'Concentrate Containers', handle: 'concentrate-containers', type: 'COLLECTION' },
-        { title: 'Mylar Bags', handle: 'mylar-bags', type: 'COLLECTION' },
-        { title: 'Joint Tubes', handle: 'joint-tubes', type: 'COLLECTION' },
-        { title: 'Shop All Extraction', handle: 'extraction-packaging', type: 'COLLECTION' },
-      ],
-    },
-    {
-      title: 'Smoke & Vape',
-      handle: 'smoke-and-vape',
-      type: 'COLLECTION',
-      children: [
-        { title: 'Shop All Smoke & Vape', handle: 'smoke-and-vape', type: 'COLLECTION' },
-        { title: 'Bongs & Water Pipes', handle: 'bongs-water-pipes', type: 'COLLECTION' },
-        { title: 'Dab Rigs', handle: 'dab-rigs', type: 'COLLECTION' },
-        { title: 'Hand Pipes', handle: 'hand-pipes', type: 'COLLECTION' },
-        { title: 'Bubblers', handle: 'bubblers', type: 'COLLECTION' },
-        { title: 'Nectar Collectors', handle: 'nectar-collectors', type: 'COLLECTION' },
-        { title: 'One Hitters & Chillums', handle: 'one-hitters-chillums', type: 'COLLECTION' },
-        { title: 'Silicone Pieces', handle: 'silicone-rigs-bongs', type: 'COLLECTION' },
-      ],
-    },
-    {
-      title: 'Accessories',
-      handle: 'accessories',
-      type: 'COLLECTION',
-      children: [
-        { title: 'Quartz Bangers', handle: 'quartz-bangers', type: 'COLLECTION' },
-        { title: 'Carb Caps', handle: 'carb-caps', type: 'COLLECTION' },
-        { title: 'Dab Tools', handle: 'dab-tools', type: 'COLLECTION' },
-        { title: 'Flower Bowls', handle: 'flower-bowls', type: 'COLLECTION' },
-        { title: 'Ash Catchers', handle: 'ash-catchers', type: 'COLLECTION' },
-        { title: 'Torches', handle: 'torches', type: 'COLLECTION' },
-        { title: 'Grinders', handle: 'grinders', type: 'COLLECTION' },
-        { title: 'Rolling Papers & Cones', handle: 'rolling-papers', type: 'COLLECTION' },
-        { title: 'Vapes & Electronics', handle: 'vapes-electronics', type: 'COLLECTION' },
-        { title: 'Storage & Containers', handle: 'storage-containers', type: 'COLLECTION' },
-        { title: 'Trays & Work Surfaces', handle: 'trays-work-surfaces', type: 'COLLECTION' },
-      ],
-    },
-    {
-      title: 'Brands',
-      type: 'HTTP',
-      url: '#',
-      children: [
-        { title: 'RAW', handle: 'raw', type: 'COLLECTION' },
-        { title: 'Zig Zag', handle: 'zig-zag', type: 'COLLECTION' },
-        { title: 'Vibes', handle: 'vibes', type: 'COLLECTION' },
-        { title: 'Elements', handle: 'elements', type: 'COLLECTION' },
-        { title: 'Cookies', handle: 'cookies', type: 'COLLECTION' },
-        { title: 'Monark', handle: 'monark', type: 'COLLECTION' },
-        { title: 'Maven', handle: 'maven', type: 'COLLECTION' },
-        { title: 'Puffco', handle: 'puffco', type: 'COLLECTION' },
-        { title: 'Lookah', handle: 'lookah', type: 'COLLECTION' },
-        { title: 'G Pen', handle: 'g-pen', type: 'COLLECTION' },
-      ],
-    },
-    {
-      title: 'Featured',
-      type: 'HTTP',
-      url: '#',
-      children: [
-        { title: 'Heady Glass', handle: 'heady-glass', type: 'COLLECTION' },
-        { title: 'Made In USA', handle: 'made-in-usa', type: 'COLLECTION' },
-        { title: 'Travel Friendly', handle: 'travel-friendly', type: 'COLLECTION' },
-        { title: 'Clearance', handle: 'clearance', type: 'COLLECTION' },
-      ],
-    },
-  ];
-
-  // Convert to GraphQL format
-  async function convertItem(item) {
-    const menuItem = {
-      title: item.title,
-      type: item.type,
-    };
-
-    if (item.type === 'COLLECTION' && item.handle) {
-      const collectionId = await getCollectionId(item.handle);
-      if (collectionId) {
-        menuItem.resourceId = collectionId;
-        console.log(`  ✓ ${item.title} → ${item.handle}`);
-      } else {
-        // Fallback to URL
-        menuItem.type = 'HTTP';
-        menuItem.url = `/collections/${item.handle}`;
-        console.log(`  ⚠ ${item.title} → URL fallback: /collections/${item.handle}`);
-      }
-    } else if (item.type === 'HTTP') {
-      menuItem.url = item.url || '#';
+// ─── Extract collection handles from a menu item tree ───────────────
+function extractHandles(items) {
+  const handles = new Set();
+  for (const item of items) {
+    const match = item.url?.match(/^\/collections\/(.+)$/);
+    if (match && match[1] !== 'all') {
+      handles.add(match[1]);
     }
-
-    if (item.children && item.children.length > 0) {
-      menuItem.items = [];
-      for (const child of item.children) {
-        menuItem.items.push(await convertItem(child));
+    if (item.children) {
+      for (const h of extractHandles(item.children)) {
+        handles.add(h);
       }
     }
-
-    return menuItem;
   }
-
-  const items = [];
-  for (const item of menuStructure) {
-    items.push(await convertItem(item));
-  }
-
-  return items;
+  return handles;
 }
 
-// Update the menu (delete and recreate since update requires item IDs)
-async function updateMenu(menuId, items, title = 'Sidebar Menu', handle = 'best-selling') {
-  log('\nUpdating menu (delete and recreate)...', 'cyan');
+// ─── Validate all collections exist before building ─────────────────
+async function validateCollections(items) {
+  const handles = extractHandles(items);
+  log(`\nValidating ${handles.size} collection references...`, 'cyan');
 
-  // First, delete the existing menu
+  const missing = [];
+  for (const handle of handles) {
+    const id = await getCollectionId(handle);
+    if (id) {
+      console.log(`  ${C.green}✓${C.reset} ${handle}`);
+    } else {
+      console.log(`  ${C.yellow}⚠${C.reset} ${handle} — not found (will use URL fallback)`);
+      missing.push(handle);
+    }
+  }
+
+  if (missing.length > 0) {
+    log(`\n${missing.length} collection(s) not found — they will link by URL instead of resource ID.`, 'yellow');
+  } else {
+    log(`\nAll collections validated.`, 'green');
+  }
+
+  return missing;
+}
+
+// ─── Convert config menu items → Shopify GraphQL format ─────────────
+async function convertItem(item) {
+  const menuItem = { title: item.title };
+
+  // URL-based item (e.g. /collections/xxx or #)
+  const collectionMatch = item.url?.match(/^\/collections\/(.+)$/);
+
+  if (collectionMatch && collectionMatch[1] !== 'all') {
+    const handle = collectionMatch[1];
+    const collectionId = await getCollectionId(handle);
+    if (collectionId) {
+      menuItem.type = 'COLLECTION';
+      menuItem.resourceId = collectionId;
+    } else {
+      menuItem.type = 'HTTP';
+      menuItem.url = item.url;
+    }
+  } else if (item.url === '/collections/all') {
+    // "Shop All" links to the /collections/all catalog
+    menuItem.type = 'CATALOG';
+  } else if (item.url === '#' || !item.url) {
+    menuItem.type = 'HTTP';
+    menuItem.url = '#';
+  } else {
+    menuItem.type = 'HTTP';
+    menuItem.url = item.url;
+  }
+
+  if (item.children && item.children.length > 0) {
+    menuItem.items = [];
+    for (const child of item.children) {
+      menuItem.items.push(await convertItem(child));
+    }
+  }
+
+  return menuItem;
+}
+
+// ─── Print tree preview of menu ─────────────────────────────────────
+function printTree(items, indent = '') {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const isLast = i === items.length - 1;
+    const branch = isLast ? '└─' : '├─';
+    const childIndent = indent + (isLast ? '   ' : '│  ');
+
+    const url = item.url || '';
+    console.log(`${indent}${branch} ${C.bright}${item.title}${C.reset} ${C.dim}${url}${C.reset}`);
+
+    if (item.children && item.children.length > 0) {
+      printTree(item.children, childIndent);
+    }
+  }
+}
+
+// ─── Fetch existing menus to find the right one to replace ──────────
+async function fetchExistingMenus() {
+  const query = `
+    query {
+      menus(first: 50) {
+        edges {
+          node {
+            id
+            title
+            handle
+          }
+        }
+      }
+    }
+  `;
+
+  const result = await graphqlRequest(query);
+  return result.data?.menus?.edges?.map(e => e.node) || [];
+}
+
+// ─── Delete + recreate a menu ───────────────────────────────────────
+async function replaceMenu(menuId, items, title, handle) {
+  // Delete existing
   const deleteMutation = `
     mutation menuDelete($id: ID!) {
       menuDelete(id: $id) {
         deletedMenuId
-        userErrors {
-          field
-          message
-        }
+        userErrors { field message }
       }
     }
   `;
@@ -229,16 +231,19 @@ async function updateMenu(menuId, items, title = 'Sidebar Menu', handle = 'best-
   try {
     const deleteResult = await graphqlRequest(deleteMutation, { id: menuId });
     if (deleteResult.data?.menuDelete?.deletedMenuId) {
-      log('  Deleted existing menu', 'yellow');
+      log(`  Deleted existing menu: ${menuId}`, 'yellow');
     }
   } catch (e) {
     log(`  Could not delete menu: ${e.message}`, 'yellow');
   }
 
-  // Wait a moment for deletion to process
   await sleep(1000);
 
-  // Create new menu with same handle
+  // Create new
+  return await createMenu(items, title, handle);
+}
+
+async function createMenu(items, title, handle) {
   const createMutation = `
     mutation menuCreate($title: String!, $handle: String!, $items: [MenuItemCreateInput!]!) {
       menuCreate(title: $title, handle: $handle, items: $items) {
@@ -246,15 +251,8 @@ async function updateMenu(menuId, items, title = 'Sidebar Menu', handle = 'best-
           id
           title
           handle
-          items {
-            title
-            url
-          }
         }
-        userErrors {
-          field
-          message
-        }
+        userErrors { field message }
       }
     }
   `;
@@ -266,101 +264,74 @@ async function updateMenu(menuId, items, title = 'Sidebar Menu', handle = 'best-
     for (const error of result.data.menuCreate.userErrors) {
       console.log(`  ${error.field}: ${error.message}`);
     }
-    return false;
+    return null;
   }
 
   return result.data?.menuCreate?.menu;
 }
 
-// Create a new menu for Smoke & Vape specifically
-async function createSmokeVapeMenu() {
-  log('\nCreating dedicated Smoke & Vape menu...', 'cyan');
+// ─── Process one menu definition from config ────────────────────────
+async function processMenu(menuDef, existingMenus, dryRun) {
+  log(`\n${'═'.repeat(60)}`, 'bright');
+  log(`  ${menuDef.title} (handle: ${menuDef.handle})`, 'bright');
+  log(`${'═'.repeat(60)}`, 'bright');
 
-  const items = [
-    { title: 'Shop All', handle: 'smoke-and-vape', type: 'COLLECTION' },
-    { title: 'Bongs & Water Pipes', handle: 'bongs-water-pipes', type: 'COLLECTION' },
-    { title: 'Dab Rigs', handle: 'dab-rigs', type: 'COLLECTION' },
-    { title: 'Hand Pipes', handle: 'hand-pipes', type: 'COLLECTION' },
-    { title: 'Bubblers', handle: 'bubblers', type: 'COLLECTION' },
-    { title: 'Nectar Collectors', handle: 'nectar-collectors', type: 'COLLECTION' },
-    { title: 'One Hitters & Chillums', handle: 'one-hitters-chillums', type: 'COLLECTION' },
-  ];
+  // Validate
+  await validateCollections(menuDef.items);
 
-  const menuItems = [];
-  for (const item of items) {
-    const collectionId = await getCollectionId(item.handle);
-    if (collectionId) {
-      menuItems.push({
-        title: item.title,
-        type: 'COLLECTION',
-        resourceId: collectionId,
-      });
-      console.log(`  ✓ ${item.title}`);
-    } else {
-      menuItems.push({
-        title: item.title,
-        type: 'HTTP',
-        url: `/collections/${item.handle}`,
-      });
-      console.log(`  ⚠ ${item.title} (URL fallback)`);
-    }
+  // Show tree preview
+  log('\nProposed menu structure:', 'cyan');
+  printTree(menuDef.items);
+
+  if (dryRun) {
+    log('\n  [DRY RUN] No changes applied.', 'yellow');
+    return;
   }
 
-  const mutation = `
-    mutation menuCreate($title: String!, $handle: String!, $items: [MenuItemCreateInput!]!) {
-      menuCreate(title: $title, handle: $handle, items: $items) {
-        menu {
-          id
-          title
-          handle
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }
-  `;
-
-  const result = await graphqlRequest(mutation, {
-    title: 'Smoke & Vape Menu',
-    handle: 'smoke-vape-menu',
-    items: menuItems,
-  });
-
-  if (result.data?.menuCreate?.userErrors?.length > 0) {
-    const errors = result.data.menuCreate.userErrors;
-    if (errors.some(e => e.message.includes('already exists'))) {
-      log('  Menu already exists, updating instead...', 'yellow');
-      // Get menu ID and update
-      const existingMenu = await graphqlRequest(`
-        query { menus(first: 50) { edges { node { id handle } } } }
-      `);
-      const menu = existingMenu.data?.menus?.edges?.find(
-        e => e.node.handle === 'smoke-vape-menu'
-      );
-      if (menu) {
-        return updateMenu(menu.node.id, menuItems);
-      }
-    } else {
-      log('\nErrors:', 'red');
-      for (const error of errors) {
-        console.log(`  ${error.field}: ${error.message}`);
-      }
-      return false;
-    }
+  // Convert to GraphQL format
+  log('\nConverting to Shopify format...', 'cyan');
+  const graphqlItems = [];
+  for (const item of menuDef.items) {
+    graphqlItems.push(await convertItem(item));
   }
 
-  return result.data?.menuCreate?.menu;
+  // Find existing menu by handle
+  const existing = existingMenus.find(m => m.handle === menuDef.handle);
+
+  let result;
+  if (existing) {
+    log(`\nReplacing existing menu "${existing.title}" (${existing.id})...`, 'cyan');
+    result = await replaceMenu(existing.id, graphqlItems, menuDef.title, menuDef.handle);
+  } else {
+    log(`\nCreating new menu "${menuDef.title}"...`, 'cyan');
+    result = await createMenu(graphqlItems, menuDef.title, menuDef.handle);
+  }
+
+  if (result) {
+    log(`\n✓ ${menuDef.title} applied successfully!`, 'green');
+    console.log(`  ID: ${result.id}`);
+    console.log(`  Handle: ${result.handle}`);
+    console.log(`  Handle: ${result.handle}`);
+  } else {
+    log(`\n✗ Failed to apply ${menuDef.title}`, 'red');
+  }
+
+  return result;
 }
 
-// Main execution
+// ─── Main ───────────────────────────────────────────────────────────
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = !args.includes('--execute');
+  const menuFilter = args.find(a => a.startsWith('--menu='))?.split('=')[1];
+
+  if (!STORE_URL || !ACCESS_TOKEN) {
+    log('\nError: SHOPIFY_STORE_URL and SHOPIFY_ACCESS_TOKEN must be set in .env', 'red');
+    process.exit(1);
+  }
 
   log('\n' + '═'.repeat(70), 'bright');
-  log('  AUTOMATED MENU SETUP', 'bright');
+  log('  AUTOMATED MENU SETUP (config-driven)', 'bright');
   log('═'.repeat(70), 'bright');
 
   if (dryRun) {
@@ -369,55 +340,52 @@ async function main() {
     log('  Mode: EXECUTING CHANGES', 'green');
   }
 
+  if (menuFilter) {
+    log(`  Filter: ${menuFilter} menu only`, 'cyan');
+  }
+
   try {
-    // Build menu items
-    const items = await buildMenuItems();
+    const menuDefs = config.menuStructure;
+    const menusToProcess = [];
 
-    console.log('\nProposed menu structure:');
-    console.log(JSON.stringify(items, null, 2).substring(0, 2000) + '...');
-
-    if (!dryRun) {
-      // Update the main sidebar menu (best-selling)
-      const SIDEBAR_MENU_ID = 'gid://shopify/Menu/9794912285';
-
-      log('\n' + '='.repeat(70), 'bright');
-      log('UPDATING SIDEBAR MENU (best-selling)', 'bright');
-      log('='.repeat(70), 'bright');
-
-      const result = await updateMenu(SIDEBAR_MENU_ID, items, 'Sidebar Menu', 'best-selling');
-
-      if (result) {
-        log('\n✓ Sidebar menu updated successfully!', 'green');
-        console.log(`  Title: ${result.title}`);
-        console.log(`  Handle: ${result.handle}`);
-        console.log(`  Items: ${result.items?.length || 0}`);
-      }
-
-      // Create dedicated Smoke & Vape menu
-      log('\n' + '='.repeat(70), 'bright');
-      log('CREATING SMOKE & VAPE MENU', 'bright');
-      log('='.repeat(70), 'bright');
-
-      const smokeVapeMenu = await createSmokeVapeMenu();
-
-      if (smokeVapeMenu) {
-        log('\n✓ Smoke & Vape menu created/updated successfully!', 'green');
-        console.log(`  ID: ${smokeVapeMenu.id}`);
-        console.log(`  Handle: ${smokeVapeMenu.handle}`);
-      }
-
-      log('\n' + '='.repeat(70), 'bright');
-      log('COMPLETE', 'green');
-      log('='.repeat(70), 'bright');
-
-      console.log('\nNext steps:');
-      console.log('1. Go to Theme Customizer → Header');
-      console.log('2. Set "Main menu" to "best-selling" or "smoke-vape-menu"');
-      console.log('3. Configure mega menus if desired');
-
-    } else {
-      log('\n\nRun with --execute to apply these changes.', 'yellow');
+    if (!menuFilter || menuFilter === 'main') {
+      menusToProcess.push(menuDefs.main);
     }
+    if (!menuFilter || menuFilter === 'sidebar') {
+      menusToProcess.push(menuDefs.sidebar);
+    }
+
+    if (menusToProcess.length === 0) {
+      log(`\nNo menu matching "${menuFilter}" found in config.`, 'red');
+      process.exit(1);
+    }
+
+    // Fetch existing menus (needed for replace)
+    let existingMenus = [];
+    if (!dryRun) {
+      log('\nFetching existing menus from Shopify...', 'cyan');
+      existingMenus = await fetchExistingMenus();
+      for (const m of existingMenus) {
+        console.log(`  ${m.handle} — "${m.title}"`);
+      }
+    }
+
+    for (const menuDef of menusToProcess) {
+      await processMenu(menuDef, existingMenus, dryRun);
+    }
+
+    log('\n' + '═'.repeat(70), 'bright');
+    if (dryRun) {
+      log('DRY RUN COMPLETE — run with --execute to apply', 'yellow');
+    } else {
+      log('ALL MENUS APPLIED', 'green');
+      console.log('\nNext steps:');
+      console.log('1. Go to Shopify Admin → Online Store → Navigation');
+      console.log('2. Verify the menus appear correctly');
+      console.log('3. In Theme Customizer → Header, assign the main menu');
+      console.log('4. In Theme Customizer → Drawer/Sidebar, assign the sidebar menu');
+    }
+    log('═'.repeat(70), 'bright');
 
   } catch (error) {
     log(`\nError: ${error.message}`, 'red');

@@ -627,7 +627,7 @@ export const config = {
     ],
   },
 
-  // Menu structure - Restructured with accessories split + new collections
+  // Menu structure - Restructured: core business first, full coverage, single source of truth
   menuStructure: {
     // Main navigation menu
     main: {
@@ -637,21 +637,6 @@ export const config = {
         {
           title: 'Shop All',
           url: '/collections/all',
-        },
-        {
-          title: 'Extraction & Packaging',
-          url: '/collections/extraction-packaging',
-          children: [
-            { title: 'Silicone Pads & Mats', url: '/collections/silicone-pads' },
-            { title: 'FEP Sheets & Rolls', url: '/collections/fep-sheets' },
-            { title: 'PTFE Sheets & Rolls', url: '/collections/ptfe-sheets' },
-            { title: 'Parchment Paper', url: '/collections/parchment-paper' },
-            { title: 'Glass Jars', url: '/collections/glass-jars' },
-            { title: 'Concentrate Containers', url: '/collections/concentrate-containers' },
-            { title: 'Mylar Bags', url: '/collections/mylar-bags' },
-            { title: 'Joint Tubes', url: '/collections/joint-tubes' },
-            { title: 'Shop All Extraction', url: '/collections/extraction-packaging' },
-          ],
         },
         {
           title: 'Smoke & Vape',
@@ -666,6 +651,7 @@ export const config = {
             { title: 'Steamrollers', url: '/collections/steamrollers' },
             { title: 'Silicone Pieces', url: '/collections/silicone-rigs-bongs' },
             { title: 'Novelty & Character Pipes', url: '/collections/novelty-character-pipes' },
+            { title: 'Vapes & Electronics', url: '/collections/vapes-electronics' },
             { title: 'Shop All Smoke & Vape', url: '/collections/smoke-and-vape' },
           ],
         },
@@ -682,12 +668,28 @@ export const config = {
             { title: 'Flower Bowls', url: '/collections/flower-bowls' },
             { title: 'Ash Catchers', url: '/collections/ash-catchers' },
             { title: 'Downstems', url: '/collections/downstems' },
+            { title: 'Adapters & Drop Downs', url: '/collections/adapters' },
+            { title: 'Ashtrays', url: '/collections/ashtrays' },
             { title: 'Grinders', url: '/collections/grinders' },
             { title: 'Rolling Papers & Cones', url: '/collections/rolling-papers-cones' },
-            { title: 'Vapes & Electronics', url: '/collections/vapes-electronics' },
             { title: 'Storage & Containers', url: '/collections/storage-containers' },
             { title: 'Trays & Work Surfaces', url: '/collections/trays-work-surfaces' },
             { title: 'Cleaning Supplies', url: '/collections/cleaning-supplies' },
+          ],
+        },
+        {
+          title: 'Extraction & Packaging',
+          url: '/collections/extraction-packaging',
+          children: [
+            { title: 'Silicone Pads & Mats', url: '/collections/silicone-pads' },
+            { title: 'FEP Sheets & Rolls', url: '/collections/fep-sheets' },
+            { title: 'PTFE Sheets & Rolls', url: '/collections/ptfe-sheets' },
+            { title: 'Parchment Paper', url: '/collections/parchment-paper' },
+            { title: 'Glass Jars', url: '/collections/glass-jars' },
+            { title: 'Concentrate Containers', url: '/collections/concentrate-containers' },
+            { title: 'Mylar Bags', url: '/collections/mylar-bags' },
+            { title: 'Joint Tubes', url: '/collections/joint-tubes' },
+            { title: 'Shop All Extraction', url: '/collections/extraction-packaging' },
           ],
         },
         {
@@ -706,6 +708,9 @@ export const config = {
             { title: 'G Pen', url: '/collections/g-pen' },
             { title: '710 SCI', url: '/collections/710-sci' },
             { title: 'Scorch', url: '/collections/scorch' },
+            { title: 'Peaselburg', url: '/collections/peaselburg' },
+            { title: 'Only Quartz', url: '/collections/only-quartz' },
+            { title: 'EO Vape', url: '/collections/eo-vape' },
           ],
         },
         {
@@ -716,6 +721,7 @@ export const config = {
             { title: 'Made In USA', url: '/collections/made-in-usa' },
             { title: 'Novelty & Character Pipes', url: '/collections/novelty-character-pipes' },
             { title: 'Glass Pendants', url: '/collections/glass-pendants' },
+            { title: 'Pendants & Merch', url: '/collections/pendants-merch' },
             { title: 'Travel Friendly', url: '/collections/travel-friendly' },
             { title: 'Gifts', url: '/collections/gifts' },
             { title: 'Clearance', url: '/collections/clearance' },
@@ -723,12 +729,11 @@ export const config = {
         },
       ],
     },
-    // Sidebar menu for mobile/navigation
+    // Sidebar menu for mobile/navigation — full sub-navigation matching main menu
     sidebar: {
       title: 'Sidebar Menu',
       handle: 'sidebar-menu',
       items: [
-        { title: 'Extraction & Packaging', url: '/collections/extraction-packaging' },
         {
           title: 'Smoke & Vape',
           url: '/collections/smoke-and-vape',
@@ -740,8 +745,10 @@ export const config = {
             { title: 'Bubblers', url: '/collections/bubblers' },
             { title: 'Nectar Collectors', url: '/collections/nectar-collectors' },
             { title: 'One Hitters & Chillums', url: '/collections/one-hitters-chillums' },
+            { title: 'Steamrollers', url: '/collections/steamrollers' },
             { title: 'Silicone Pieces', url: '/collections/silicone-rigs-bongs' },
             { title: 'Novelty & Character Pipes', url: '/collections/novelty-character-pipes' },
+            { title: 'Vapes & Electronics', url: '/collections/vapes-electronics' },
           ],
         },
         {
@@ -756,8 +763,28 @@ export const config = {
             { title: 'Flower Bowls', url: '/collections/flower-bowls' },
             { title: 'Ash Catchers', url: '/collections/ash-catchers' },
             { title: 'Torches', url: '/collections/torches' },
+            { title: 'Adapters & Drop Downs', url: '/collections/adapters' },
+            { title: 'Ashtrays', url: '/collections/ashtrays' },
             { title: 'Grinders', url: '/collections/grinders' },
             { title: 'Rolling Papers & Cones', url: '/collections/rolling-papers-cones' },
+            { title: 'Vapes & Electronics', url: '/collections/vapes-electronics' },
+            { title: 'Storage & Containers', url: '/collections/storage-containers' },
+            { title: 'Trays & Work Surfaces', url: '/collections/trays-work-surfaces' },
+            { title: 'Cleaning Supplies', url: '/collections/cleaning-supplies' },
+          ],
+        },
+        {
+          title: 'Extraction & Packaging',
+          url: '/collections/extraction-packaging',
+          children: [
+            { title: 'Silicone Pads & Mats', url: '/collections/silicone-pads' },
+            { title: 'FEP Sheets & Rolls', url: '/collections/fep-sheets' },
+            { title: 'PTFE Sheets & Rolls', url: '/collections/ptfe-sheets' },
+            { title: 'Parchment Paper', url: '/collections/parchment-paper' },
+            { title: 'Glass Jars', url: '/collections/glass-jars' },
+            { title: 'Concentrate Containers', url: '/collections/concentrate-containers' },
+            { title: 'Mylar Bags', url: '/collections/mylar-bags' },
+            { title: 'Joint Tubes', url: '/collections/joint-tubes' },
           ],
         },
         {
@@ -771,10 +798,24 @@ export const config = {
             { title: 'Maven', url: '/collections/maven' },
             { title: 'Vibes', url: '/collections/vibes' },
             { title: 'Puffco', url: '/collections/puffco' },
+            { title: 'Lookah', url: '/collections/lookah' },
+            { title: 'G Pen', url: '/collections/g-pen' },
+            { title: 'Peaselburg', url: '/collections/peaselburg' },
+            { title: 'Only Quartz', url: '/collections/only-quartz' },
+            { title: 'EO Vape', url: '/collections/eo-vape' },
           ],
         },
-        { title: 'Featured', url: '/collections/heady-glass' },
-        { title: 'Clearance', url: '/collections/clearance' },
+        {
+          title: 'Featured',
+          url: '#',
+          children: [
+            { title: 'Heady Glass', url: '/collections/heady-glass' },
+            { title: 'Made In USA', url: '/collections/made-in-usa' },
+            { title: 'Pendants & Merch', url: '/collections/pendants-merch' },
+            { title: 'Travel Friendly', url: '/collections/travel-friendly' },
+            { title: 'Clearance', url: '/collections/clearance' },
+          ],
+        },
       ],
     },
   },
