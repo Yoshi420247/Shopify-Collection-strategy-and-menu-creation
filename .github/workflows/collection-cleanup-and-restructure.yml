@@ -1,0 +1,247 @@
+name: Collection Cleanup & Restructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'What to run'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run                    # Preview everything, change nothing
+          - execute-cleanup            # Delete duplicates + fix broken rules only
+          - execute-collections        # Create/update collections + menus only
+          - execute-redirects          # Create 301 redirects only
+          - execute-descriptions       # Push SEO descriptions only
+          - execute-all                # Full action plan (cleanup → collections → redirects → descriptions)
+
+jobs:
+  collection-restructure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      # ========================================
+      # STEP 1: Cleanup (delete duplicates + fix broken rules)
+      # ========================================
+      - name: "Step 1: Collection Cleanup (Dry Run)"
+        if: ${{ inputs.action == 'dry-run' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  DRY RUN: Collection Cleanup Report"
+          echo "=========================================="
+          node src/collection-cleanup.js --report
+
+      - name: "Step 1: Execute Collection Cleanup"
+        if: ${{ inputs.action == 'execute-cleanup' || inputs.action == 'execute-all' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  EXECUTING: Delete duplicates + Fix rules"
+          echo "=========================================="
+          echo ""
+          echo "This will:"
+          echo "  - Delete ~47 zombie/duplicate collections"
+          echo "  - Fix broken collection rules (silicone, quartz-bangers)"
+          echo "  - Fix product tags for silicone items"
+          echo ""
+          node src/collection-cleanup.js --execute --delete-collections --fix-collections --fix-tags
+
+      # ========================================
+      # STEP 2: Create/Update collections + menus
+      # ========================================
+      - name: "Step 2: Preview Collections & Menus"
+        if: ${{ inputs.action == 'dry-run' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  DRY RUN: Collections & Menus Preview"
+          echo "=========================================="
+          node src/collection-strategy-bot.js
+
+      - name: "Step 2: Execute Collections & Menus"
+        if: ${{ inputs.action == 'execute-collections' || inputs.action == 'execute-all' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  EXECUTING: Create/Update Collections & Menus"
+          echo "=========================================="
+          echo ""
+          echo "New collections being created:"
+          echo "  - dab-accessories (sub-landing)"
+          echo "  - flower-accessories (sub-landing)"
+          echo "  - novelty-character-pipes (105 products)"
+          echo "  - glass-pendants (~20 products)"
+          echo "  - cleaning-supplies"
+          echo "  - adapters"
+          echo "  - peaselburg, only-quartz, eo-vape (brand pages)"
+          echo ""
+          node src/collection-strategy-bot.js --execute
+
+      # ========================================
+      # STEP 3: Create 301 redirects
+      # ========================================
+      - name: "Step 3: Preview Redirects"
+        if: ${{ inputs.action == 'dry-run' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  DRY RUN: 301 Redirects Preview"
+          echo "=========================================="
+          node src/fix-redirects.js
+
+      - name: "Step 3: Execute Redirects"
+        if: ${{ inputs.action == 'execute-redirects' || inputs.action == 'execute-all' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  EXECUTING: Creating 301 Redirects"
+          echo "=========================================="
+          echo ""
+          echo "Key redirects:"
+          echo "  /collections/bongs → /collections/bongs-water-pipes"
+          echo "  /collections/rolling-papers → /collections/rolling-papers-cones"
+          echo "  /collections/silicone-pipes → /collections/silicone-rigs-bongs"
+          echo "  /collections/made-in-usa-glass → /collections/made-in-usa"
+          echo "  + 50+ legacy/duplicate redirects"
+          echo ""
+          node src/fix-redirects.js --execute
+
+      # ========================================
+      # STEP 4: Push SEO descriptions
+      # ========================================
+      - name: "Step 4: Preview Descriptions"
+        if: ${{ inputs.action == 'dry-run' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  DRY RUN: SEO Description Preview"
+          echo "=========================================="
+          node src/update-collection-descriptions.js --report
+
+      - name: "Step 4: Execute Descriptions"
+        if: ${{ inputs.action == 'execute-descriptions' || inputs.action == 'execute-all' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  EXECUTING: Pushing SEO Descriptions"
+          echo "=========================================="
+          echo ""
+          echo "Updating descriptions for 68+ collections including:"
+          echo "  - 9 new collections (dab-accessories, flower-accessories, novelty-character-pipes, etc.)"
+          echo "  - All existing collections with SEO copy"
+          echo ""
+          node src/update-collection-descriptions.js --execute
+
+      # ========================================
+      # SUMMARY
+      # ========================================
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Collection Cleanup & Restructure" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Action Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Action | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ inputs.action }}" == "dry-run" ]; then
+            echo "| 1 | Delete ~47 duplicate collections | Preview |" >> $GITHUB_STEP_SUMMARY
+            echo "| 2 | Create 9 new + update existing collections | Preview |" >> $GITHUB_STEP_SUMMARY
+            echo "| 3 | Create 60+ 301 redirects | Preview |" >> $GITHUB_STEP_SUMMARY
+            echo "| 4 | Push 68+ SEO descriptions | Preview |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**This was a dry run.** No changes were made to Shopify." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "To execute, run again with one of:" >> $GITHUB_STEP_SUMMARY
+            echo "- \`execute-all\` — Full plan" >> $GITHUB_STEP_SUMMARY
+            echo "- \`execute-cleanup\` — Just delete duplicates + fix rules" >> $GITHUB_STEP_SUMMARY
+            echo "- \`execute-collections\` — Just create/update collections" >> $GITHUB_STEP_SUMMARY
+            echo "- \`execute-redirects\` — Just create redirects" >> $GITHUB_STEP_SUMMARY
+            echo "- \`execute-descriptions\` — Just push descriptions" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "execute-all" ]; then
+            echo "| 1 | Delete ~47 duplicate collections | ✅ Executed |" >> $GITHUB_STEP_SUMMARY
+            echo "| 2 | Create 9 new + update existing collections | ✅ Executed |" >> $GITHUB_STEP_SUMMARY
+            echo "| 3 | Create 60+ 301 redirects | ✅ Executed |" >> $GITHUB_STEP_SUMMARY
+            echo "| 4 | Push 68+ SEO descriptions | ✅ Executed |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "execute-cleanup" ]; then
+            echo "| 1 | Delete ~47 duplicate collections | ✅ Executed |" >> $GITHUB_STEP_SUMMARY
+            echo "| 2 | Create/update collections | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| 3 | Create redirects | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| 4 | Push descriptions | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "execute-collections" ]; then
+            echo "| 1 | Delete duplicates | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| 2 | Create/update collections & menus | ✅ Executed |" >> $GITHUB_STEP_SUMMARY
+            echo "| 3 | Create redirects | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| 4 | Push descriptions | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "execute-redirects" ]; then
+            echo "| 1 | Delete duplicates | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| 2 | Create/update collections | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| 3 | Create 60+ 301 redirects | ✅ Executed |" >> $GITHUB_STEP_SUMMARY
+            echo "| 4 | Push descriptions | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "execute-descriptions" ]; then
+            echo "| 1 | Delete duplicates | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| 2 | Create/update collections | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| 3 | Create redirects | ⏭ Skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| 4 | Push 68+ SEO descriptions | ✅ Executed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Changes Made" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deleted (47 collections):** Legacy underscores, -collection suffixes, numbered dupes, size-based, silicone splinters, extraction dupes, merged pairs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Merged:**" >> $GITHUB_STEP_SUMMARY
+          echo "- \`bongs\` → \`bongs-water-pipes\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`rolling-papers\` → \`rolling-papers-cones\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`silicone-pipes\` + \`silicone-water-pipes\` + \`silicone-smoking-devices\` → \`silicone-rigs-bongs\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`made-in-usa-glass\` → \`made-in-usa\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**New collections:**" >> $GITHUB_STEP_SUMMARY
+          echo "- \`dab-accessories\` — Sub-landing for bangers, caps, tools, torches" >> $GITHUB_STEP_SUMMARY
+          echo "- \`flower-accessories\` — Sub-landing for bowls, catchers, downstems, grinders" >> $GITHUB_STEP_SUMMARY
+          echo "- \`novelty-character-pipes\` — 105 products (style:animal)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`glass-pendants\` — ~20 wearable glass art pieces" >> $GITHUB_STEP_SUMMARY
+          echo "- \`cleaning-supplies\` — Glass cleaners & brushes" >> $GITHUB_STEP_SUMMARY
+          echo "- \`adapters\` — Joint converters & drop downs" >> $GITHUB_STEP_SUMMARY
+          echo "- \`peaselburg\`, \`only-quartz\`, \`eo-vape\` — Brand pages" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Collections](https://oil-slick-pad.myshopify.com/admin/collections)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Navigation](https://oil-slick-pad.myshopify.com/admin/menus)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Redirects](https://oil-slick-pad.myshopify.com/admin/online_store/redirects)" >> $GITHUB_STEP_SUMMARY
