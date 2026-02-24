@@ -1,0 +1,157 @@
+name: Update Navigation Menus
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run              # Preview menu changes, no modifications
+          - execute-all          # Update both main and sidebar menus
+          - execute-main         # Only update main menu
+          - execute-sidebar      # Only update sidebar menu
+          - validate             # Validate config against live collections
+
+jobs:
+  update-menus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      # ========================================
+      # VALIDATE: Check config against live store
+      # ========================================
+      - name: "Validate menu config against live collections"
+        if: ${{ inputs.action == 'validate' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  VALIDATING: Menu config vs live store"
+          echo "=========================================="
+          node src/menu-navigator.js --validate
+
+      # ========================================
+      # DRY RUN: Preview menu changes
+      # ========================================
+      - name: "Dry Run: Preview menu changes"
+        if: ${{ inputs.action == 'dry-run' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  DRY RUN: Preview Navigation Menus"
+          echo "=========================================="
+          echo ""
+          echo "This will show the proposed menu structure"
+          echo "without making any changes to Shopify."
+          echo ""
+          node src/auto-menu-setup.js
+
+      # ========================================
+      # EXECUTE: Apply menu changes
+      # ========================================
+      - name: "Execute: Update menus"
+        if: ${{ inputs.action == 'execute-all' || inputs.action == 'execute-main' || inputs.action == 'execute-sidebar' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "=========================================="
+          echo "  EXECUTING: Navigation Menu Update"
+          echo "=========================================="
+          echo ""
+
+          if [ "${{ inputs.action }}" == "execute-all" ]; then
+            echo "Updating BOTH main and sidebar menus..."
+            echo ""
+            echo "Main menu changes:"
+            echo "  - Shop All"
+            echo "  - Smoke & Vape (11 sub-items)"
+            echo "  - Accessories (16 sub-items)"
+            echo "  - Extraction & Packaging (9 sub-items)"
+            echo "  - Brands (15 sub-items)"
+            echo "  - Featured (8 sub-items)"
+            echo ""
+            node src/auto-menu-setup.js --execute
+          elif [ "${{ inputs.action }}" == "execute-main" ]; then
+            echo "Updating MAIN menu only..."
+            echo ""
+            node src/auto-menu-setup.js --execute --menu=main
+          elif [ "${{ inputs.action }}" == "execute-sidebar" ]; then
+            echo "Updating SIDEBAR menu only..."
+            echo ""
+            node src/auto-menu-setup.js --execute --menu=sidebar
+          fi
+
+      # ========================================
+      # SUMMARY
+      # ========================================
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Navigation Menu Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ inputs.action }}" == "dry-run" ]; then
+            echo "**This was a dry run.** No changes were made to Shopify." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Run again with \`execute-all\` to apply menu changes." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.action }}" == "validate" ]; then
+            echo "**Validation complete.** Check logs for any missing collections." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Menus Updated" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ "${{ inputs.action }}" == "execute-all" ]; then
+              echo "Both **Main Menu** and **Sidebar Menu** have been updated." >> $GITHUB_STEP_SUMMARY
+            elif [ "${{ inputs.action }}" == "execute-main" ]; then
+              echo "**Main Menu** has been updated." >> $GITHUB_STEP_SUMMARY
+            elif [ "${{ inputs.action }}" == "execute-sidebar" ]; then
+              echo "**Sidebar Menu** has been updated." >> $GITHUB_STEP_SUMMARY
+            fi
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Main Menu Structure" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Section | Sub-items | Key Changes |" >> $GITHUB_STEP_SUMMARY
+            echo "|---------|-----------|-------------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Shop All | — | Top-level link |" >> $GITHUB_STEP_SUMMARY
+            echo "| Smoke & Vape | 11 | Added Steamrollers, Vapes & Electronics, Novelty Pipes |" >> $GITHUB_STEP_SUMMARY
+            echo "| Accessories | 16 | Added Adapters, Cleaning Supplies, Ashtrays, sub-landings |" >> $GITHUB_STEP_SUMMARY
+            echo "| Extraction & Packaging | 9 | Full coverage of Oil Slick products |" >> $GITHUB_STEP_SUMMARY
+            echo "| Brands | 15 | Added Peaselburg, Only Quartz, EO Vape |" >> $GITHUB_STEP_SUMMARY
+            echo "| Featured | 8 | Heady Glass, Made in USA, Pendants, Gifts, Clearance |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "1. Verify menus in [Shopify Admin - Navigation](https://oil-slick-pad.myshopify.com/admin/menus)" >> $GITHUB_STEP_SUMMARY
+            echo "2. In Theme Customizer → Header, confirm menus are assigned correctly" >> $GITHUB_STEP_SUMMARY
+            echo "3. Test navigation on the live site" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Navigation](https://oil-slick-pad.myshopify.com/admin/menus)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Theme Customizer](https://oil-slick-pad.myshopify.com/admin/themes/current/editor)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Live Site](https://oilslickpad.com)" >> $GITHUB_STEP_SUMMARY
