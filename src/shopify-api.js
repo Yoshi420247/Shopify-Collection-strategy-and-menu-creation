@@ -262,24 +262,16 @@ export async function getMenus() {
             id
             title
             handle
-            items(first: 50) {
-              edges {
-                node {
-                  id
-                  title
-                  url
-                  type
-                  items(first: 20) {
-                    edges {
-                      node {
-                        id
-                        title
-                        url
-                        type
-                      }
-                    }
-                  }
-                }
+            items {
+              id
+              title
+              url
+              type
+              items {
+                id
+                title
+                url
+                type
               }
             }
           }

@@ -632,13 +632,13 @@ async function analyzeMenuStructure() {
   for (const { node: menu } of menus) {
     console.log(`\n  ${menu.title} (handle: ${menu.handle})`);
 
-    const items = menu.items?.edges || [];
-    for (const { node: item } of items) {
+    const items = menu.items || [];
+    for (const item of items) {
       const status = item.url ? '✓' : '⚠';
       console.log(`    ${status} ${item.title}: ${item.url || '(no URL)'}`);
 
-      const subItems = item.items?.edges || [];
-      for (const { node: subItem } of subItems) {
+      const subItems = item.items || [];
+      for (const subItem of subItems) {
         const subStatus = subItem.url ? '✓' : '⚠';
         console.log(`      ${subStatus} ${subItem.title}: ${subItem.url || '(no URL)'}`);
       }
