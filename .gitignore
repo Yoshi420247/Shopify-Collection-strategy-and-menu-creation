@@ -32,3 +32,8 @@ variant-analysis-report-*.json
 
 # Customer data exports (contains PII - never commit)
 data/
+
+# Wholesaler sync data (contains product IDs, generated at runtime)
+product-mapping.json
+product-mapping-review.json
+wholesaler-sync-log.json
