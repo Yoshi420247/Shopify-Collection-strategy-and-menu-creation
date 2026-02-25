@@ -14,7 +14,7 @@ on:
           - match-review
           - history
       force_rematch:
-        description: 'Force re-run AI product matching (ignores existing mapping)'
+        description: 'Force re-run product matching (ignores existing mapping)'
         required: false
         default: false
         type: boolean
@@ -25,7 +25,6 @@ on:
 env:
   SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
   SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
   WC_STORE_URL: ${{ secrets.WC_STORE_URL }}
   WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
   WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
@@ -65,13 +64,13 @@ jobs:
 
           case "$MODE" in
             match)
-              echo "Running product matching (auto-match all)..."
+              echo "Running strict text-based product matching..."
               ARGS=""
               if [ "$FORCE" = "true" ]; then ARGS="--force-rematch"; fi
               node src/product-matcher.js $ARGS
               ;;
             match-review)
-              echo "Running product matching (review mode)..."
+              echo "Running strict text-based product matching (review mode)..."
               ARGS="--review"
               if [ "$FORCE" = "true" ]; then ARGS="$ARGS --force-rematch"; fi
               node src/product-matcher.js $ARGS

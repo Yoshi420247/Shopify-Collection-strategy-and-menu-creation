@@ -1,7 +1,7 @@
-// AI-powered product matcher: maps WooCommerce products to Shopify products
-// Uses Gemini Flash for fast, low-cost fuzzy title matching
+// Strict text-based product matcher: maps WooCommerce products to Shopify products
+// Uses deterministic title comparison — no AI guessing. Only matches products
+// that a reasonable person would agree are clearly the same item.
 import 'dotenv/config';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getAllWcProducts, extractStockInfo } from './woocommerce-client.js';
 import { paginateAll } from './shopify-api.js';
 import fs from 'fs';
@@ -10,13 +10,8 @@ import path from 'path';
 const MAPPING_FILE = path.join(process.cwd(), 'product-mapping.json');
 const REVIEW_FILE = path.join(process.cwd(), 'product-mapping-review.json');
 
-// ── Gemini Flash setup ─────────────────────────────────────────────────
-function getGeminiModel() {
-  const apiKey = process.env.GOOGLE_API_KEY;
-  if (!apiKey) throw new Error('GOOGLE_API_KEY not set in .env');
-  const genAI = new GoogleGenerativeAI(apiKey);
-  return genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-}
+// Minimum confidence to auto-accept a match
+const AUTO_MATCH_THRESHOLD = 95;
 
 // ── Load / save mappings ───────────────────────────────────────────────
 export function loadMapping() {
@@ -54,119 +49,249 @@ async function fetchWcProducts() {
   return wcRaw.map(extractStockInfo);
 }
 
-// ── AI matching via Gemini Flash ───────────────────────────────────────
-// We send batches of WC product names + Shopify product names to Gemini
-// and ask it to return the best matches as JSON.
-async function matchProductsBatch(wcProducts, shopifyProducts, model) {
-  // Build compact lists for the prompt
-  const wcList = wcProducts.map((p, i) => `${i}: ${p.name}`).join('\n');
-  const shopifyList = shopifyProducts.map((p, i) => `${i}: ${p.title}`).join('\n');
-
-  const prompt = `You are a product matching assistant for a smokeshop/headshop.
-Match products from a wholesaler's catalog (WC list) to a retailer's Shopify catalog (Shopify list).
-Products may have slightly different names but refer to the same item.
-
-Rules:
-- Match by product name similarity. Titles may differ in casing, abbreviations, extra descriptors, or brand formatting.
-- Only match products you are confident are the same item (>80% confidence).
-- Each WC product should match at most ONE Shopify product, and vice versa.
-- If no good match exists, leave the WC product unmatched.
-
-WC PRODUCTS:
-${wcList}
-
-SHOPIFY PRODUCTS:
-${shopifyList}
-
-Return ONLY a JSON array of match objects. Each object must have:
-- "wc_index": number (index from WC list)
-- "shopify_index": number (index from Shopify list)
-- "confidence": number 0-100 (how confident the match is)
-- "reason": string (brief explanation)
-
-If a WC product has no match, do NOT include it. Return valid JSON only, no markdown.`;
-
-  const result = await model.generateContent(prompt);
-  const text = result.response.text().trim();
-
-  // Parse JSON from response (handle possible markdown code fences)
-  const jsonStr = text.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
-  try {
-    return JSON.parse(jsonStr);
-  } catch {
-    console.error('Failed to parse Gemini response as JSON:', text.substring(0, 500));
-    return [];
-  }
+// ── Text normalization ─────────────────────────────────────────────────
+// Normalize a product title for comparison. This collapses formatting
+// differences while preserving all meaningful content (sizes, colors, etc.)
+function normalize(title) {
+  let s = title.toLowerCase().trim();
+  // Standardize common measurement patterns: 6" → 6 inch, 6in → 6 inch
+  s = s.replace(/(\d+)\s*["″'']/g, '$1 inch');
+  s = s.replace(/(\d+)\s*in\b\.?/g, '$1 inch');
+  // Standardize mm/cm
+  s = s.replace(/(\d+)\s*mm\b/g, '$1 mm');
+  s = s.replace(/(\d+)\s*cm\b/g, '$1 cm');
+  // Remove special characters but keep alphanumerics and spaces
+  s = s.replace(/[^a-z0-9\s]/g, ' ');
+  // Collapse multiple spaces
+  s = s.replace(/\s+/g, ' ').trim();
+  return s;
 }
 
-// Process in batches to stay within Gemini context limits
-async function runAiMatching(wcProducts, shopifyProducts) {
-  const model = getGeminiModel();
-  const BATCH_SIZE = 50; // 50 WC products per batch, matched against all Shopify products
-  const allMatches = [];
+// Extract tokens (words) from a normalized string
+function tokenize(normalized) {
+  return normalized.split(' ').filter(t => t.length > 0);
+}
 
-  // If Shopify catalog is very large, chunk it too
-  const SHOPIFY_CHUNK_SIZE = 200;
-  const shopifyChunks = [];
-  for (let i = 0; i < shopifyProducts.length; i += SHOPIFY_CHUNK_SIZE) {
-    shopifyChunks.push(shopifyProducts.slice(i, i + SHOPIFY_CHUNK_SIZE));
+// Extract all numeric values from tokens (for size/quantity matching)
+function extractNumbers(tokens) {
+  const numbers = [];
+  for (const t of tokens) {
+    const match = t.match(/^\d+(\.\d+)?$/);
+    if (match) numbers.push(t);
+  }
+  return numbers.sort();
+}
+
+// Extract measurement phrases (e.g., "6 inch", "14 mm") as combined tokens
+function extractMeasurements(tokens) {
+  const measurements = [];
+  const units = new Set(['inch', 'mm', 'cm', 'ml', 'oz', 'ft', 'pc', 'pcs', 'pack', 'piece', 'pieces', 'set']);
+  for (let i = 0; i < tokens.length - 1; i++) {
+    if (/^\d+(\.\d+)?$/.test(tokens[i]) && units.has(tokens[i + 1])) {
+      measurements.push(`${tokens[i]} ${tokens[i + 1]}`);
+    }
+  }
+  return measurements.sort();
+}
+
+// ── Matching algorithm ─────────────────────────────────────────────────
+
+// Compare two product titles and return a confidence score (0-100) and reason.
+// Returns null if no reasonable match.
+function compareProducts(wcName, shopifyTitle) {
+  const normWc = normalize(wcName);
+  const normShopify = normalize(shopifyTitle);
+
+  // ── Level 1: Exact match after normalization → 100% ──
+  if (normWc === normShopify) {
+    return { confidence: 100, reason: 'Exact match (after normalization)' };
   }
 
-  for (let wcStart = 0; wcStart < wcProducts.length; wcStart += BATCH_SIZE) {
-    const wcBatch = wcProducts.slice(wcStart, wcStart + BATCH_SIZE);
-    console.log(`\nMatching WC products ${wcStart + 1}-${wcStart + wcBatch.length} of ${wcProducts.length}...`);
+  const tokensWc = tokenize(normWc);
+  const tokensShopify = tokenize(normShopify);
 
-    for (let chunkIdx = 0; chunkIdx < shopifyChunks.length; chunkIdx++) {
-      const shopifyChunk = shopifyChunks[chunkIdx];
-      const shopifyOffset = chunkIdx * SHOPIFY_CHUNK_SIZE;
+  // ── Level 2: Same tokens, different order → 98% ──
+  const sortedWc = [...tokensWc].sort().join(' ');
+  const sortedShopify = [...tokensShopify].sort().join(' ');
+  if (sortedWc === sortedShopify) {
+    return { confidence: 98, reason: 'Same words, different order' };
+  }
 
-      try {
-        const matches = await matchProductsBatch(wcBatch, shopifyChunk, model);
+  // ── Level 3: High similarity with strict guards ──
+  // ALL numbers and measurements must match exactly.
+  // If they differ in any number (size, quantity), it's a different product.
+  const numbersWc = extractNumbers(tokensWc);
+  const numbersShopify = extractNumbers(tokensShopify);
+  const measuresWc = extractMeasurements(tokensWc);
+  const measuresShopify = extractMeasurements(tokensShopify);
 
-        // Remap indices to global indices
-        for (const match of matches) {
-          allMatches.push({
-            wc_index: wcStart + match.wc_index,
-            shopify_index: shopifyOffset + match.shopify_index,
-            confidence: match.confidence,
-            reason: match.reason,
-          });
+  // Strict: all numbers must match
+  if (numbersWc.join(',') !== numbersShopify.join(',')) {
+    return null; // Different sizes/quantities → not the same product
+  }
+
+  // Strict: all measurements must match
+  if (measuresWc.join(',') !== measuresShopify.join(',')) {
+    return null;
+  }
+
+  // Compute token overlap (Jaccard-like but weighted)
+  const setWc = new Set(tokensWc);
+  const setShopify = new Set(tokensShopify);
+  const intersection = new Set([...setWc].filter(t => setShopify.has(t)));
+  const union = new Set([...setWc, ...setShopify]);
+
+  const jaccardSimilarity = intersection.size / union.size;
+
+  // We also check: how many tokens are NOT shared?
+  const missingFromShopify = [...setWc].filter(t => !setShopify.has(t));
+  const missingFromWc = [...setShopify].filter(t => !setWc.has(t));
+  const totalMissing = missingFromShopify.length + missingFromWc.length;
+  const totalUnique = union.size;
+
+  // Require very high overlap: at most 1 token difference on each side
+  // and at least 80% Jaccard similarity
+  if (totalMissing > 2 || jaccardSimilarity < 0.80) {
+    return null;
+  }
+
+  // If only 1 total token differs and it's a minor word (color variant, "style", etc.)
+  // that's acceptable. But if a key product-type word differs, reject.
+  const productTypeWords = new Set([
+    'pipe', 'bong', 'bowl', 'grinder', 'rig', 'dab', 'nectar', 'collector',
+    'bubbler', 'chillum', 'steamroller', 'sherlock', 'spoon', 'hammer',
+    'recycler', 'beaker', 'straight', 'tube', 'percolator', 'perc',
+    'downstem', 'slide', 'nail', 'banger', 'carb', 'cap', 'torch',
+    'lighter', 'tray', 'rolling', 'paper', 'papers', 'cone', 'cones',
+    'tip', 'tips', 'filter', 'wrap', 'wraps', 'blunt', 'cigar',
+    'vape', 'vaporizer', 'cartridge', 'battery', 'pen', 'mod',
+    'hookah', 'hose', 'charcoal', 'shisha', 'tobacco',
+    'scale', 'jar', 'stash', 'container', 'bag', 'pouch',
+    'ashtray', 'cleaner', 'brush', 'screen', 'screens',
+    'silicone', 'glass', 'metal', 'ceramic', 'wood', 'wooden', 'acrylic',
+    'donut', 'pokeball', 'grenade', 'skull', 'mushroom', 'pineapple',
+    'kit', 'set', 'combo', 'bundle', 'adapter', 'clip', 'holder',
+  ]);
+
+  // Check if any missing token is a product-type keyword
+  for (const missing of [...missingFromShopify, ...missingFromWc]) {
+    if (productTypeWords.has(missing)) {
+      return null; // A key product descriptor differs → not the same product
+    }
+  }
+
+  // Calculate final confidence based on similarity
+  // Jaccard 1.0 with some token missing impossible (would be exact), so:
+  // Jaccard 0.80-0.85 → 95%, 0.85-0.90 → 96%, 0.90-0.95 → 97%, 0.95+ → 98%
+  let confidence;
+  if (jaccardSimilarity >= 0.95) confidence = 98;
+  else if (jaccardSimilarity >= 0.90) confidence = 97;
+  else if (jaccardSimilarity >= 0.85) confidence = 96;
+  else confidence = 95;
+
+  const diffDesc = [];
+  if (missingFromShopify.length > 0) diffDesc.push(`WC has extra: "${missingFromShopify.join(', ')}"`);
+  if (missingFromWc.length > 0) diffDesc.push(`Shopify has extra: "${missingFromWc.join(', ')}"`);
+  const reason = `Close text match (${Math.round(jaccardSimilarity * 100)}% token overlap). ${diffDesc.join('. ')}`;
+
+  return { confidence, reason };
+}
+
+// ── Run matching ───────────────────────────────────────────────────────
+function runTextMatching(wcProducts, shopifyProducts) {
+  console.log('\nRunning strict text-based product matching...');
+  console.log(`Comparing ${wcProducts.length} WC products against ${shopifyProducts.length} Shopify products...\n`);
+
+  // Build a lookup of normalized Shopify titles for fast exact matching
+  const shopifyByNormalized = new Map();
+  for (let i = 0; i < shopifyProducts.length; i++) {
+    const norm = normalize(shopifyProducts[i].title);
+    // If multiple Shopify products have the same normalized title, keep first
+    if (!shopifyByNormalized.has(norm)) {
+      shopifyByNormalized.set(norm, i);
+    }
+  }
+
+  // Also build sorted-token lookup for Level 2 matching
+  const shopifyBySortedTokens = new Map();
+  for (let i = 0; i < shopifyProducts.length; i++) {
+    const sorted = tokenize(normalize(shopifyProducts[i].title)).sort().join(' ');
+    if (!shopifyBySortedTokens.has(sorted)) {
+      shopifyBySortedTokens.set(sorted, i);
+    }
+  }
+
+  const matches = [];
+  const matchedShopifyIndices = new Set();
+  let exactCount = 0;
+  let reorderCount = 0;
+  let closeCount = 0;
+
+  for (let wcIdx = 0; wcIdx < wcProducts.length; wcIdx++) {
+    const wcName = wcProducts[wcIdx].name;
+    const normWc = normalize(wcName);
+
+    // Level 1: Check exact normalized match (O(1) lookup)
+    const exactIdx = shopifyByNormalized.get(normWc);
+    if (exactIdx !== undefined && !matchedShopifyIndices.has(exactIdx)) {
+      matches.push({
+        wc_index: wcIdx,
+        shopify_index: exactIdx,
+        confidence: 100,
+        reason: 'Exact match (after normalization)',
+      });
+      matchedShopifyIndices.add(exactIdx);
+      exactCount++;
+      continue;
+    }
+
+    // Level 2: Check sorted-token match (O(1) lookup)
+    const sortedWc = tokenize(normWc).sort().join(' ');
+    const reorderIdx = shopifyBySortedTokens.get(sortedWc);
+    if (reorderIdx !== undefined && !matchedShopifyIndices.has(reorderIdx)) {
+      matches.push({
+        wc_index: wcIdx,
+        shopify_index: reorderIdx,
+        confidence: 98,
+        reason: 'Same words, different order',
+      });
+      matchedShopifyIndices.add(reorderIdx);
+      reorderCount++;
+      continue;
+    }
+
+    // Level 3: Brute-force compare against all unmatched Shopify products
+    let bestMatch = null;
+    for (let sIdx = 0; sIdx < shopifyProducts.length; sIdx++) {
+      if (matchedShopifyIndices.has(sIdx)) continue;
+
+      const result = compareProducts(wcName, shopifyProducts[sIdx].title);
+      if (result && result.confidence >= AUTO_MATCH_THRESHOLD) {
+        if (!bestMatch || result.confidence > bestMatch.confidence) {
+          bestMatch = { shopify_index: sIdx, ...result };
         }
-
-        console.log(`  Found ${matches.length} matches in Shopify chunk ${chunkIdx + 1}/${shopifyChunks.length}`);
-      } catch (error) {
-        console.error(`  Gemini batch error: ${error.message}`);
       }
+    }
 
-      // Brief pause between API calls
-      await new Promise(r => setTimeout(r, 500));
+    if (bestMatch) {
+      matches.push({
+        wc_index: wcIdx,
+        shopify_index: bestMatch.shopify_index,
+        confidence: bestMatch.confidence,
+        reason: bestMatch.reason,
+      });
+      matchedShopifyIndices.add(bestMatch.shopify_index);
+      closeCount++;
     }
   }
 
-  return allMatches;
-}
+  console.log(`  Exact matches:          ${exactCount}`);
+  console.log(`  Reordered-word matches: ${reorderCount}`);
+  console.log(`  Close text matches:     ${closeCount}`);
+  console.log(`  Total matched:          ${matches.length}`);
+  console.log(`  Unmatched WC products:  ${wcProducts.length - matches.length}`);
 
-// Deduplicate: if multiple WC products match the same Shopify product, keep highest confidence
-function deduplicateMatches(matches) {
-  // Group by shopify_index, keep highest confidence
-  const byShopify = new Map();
-  for (const m of matches) {
-    const existing = byShopify.get(m.shopify_index);
-    if (!existing || m.confidence > existing.confidence) {
-      byShopify.set(m.shopify_index, m);
-    }
-  }
-
-  // Group by wc_index, keep highest confidence
-  const byWc = new Map();
-  for (const m of byShopify.values()) {
-    const existing = byWc.get(m.wc_index);
-    if (!existing || m.confidence > existing.confidence) {
-      byWc.set(m.wc_index, m);
-    }
-  }
-
-  return Array.from(byWc.values());
+  return matches;
 }
 
 // ── Main match command ─────────────────────────────────────────────────
@@ -177,7 +302,7 @@ export async function runProductMatching(options = {}) {
   const existing = loadMapping();
   if (!forceRematch && existing.mappings.length > 0) {
     console.log(`Existing mapping has ${existing.mappings.length} product pairs.`);
-    console.log('Use --force-rematch to re-run AI matching from scratch.');
+    console.log('Use --force-rematch to re-run matching from scratch.');
     console.log('Use --sync to run the stock sync using the current mapping.');
     return existing;
   }
@@ -191,11 +316,9 @@ export async function runProductMatching(options = {}) {
   console.log(`\nWooCommerce: ${wcProducts.length} products`);
   console.log(`Shopify: ${shopifyProducts.length} products`);
 
-  // Run AI matching
-  console.log('\nRunning AI product matching with Gemini Flash...');
-  const rawMatches = await runAiMatching(wcProducts, shopifyProducts);
-  const matches = deduplicateMatches(rawMatches);
-  console.log(`\nTotal unique matches: ${matches.length}`);
+  // Run strict text-based matching
+  const matches = runTextMatching(wcProducts, shopifyProducts);
+  console.log(`\nTotal matches: ${matches.length}`);
 
   // Build the mapping data
   const mappings = matches.map(m => ({
@@ -240,12 +363,25 @@ export async function runProductMatching(options = {}) {
 
   // Print summary table
   console.log('\n── Match Summary ──────────────────────────────────────────');
-  for (const m of mappings.slice(0, 20)) {
+  for (const m of mappings.slice(0, 30)) {
     const conf = `${m.confidence}%`.padStart(4);
     console.log(`  [${conf}] WC: "${m.wc_name}" → Shopify: "${m.shopify_title}"`);
   }
-  if (mappings.length > 20) {
-    console.log(`  ... and ${mappings.length - 20} more matches`);
+  if (mappings.length > 30) {
+    console.log(`  ... and ${mappings.length - 30} more matches`);
+  }
+
+  // Always show unmatched WC products so user knows what needs manual review
+  if (unmatchedWc.length > 0) {
+    console.log('\n── Unmatched WC Products (need manual review) ─────────────');
+    for (const p of unmatchedWc.slice(0, 50)) {
+      console.log(`  ? WC #${p.id} "${p.name}" — no close Shopify match found`);
+    }
+    if (unmatchedWc.length > 50) {
+      console.log(`  ... and ${unmatchedWc.length - 50} more unmatched`);
+    }
+    console.log('\nTo manually map these, use:');
+    console.log('  npm run wholesaler:match -- --add-manual=WC_ID:WC_NAME:SHOPIFY_ID:SHOPIFY_TITLE');
   }
 
   return mappingData;
