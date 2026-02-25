@@ -104,7 +104,17 @@
     "image-report:strict": "node src/check-product-images.js --threshold=4",
     "image-report:test": "node src/check-product-images.js --max=10",
     "image-report:csv": "node src/check-product-images.js --csv",
-    "image-report:product": "node src/check-product-images.js --product-ids="
+    "image-report:product": "node src/check-product-images.js --product-ids=",
+    "wholesaler:match": "node src/product-matcher.js",
+    "wholesaler:match-review": "node src/product-matcher.js --review",
+    "wholesaler:match-force": "node src/product-matcher.js --force-rematch",
+    "wholesaler:match-show": "node src/product-matcher.js --show",
+    "wholesaler:approve-review": "node src/product-matcher.js --approve-review",
+    "wholesaler:sync": "node src/wholesaler-sync.js",
+    "wholesaler:sync:execute": "node src/wholesaler-sync.js --execute",
+    "wholesaler:sync:verbose": "node src/wholesaler-sync.js --verbose",
+    "wholesaler:sync:live": "node src/wholesaler-sync.js --execute --verbose",
+    "wholesaler:history": "node src/wholesaler-sync.js --history"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

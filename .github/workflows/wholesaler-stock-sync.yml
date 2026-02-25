@@ -1,0 +1,112 @@
+name: Wholesaler Stock Sync
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - execute
+          - match
+          - match-review
+          - history
+      force_rematch:
+        description: 'Force re-run AI product matching (ignores existing mapping)'
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    # Run daily at 6 AM UTC — checks wholesaler stock and updates Shopify
+    - cron: '0 6 * * *'
+
+env:
+  SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+  SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+  WC_STORE_URL: ${{ secrets.WC_STORE_URL }}
+  WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
+  WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
+
+jobs:
+  wholesaler-sync:
+    name: Wholesaler Stock Sync
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Restore product mapping from previous runs (stored as artifact)
+      - name: Download product mapping
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: wholesaler-product-mapping
+          path: .
+          if_no_artifact_found: warn
+          search_artifacts: true
+          workflow: wholesaler-stock-sync.yml
+
+      - name: Run wholesaler sync
+        run: |
+          MODE="${{ github.event.inputs.mode || 'execute' }}"
+          FORCE="${{ github.event.inputs.force_rematch || 'false' }}"
+
+          case "$MODE" in
+            match)
+              echo "Running product matching (auto-match all)..."
+              ARGS=""
+              if [ "$FORCE" = "true" ]; then ARGS="--force-rematch"; fi
+              node src/product-matcher.js $ARGS
+              ;;
+            match-review)
+              echo "Running product matching (review mode)..."
+              ARGS="--review"
+              if [ "$FORCE" = "true" ]; then ARGS="$ARGS --force-rematch"; fi
+              node src/product-matcher.js $ARGS
+              ;;
+            history)
+              echo "Showing sync history..."
+              node src/wholesaler-sync.js --history
+              ;;
+            execute)
+              echo "Running stock sync (LIVE)..."
+              node src/wholesaler-sync.js --execute --verbose
+              ;;
+            dry-run|*)
+              echo "Running stock sync (dry run)..."
+              node src/wholesaler-sync.js --verbose
+              ;;
+          esac
+
+      # Persist product mapping for future runs
+      - name: Upload product mapping
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wholesaler-product-mapping
+          path: |
+            product-mapping.json
+            product-mapping-review.json
+          retention-days: 90
+          if-no-files-found: ignore
+
+      - name: Upload sync log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wholesaler-sync-log-${{ github.run_number }}
+          path: wholesaler-sync-log.json
+          retention-days: 90
+          if-no-files-found: ignore
