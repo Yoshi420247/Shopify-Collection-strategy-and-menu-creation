@@ -87,6 +87,8 @@
     "cart-recovery:setup": "node src/setup-cart-recovery-flows.js",
     "cart-recovery:setup:create": "node src/setup-cart-recovery-flows.js --create",
     "homepage": "node src/fix-homepage.js",
+    "homepage:visual": "node src/fix-homepage.js --visual-only",
+    "homepage:structural": "node src/fix-homepage.js --skip-visual",
     "homepage:execute": "node src/fix-homepage.js --execute",
     "deploy-email-templates": "node src/deploy-email-templates.js --dry-run",
     "deploy-email-templates:execute": "node src/deploy-email-templates.js --execute",

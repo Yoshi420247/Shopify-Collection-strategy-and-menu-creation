@@ -1,21 +1,24 @@
 #!/usr/bin/env node
 /**
- * Fix Homepage Issues - Deploys corrected homepage settings to the live Shopify store
+ * Fix Homepage Issues - Diagnoses and deploys homepage fixes to the live Shopify store
  *
- * Fixes:
- * 1. "COLLECTION TITLE" placeholder text in Shop by Category section
- *    (caused by empty feature_collection values in collection-list blocks)
- * 2. Missing/placeholder images in collection grid and featured sections
- * 3. Ensures all homepage sections have correct collection handles and product images
+ * Two analysis modes:
+ *   1. Visual (Gemini Flash) — downloads all homepage images, fetches rendered HTML,
+ *      and uses Gemini 2.0 Flash to visually inspect for issues. Works with ANY theme.
+ *   2. Structural (fallback) — checks JSON settings for empty values. Fast, no API key needed.
  *
  * Usage:
- *   node src/fix-homepage.js              # Dry run - show what would change
- *   node src/fix-homepage.js --execute    # Apply changes to live store
+ *   node src/fix-homepage.js                  # Diagnose only (structural + visual if GOOGLE_API_KEY set)
+ *   node src/fix-homepage.js --execute        # Diagnose then apply known fixes
+ *   node src/fix-homepage.js --visual-only    # Only run Gemini visual analysis (no fixes)
+ *   node src/fix-homepage.js --skip-visual    # Skip Gemini, structural checks only
  */
 
 import 'dotenv/config';
 import { config } from './config.js';
 import { execSync } from 'child_process';
+import { writeFileSync } from 'fs';
+import { analyzeHomepageVisually, printReport } from './visual-homepage-analyzer.js';
 
 const STORE_URL = config.shopify.storeUrl;
 const ACCESS_TOKEN = config.shopify.accessToken;
@@ -25,255 +28,116 @@ const THEME_ID = process.env.SHOPIFY_THEME_ID || '140853018904';
 const BASE_URL = `https://${STORE_URL}/admin/api/${API_VERSION}`;
 
 const DRY_RUN = !process.argv.includes('--execute');
+const VISUAL_ONLY = process.argv.includes('--visual-only');
+const SKIP_VISUAL = process.argv.includes('--skip-visual');
 
 // ─── Desired homepage section configurations ───────────────────────────────
+// These are the "known good" states for sections we can auto-fix.
+// The visual analyzer handles discovery of NEW issues beyond these.
 
-const COLLECTION_LIST_SECTION = {
-  type: 'collection-list',
-  blocks: {
-    'cl-block-1': {
-      type: 'collection',
-      settings: {
-        feature_collection: 'hand-pipes',
-        image: 'shopify://shop_images/HP-69-3.5-Display-300x300_6acdada1-2332-4a59-b1f3-a912919564fc.png'
-      }
+const KNOWN_FIXES = {
+  '1489285116594': {
+    label: 'Shop By Category collection grid',
+    section: {
+      type: 'collection-list',
+      blocks: {
+        'cl-block-1': { type: 'collection', settings: { feature_collection: 'hand-pipes', image: 'shopify://shop_images/HP-69-3.5-Display-300x300_6acdada1-2332-4a59-b1f3-a912919564fc.png' } },
+        'cl-block-2': { type: 'collection', settings: { feature_collection: 'bongs', image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png' } },
+        'cl-block-3': { type: 'collection', settings: { feature_collection: 'dab-rigs', image: 'shopify://shop_images/20240124_093738.25-300x300_db289371-2edc-4f15-883d-2ec39e4ff894.png' } },
+        'cl-block-4': { type: 'collection', settings: { feature_collection: 'bubblers', image: 'shopify://shop_images/OMG-FWDryHammer-7.5-300x300_18c1b288-f281-422c-91cb-b02ea0ac76bc.png' } },
+        'cl-block-5': { type: 'collection', settings: { feature_collection: 'rolling-papers-cones', image: 'shopify://shop_images/VIBES-x-Cookies-Cones-53mm-9-30-Display-Box-Blue-Ultra-Thin-300x300_084de0e4-2cbf-4bc1-ad99-723db177acb1.png' } },
+        'cl-block-6': { type: 'collection', settings: { feature_collection: 'made-in-usa-glass', image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png' } },
+        'cl-block-7': { type: 'collection', settings: { feature_collection: 'nectar-collectors', image: 'shopify://shop_images/silicone-nectar-collector-kit-238311.jpg' } },
+        'cl-block-8': { type: 'collection', settings: { feature_collection: 'accessories', image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png' } },
+      },
+      block_order: ['cl-block-1', 'cl-block-2', 'cl-block-3', 'cl-block-4', 'cl-block-5', 'cl-block-6', 'cl-block-7', 'cl-block-8'],
+      settings: { title: 'Shop By Category', align_height: true, collection_height: 200, frontpage_collections_per_row: 4 }
     },
-    'cl-block-2': {
-      type: 'collection',
-      settings: {
-        feature_collection: 'bongs',
-        image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png'
+    check: (section) => {
+      if (!section) return ['Section missing'];
+      const blocks = section.blocks || {};
+      const order = section.block_order || [];
+      const issues = [];
+      if (order.length === 0) issues.push('No blocks configured');
+      for (const id of order) {
+        const b = blocks[id];
+        if (!b) { issues.push(`Block "${id}" missing`); continue; }
+        if (!b.settings?.feature_collection) issues.push(`Block "${id}": empty collection → "COLLECTION TITLE" placeholder`);
+        if (!b.settings?.image) issues.push(`Block "${id}": empty image → placeholder image`);
       }
+      return issues;
     },
-    'cl-block-3': {
-      type: 'collection',
-      settings: {
-        feature_collection: 'dab-rigs',
-        image: 'shopify://shop_images/20240124_093738.25-300x300_db289371-2edc-4f15-883d-2ec39e4ff894.png'
-      }
-    },
-    'cl-block-4': {
-      type: 'collection',
-      settings: {
-        feature_collection: 'bubblers',
-        image: 'shopify://shop_images/OMG-FWDryHammer-7.5-300x300_18c1b288-f281-422c-91cb-b02ea0ac76bc.png'
-      }
-    },
-    'cl-block-5': {
-      type: 'collection',
-      settings: {
-        feature_collection: 'rolling-papers-cones',
-        image: 'shopify://shop_images/VIBES-x-Cookies-Cones-53mm-9-30-Display-Box-Blue-Ultra-Thin-300x300_084de0e4-2cbf-4bc1-ad99-723db177acb1.png'
-      }
-    },
-    'cl-block-6': {
-      type: 'collection',
-      settings: {
-        feature_collection: 'made-in-usa-glass',
-        image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png'
-      }
-    },
-    'cl-block-7': {
-      type: 'collection',
-      settings: {
-        feature_collection: 'nectar-collectors',
-        image: 'shopify://shop_images/silicone-nectar-collector-kit-238311.jpg'
-      }
-    },
-    'cl-block-8': {
-      type: 'collection',
-      settings: {
-        feature_collection: 'accessories',
-        image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png'
-      }
-    }
   },
-  block_order: [
-    'cl-block-1', 'cl-block-2', 'cl-block-3', 'cl-block-4',
-    'cl-block-5', 'cl-block-6', 'cl-block-7', 'cl-block-8'
-  ],
-  settings: {
-    title: 'Shop By Category',
-    align_height: true,
-    collection_height: 200,
-    frontpage_collections_per_row: 4
-  }
-};
 
-const FEATURED_PROMOTIONS_SECTION = {
-  type: 'featured-promotions',
-  blocks: {
-    'promo-dab-rigs': {
-      type: 'image',
-      settings: {
-        image: 'shopify://shop_images/IMG_5303.2.2-300x300_de7b49df-eee1-4aeb-a047-38e72d44f643.png',
-        link: 'shopify://collections/dab-rigs',
-        title: 'Dab Rigs',
-        text: '<p>Premium glass dab rigs for the smoothest concentrate experience. From mini rigs to recyclers.</p>',
-        button_label: 'Shop Dab Rigs'
-      }
+  '1489283737905': {
+    label: 'Featured promotions grid',
+    section: {
+      type: 'featured-promotions',
+      blocks: {
+        'promo-dab-rigs': { type: 'image', settings: { image: 'shopify://shop_images/IMG_5303.2.2-300x300_de7b49df-eee1-4aeb-a047-38e72d44f643.png', link: 'shopify://collections/dab-rigs', title: 'Dab Rigs', text: '<p>Premium glass dab rigs for the smoothest concentrate experience. From mini rigs to recyclers.</p>', button_label: 'Shop Dab Rigs' } },
+        'promo-bongs': { type: 'image', settings: { image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png', link: 'shopify://collections/bongs', title: 'Bongs & Water Pipes', text: '<p>High-quality glass bongs for flower enthusiasts. Beakers, straight tubes, and more.</p>', button_label: 'Shop Bongs' } },
+        'promo-hand-pipes': { type: 'image', settings: { image: 'shopify://shop_images/HP-69-3.5-Display-300x300_6acdada1-2332-4a59-b1f3-a912919564fc.png', link: 'shopify://collections/hand-pipes', title: 'Hand Pipes', text: '<p>Portable glass spoon pipes, chillums, and one-hitters. Perfect for on-the-go.</p>', button_label: 'Shop Pipes' } },
+        'promo-made-usa': { type: 'image', settings: { image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png', link: 'shopify://collections/made-in-usa-glass', title: 'Made in USA', text: '<p>Support American glassblowers. Premium quality, handcrafted in the USA.</p>', button_label: 'Shop USA Glass' } },
+        'promo-quartz': { type: 'image', settings: { image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png', link: 'shopify://collections/quartz-bangers', title: 'Quartz Bangers', text: '<p>Premium quartz bangers for perfect low-temp dabs. Multiple sizes and styles.</p>', button_label: 'Shop Quartz' } },
+        'promo-extraction': { type: 'image', settings: { image: 'shopify://shop_images/18oz-child-resistant-glass-jars-with-black-caps-28-grams-1-ounce-capacity-airtight-and-durable-24-pack-the-ultimate-storage-solution-for-cannabis-flower-food-an-557906_abc9f373-8f50-4919-b36d-a294a802f4c8.jpg', link: 'shopify://collections/extraction-packaging', title: 'Extraction & Packaging', text: '<p>Professional-grade silicone mats, glass jars, and packaging supplies.</p>', button_label: 'Shop Extraction' } },
+      },
+      block_order: ['promo-dab-rigs', 'promo-bongs', 'promo-hand-pipes', 'promo-made-usa', 'promo-quartz', 'promo-extraction'],
+      settings: { featured_promos_per_row: 3, featured_promos_grid: true, featured_links_animation: 'fadeInUp', feature_style: 'rounded', promo_text_on_image_enabled: true }
     },
-    'promo-bongs': {
-      type: 'image',
-      settings: {
-        image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png',
-        link: 'shopify://collections/bongs',
-        title: 'Bongs & Water Pipes',
-        text: '<p>High-quality glass bongs for flower enthusiasts. Beakers, straight tubes, and more.</p>',
-        button_label: 'Shop Bongs'
+    check: (section) => {
+      if (!section) return ['Section missing'];
+      const issues = [];
+      for (const [id, block] of Object.entries(section.blocks || {})) {
+        if (!block.settings?.image) issues.push(`Block "${id}" (${block.settings?.title || '?'}): missing image`);
+        if (!block.settings?.link) issues.push(`Block "${id}" (${block.settings?.title || '?'}): missing link`);
       }
+      return issues;
     },
-    'promo-hand-pipes': {
-      type: 'image',
-      settings: {
-        image: 'shopify://shop_images/HP-69-3.5-Display-300x300_6acdada1-2332-4a59-b1f3-a912919564fc.png',
-        link: 'shopify://collections/hand-pipes',
-        title: 'Hand Pipes',
-        text: '<p>Portable glass spoon pipes, chillums, and one-hitters. Perfect for on-the-go.</p>',
-        button_label: 'Shop Pipes'
-      }
-    },
-    'promo-made-usa': {
-      type: 'image',
-      settings: {
-        image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png',
-        link: 'shopify://collections/made-in-usa-glass',
-        title: 'Made in USA',
-        text: '<p>Support American glassblowers. Premium quality, handcrafted in the USA.</p>',
-        button_label: 'Shop USA Glass'
-      }
-    },
-    'promo-quartz': {
-      type: 'image',
-      settings: {
-        image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png',
-        link: 'shopify://collections/quartz-bangers',
-        title: 'Quartz Bangers',
-        text: '<p>Premium quartz bangers for perfect low-temp dabs. Multiple sizes and styles.</p>',
-        button_label: 'Shop Quartz'
-      }
-    },
-    'promo-extraction': {
-      type: 'image',
-      settings: {
-        image: 'shopify://shop_images/18oz-child-resistant-glass-jars-with-black-caps-28-grams-1-ounce-capacity-airtight-and-durable-24-pack-the-ultimate-storage-solution-for-cannabis-flower-food-an-557906_abc9f373-8f50-4919-b36d-a294a802f4c8.jpg',
-        link: 'shopify://collections/extraction-packaging',
-        title: 'Extraction & Packaging',
-        text: '<p>Professional-grade silicone mats, glass jars, and packaging supplies.</p>',
-        button_label: 'Shop Extraction'
-      }
-    }
   },
-  block_order: [
-    'promo-dab-rigs', 'promo-bongs', 'promo-hand-pipes',
-    'promo-made-usa', 'promo-quartz', 'promo-extraction'
-  ],
-  settings: {
-    featured_promos_per_row: 3,
-    featured_promos_grid: true,
-    featured_links_animation: 'fadeInUp',
-    feature_style: 'rounded',
-    promo_text_on_image_enabled: true
-  }
-};
 
-const IMAGE_TEXT_SECTION = {
-  type: 'image-text',
-  blocks: {
-    'it-block-1': {
-      type: 'image',
-      settings: {
-        image: 'shopify://shop_images/IMG_5303.2.2-300x300_de7b49df-eee1-4aeb-a047-38e72d44f643.png',
-        image_crop: 'none',
-        title: 'Premium Dab Rigs',
-        text: '<p>Explore our collection of high-quality glass dab rigs. From mini rigs to recyclers, find the perfect piece for smooth, flavorful concentrates.</p>',
-        button_label: 'Shop Dab Rigs',
-        link: 'shopify://collections/dab-rigs',
-        bg_color: '',
-        text_color: ''
-      }
+  '1489284503681': {
+    label: 'Image-text feature blocks',
+    section: {
+      type: 'image-text',
+      blocks: {
+        'it-block-1': { type: 'image', settings: { image: 'shopify://shop_images/IMG_5303.2.2-300x300_de7b49df-eee1-4aeb-a047-38e72d44f643.png', image_crop: 'none', title: 'Premium Dab Rigs', text: '<p>Explore our collection of high-quality glass dab rigs. From mini rigs to recyclers, find the perfect piece for smooth, flavorful concentrates.</p>', button_label: 'Shop Dab Rigs', link: 'shopify://collections/dab-rigs', bg_color: '', text_color: '' } },
+        'it-block-2': { type: 'image', settings: { image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png', image_crop: 'none', title: 'Quartz Bangers and Accessories', text: '<p>Upgrade your setup with premium quartz bangers, carb caps, and dab tools. Quality accessories for the perfect low-temp dab.</p>', button_label: 'Shop Accessories', link: 'shopify://collections/quartz-bangers', bg_color: '', text_color: '' } },
+        'it-block-3': { type: 'image', settings: { image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png', image_crop: 'none', title: 'Made in USA Glass', text: '<p>Support American craftsmanship with our selection of USA-made glass pieces. Handcrafted quality from domestic glassblowers.</p>', button_label: 'Shop USA Glass', link: 'shopify://collections/made-in-usa-glass', bg_color: '', text_color: '' } },
+      },
+      block_order: ['it-block-1', 'it-block-2', 'it-block-3'],
+      settings: { frontpage_grid_style: false, featured_links_per_row: '1', frontpage_text_align: 'left', frontpage_image_position: 'left' }
     },
-    'it-block-2': {
-      type: 'image',
-      settings: {
-        image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png',
-        image_crop: 'none',
-        title: 'Quartz Bangers and Accessories',
-        text: '<p>Upgrade your setup with premium quartz bangers, carb caps, and dab tools. Quality accessories for the perfect low-temp dab.</p>',
-        button_label: 'Shop Accessories',
-        link: 'shopify://collections/quartz-bangers',
-        bg_color: '',
-        text_color: ''
+    check: (section) => {
+      if (!section) return ['Section missing'];
+      const issues = [];
+      for (const [id, block] of Object.entries(section.blocks || {})) {
+        if (!block.settings?.image) issues.push(`Block "${id}" (${block.settings?.title || '?'}): missing image`);
+        if (!block.settings?.link) issues.push(`Block "${id}" (${block.settings?.title || '?'}): missing link`);
       }
+      return issues;
     },
-    'it-block-3': {
-      type: 'image',
-      settings: {
-        image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png',
-        image_crop: 'none',
-        title: 'Made in USA Glass',
-        text: '<p>Support American craftsmanship with our selection of USA-made glass pieces. Handcrafted quality from domestic glassblowers.</p>',
-        button_label: 'Shop USA Glass',
-        link: 'shopify://collections/made-in-usa-glass',
-        bg_color: '',
-        text_color: ''
-      }
-    }
   },
-  block_order: ['it-block-1', 'it-block-2', 'it-block-3'],
-  settings: {
-    frontpage_grid_style: false,
-    featured_links_per_row: '1',
-    frontpage_text_align: 'left',
-    frontpage_image_position: 'left'
-  }
-};
 
-const FEATURED_COLLECTIONS = {
   '1556571858712': {
-    type: 'featured-collection',
-    settings: {
-      title: 'Affordable Quality Dab Rigs',
-      collection_description: false,
-      collection: 'value-dab-rigs',
-      collection_style: 'grid',
-      products_per: 3,
-      products_limit: 9
-    }
+    label: 'Featured: Affordable Dab Rigs',
+    section: { type: 'featured-collection', settings: { title: 'Affordable Quality Dab Rigs', collection_description: false, collection: 'value-dab-rigs', collection_style: 'grid', products_per: 3, products_limit: 9 } },
+    check: (s) => (!s?.settings?.collection ? ['Empty collection handle'] : []),
   },
   '1602299209890': {
-    type: 'featured-collection',
-    settings: {
-      title: 'Premium Hand Pipes',
-      collection_description: false,
-      collection: 'hand-pipes',
-      collection_style: 'grid',
-      products_per: 3,
-      products_limit: 9
-    }
+    label: 'Featured: Hand Pipes',
+    section: { type: 'featured-collection', settings: { title: 'Premium Hand Pipes', collection_description: false, collection: 'hand-pipes', collection_style: 'grid', products_per: 3, products_limit: 9 } },
+    check: (s) => (!s?.settings?.collection ? ['Empty collection handle'] : []),
   },
   '1602299393597': {
-    type: 'featured-collection',
-    settings: {
-      title: 'Made in USA Glass',
-      collection_description: false,
-      collection: 'made-in-usa-glass',
-      collection_style: 'grid',
-      products_per: 3,
-      products_limit: 9
-    }
+    label: 'Featured: Made in USA Glass',
+    section: { type: 'featured-collection', settings: { title: 'Made in USA Glass', collection_description: false, collection: 'made-in-usa-glass', collection_style: 'grid', products_per: 3, products_limit: 9 } },
+    check: (s) => (!s?.settings?.collection ? ['Empty collection handle'] : []),
   },
   '1602299824926': {
-    type: 'featured-collection',
-    settings: {
-      title: 'Everyday Essentials Under $50',
-      collection_description: false,
-      collection: 'everyday-essentials',
-      collection_style: 'grid',
-      products_per: 3,
-      products_limit: 9
-    }
-  }
+    label: 'Featured: Everyday Essentials',
+    section: { type: 'featured-collection', settings: { title: 'Everyday Essentials Under $50', collection_description: false, collection: 'everyday-essentials', collection_style: 'grid', products_per: 3, products_limit: 9 } },
+    check: (s) => (!s?.settings?.collection ? ['Empty collection handle'] : []),
+  },
 };
 
 // ─── API helpers ────────────────────────────────────────────────────────────
@@ -289,114 +153,16 @@ function curlRequest(url, method = 'GET', bodyFile = null) {
   return JSON.parse(result);
 }
 
-function sleep(ms) {
-  execSync(`sleep ${ms / 1000}`);
-}
-
-// ─── Diagnosis helpers ──────────────────────────────────────────────────────
-
-function diagnoseCollectionList(section) {
-  const issues = [];
-  if (!section) {
-    issues.push('Section 1489285116594 (Shop By Category) is MISSING from theme settings');
-    return issues;
-  }
-
-  const blocks = section.blocks || {};
-  const blockOrder = section.block_order || [];
-
-  if (blockOrder.length === 0) {
-    issues.push('Collection list has no blocks configured (empty grid)');
-    return issues;
-  }
-
-  for (const blockId of blockOrder) {
-    const block = blocks[blockId];
-    if (!block) {
-      issues.push(`Block "${blockId}" is in block_order but not defined in blocks`);
-      continue;
-    }
-    const settings = block.settings || {};
-    if (!settings.feature_collection || settings.feature_collection === '') {
-      issues.push(`Block "${blockId}": empty feature_collection → shows "COLLECTION TITLE" placeholder`);
-    }
-    if (!settings.image || settings.image === '') {
-      issues.push(`Block "${blockId}": empty image → shows placeholder image`);
-    }
-  }
-
-  if (section.settings?.title !== 'Shop By Category') {
-    issues.push(`Section title is "${section.settings?.title}" instead of "Shop By Category"`);
-  }
-
-  return issues;
-}
-
-function diagnoseFeaturedCollections(sections) {
-  const issues = [];
-  for (const [sectionId, desired] of Object.entries(FEATURED_COLLECTIONS)) {
-    const live = sections[sectionId];
-    if (!live) {
-      issues.push(`Featured collection section ${sectionId} (${desired.settings.title}) is MISSING`);
-      continue;
-    }
-    if (!live.settings?.collection || live.settings.collection === '') {
-      issues.push(`Section ${sectionId} (${desired.settings.title}): empty collection handle`);
-    }
-  }
-  return issues;
-}
-
-function diagnosePromotions(section) {
-  const issues = [];
-  if (!section) {
-    issues.push('Featured promotions section 1489283737905 is MISSING');
-    return issues;
-  }
-
-  const blocks = section.blocks || {};
-  for (const [blockId, block] of Object.entries(blocks)) {
-    const settings = block.settings || {};
-    if (!settings.image || settings.image === '') {
-      issues.push(`Promotions block "${blockId}" (${settings.title || 'untitled'}): missing image`);
-    }
-    if (!settings.link || settings.link === '') {
-      issues.push(`Promotions block "${blockId}" (${settings.title || 'untitled'}): missing link`);
-    }
-  }
-  return issues;
-}
-
-function diagnoseImageText(section) {
-  const issues = [];
-  if (!section) {
-    issues.push('Image-text section 1489284503681 is MISSING');
-    return issues;
-  }
-
-  const blocks = section.blocks || {};
-  for (const [blockId, block] of Object.entries(blocks)) {
-    const settings = block.settings || {};
-    if (!settings.image || settings.image === '') {
-      issues.push(`Image-text block "${blockId}" (${settings.title || 'untitled'}): missing image`);
-    }
-    if (!settings.link || settings.link === '') {
-      issues.push(`Image-text block "${blockId}" (${settings.title || 'untitled'}): missing link`);
-    }
-  }
-  return issues;
-}
-
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
   console.log('=== FIX HOMEPAGE ISSUES ===');
   console.log(`Store: ${STORE_URL}`);
   console.log(`Theme: ${THEME_ID}`);
-  console.log(`Mode: ${DRY_RUN ? 'DRY RUN (use --execute to apply)' : 'LIVE - changes will be applied'}`);
+  console.log(`Mode: ${VISUAL_ONLY ? 'VISUAL ANALYSIS ONLY' : DRY_RUN ? 'DRY RUN (use --execute to apply)' : 'LIVE - changes will be applied'}`);
   console.log('');
 
-  // Step 1: Fetch current live theme settings
+  // ── Step 1: Fetch current live theme settings ───────────────────────────
   console.log('1. Fetching current theme settings from Shopify...');
   let liveSettings;
   try {
@@ -412,104 +178,88 @@ async function main() {
   }
 
   const sections = liveSettings.current?.sections || {};
-  let changesMade = false;
 
-  // Step 2: Diagnose issues
-  console.log('\n2. Diagnosing homepage issues...\n');
-
-  const clIssues = diagnoseCollectionList(sections['1489285116594']);
-  const fcIssues = diagnoseFeaturedCollections(sections);
-  const promoIssues = diagnosePromotions(sections['1489283737905']);
-  const itIssues = diagnoseImageText(sections['1489284503681']);
-
-  const allIssues = [...clIssues, ...fcIssues, ...promoIssues, ...itIssues];
-
-  if (allIssues.length === 0) {
-    console.log('   ✓ No issues found! Homepage sections are correctly configured.');
-    console.log('\n   All collection blocks have valid handles and images.');
-    console.log('   No "COLLECTION TITLE" placeholder text should appear.');
-    return;
-  }
-
-  console.log(`   Found ${allIssues.length} issue(s):\n`);
-  allIssues.forEach((issue, i) => console.log(`   ${i + 1}. ${issue}`));
-
-  // Step 3: Apply fixes
-  console.log('\n3. Applying fixes...\n');
-
-  // Fix collection-list section (Shop by Category)
-  if (clIssues.length > 0) {
-    console.log('   → Fixing "Shop By Category" collection grid...');
-    liveSettings.current.sections['1489285116594'] = COLLECTION_LIST_SECTION;
-    console.log('     ✓ Set 8 collection blocks with valid handles and product images');
-    changesMade = true;
-  }
-
-  // Fix featured collection sections
-  if (fcIssues.length > 0) {
-    console.log('   → Fixing featured collection sections...');
-    for (const [sectionId, desired] of Object.entries(FEATURED_COLLECTIONS)) {
-      liveSettings.current.sections[sectionId] = desired;
-      console.log(`     ✓ ${desired.settings.title} → ${desired.settings.collection}`);
-    }
-    changesMade = true;
-  }
-
-  // Fix featured promotions
-  if (promoIssues.length > 0) {
-    console.log('   → Fixing featured promotions grid...');
-    liveSettings.current.sections['1489283737905'] = FEATURED_PROMOTIONS_SECTION;
-    console.log('     ✓ Set 6 promo blocks with product images and collection links');
-    changesMade = true;
-  }
-
-  // Fix image-text blocks
-  if (itIssues.length > 0) {
-    console.log('   → Fixing image-text feature blocks...');
-    liveSettings.current.sections['1489284503681'] = IMAGE_TEXT_SECTION;
-    console.log('     ✓ Set 3 image-text blocks (Dab Rigs, Quartz Bangers, Made in USA)');
-    changesMade = true;
-  }
-
-  // Also fix preset copies to prevent reversion
-  if (changesMade && liveSettings.presets) {
-    console.log('\n   → Updating preset copies to prevent future reversion...');
-    for (const [presetName, presetData] of Object.entries(liveSettings.presets)) {
-      if (typeof presetData === 'object' && presetData.sections) {
-        if (presetData.sections['1489285116594']) {
-          presetData.sections['1489285116594'] = COLLECTION_LIST_SECTION;
-        }
-        if (presetData.sections['1489283737905']) {
-          presetData.sections['1489283737905'] = FEATURED_PROMOTIONS_SECTION;
-        }
-        if (presetData.sections['1489284503681']) {
-          presetData.sections['1489284503681'] = IMAGE_TEXT_SECTION;
-        }
-        for (const [sectionId, desired] of Object.entries(FEATURED_COLLECTIONS)) {
-          if (presetData.sections[sectionId]) {
-            presetData.sections[sectionId] = desired;
-          }
-        }
-        console.log(`     ✓ Updated preset "${presetName}"`);
-      }
+  // ── Step 2: Visual analysis with Gemini Flash ───────────────────────────
+  let visualReport = null;
+  if (!SKIP_VISUAL) {
+    console.log('\n2. Running visual homepage analysis (Gemini Flash)...\n');
+    try {
+      visualReport = await analyzeHomepageVisually(liveSettings, STORE_URL, {
+        verbose: true,
+        skipHtmlAnalysis: false,
+      });
+      printReport(visualReport);
+    } catch (err) {
+      console.log(`   ⚠ Visual analysis failed: ${err.message}`);
+      console.log('   Falling back to structural checks only.\n');
     }
   }
 
-  if (!changesMade) {
-    console.log('\n   No changes needed.');
+  if (VISUAL_ONLY) {
+    console.log('\nVisual analysis complete. Use without --visual-only to see fix options.');
     return;
   }
 
-  // Step 4: Deploy
+  // ── Step 3: Structural diagnosis + auto-fix ─────────────────────────────
+  console.log(`\n${SKIP_VISUAL ? '2' : '3'}. Running structural diagnosis...\n`);
+
+  const fixable = [];
+  for (const [sectionId, fix] of Object.entries(KNOWN_FIXES)) {
+    const issues = fix.check(sections[sectionId]);
+    if (issues.length > 0) {
+      fixable.push({ sectionId, label: fix.label, issues, section: fix.section });
+      console.log(`   ✗ ${fix.label} (${sectionId}):`);
+      issues.forEach(i => console.log(`     - ${i}`));
+    }
+  }
+
+  const totalStructural = fixable.reduce((sum, f) => sum + f.issues.length, 0);
+  const totalVisual = visualReport?.totalIssues || 0;
+
+  if (totalStructural === 0 && totalVisual === 0) {
+    console.log('   ✓ No fixable issues found! Homepage looks good.');
+    return;
+  }
+
+  if (totalStructural === 0) {
+    console.log('   ✓ No auto-fixable structural issues (visual issues above need manual review).');
+    return;
+  }
+
+  console.log(`\n   ${totalStructural} auto-fixable structural issue(s) across ${fixable.length} section(s).`);
+
   if (DRY_RUN) {
-    console.log('\n4. DRY RUN - changes NOT applied.');
-    console.log('   Run with --execute to push changes to the live store.');
+    console.log('\n   DRY RUN — no changes applied. Run with --execute to fix.');
     return;
   }
 
-  console.log('\n4. Deploying updated settings to Shopify...');
+  // ── Step 4: Apply fixes ─────────────────────────────────────────────────
+  console.log('\n4. Applying fixes...\n');
 
-  const { writeFileSync } = await import('fs');
+  for (const { sectionId, label, section } of fixable) {
+    liveSettings.current.sections[sectionId] = section;
+    console.log(`   ✓ Fixed: ${label}`);
+  }
+
+  // Update preset copies too
+  if (liveSettings.presets) {
+    console.log('\n   Updating preset copies to prevent future reversion...');
+    for (const [presetName, presetData] of Object.entries(liveSettings.presets)) {
+      if (typeof presetData !== 'object' || !presetData.sections) continue;
+      let updated = false;
+      for (const { sectionId, section } of fixable) {
+        if (presetData.sections[sectionId]) {
+          presetData.sections[sectionId] = section;
+          updated = true;
+        }
+      }
+      if (updated) console.log(`   ✓ Updated preset "${presetName}"`);
+    }
+  }
+
+  // ── Step 5: Deploy ──────────────────────────────────────────────────────
+  console.log('\n5. Deploying updated settings to Shopify...');
+
   const requestBody = {
     asset: {
       key: 'config/settings_data.json',
@@ -528,11 +278,8 @@ async function main() {
 
     if (updateResponse.asset) {
       console.log('\n   ✓ SUCCESS! Homepage settings updated on live store.');
-      console.log('\n   Changes applied:');
-      if (clIssues.length > 0) console.log('   • "Shop By Category" grid: 8 collections with product images');
-      if (fcIssues.length > 0) console.log('   • Featured collections: Dab Rigs, Hand Pipes, Made in USA, Essentials');
-      if (promoIssues.length > 0) console.log('   • Promotions grid: 6 category promo blocks');
-      if (itIssues.length > 0) console.log('   • Image-text blocks: 3 feature blocks with product images');
+      console.log('\n   Sections fixed:');
+      fixable.forEach(f => console.log(`   • ${f.label}`));
       console.log('\n   Verify at: https://www.oilslickpad.com');
     } else if (updateResponse.errors) {
       console.error('\n   ✗ Error:', JSON.stringify(updateResponse.errors));
