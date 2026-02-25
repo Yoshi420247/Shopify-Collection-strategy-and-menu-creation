@@ -155,10 +155,44 @@ export async function checkStockLevels(productIds) {
   return results;
 }
 
+// Extract comprehensive product info for Shopify listing creation
+export function extractFullProductInfo(wcProduct) {
+  return {
+    id: wcProduct.id,
+    name: wcProduct.name,
+    sku: wcProduct.sku || '',
+    slug: wcProduct.slug || '',
+    status: wcProduct.status,
+    description: wcProduct.description || '',
+    short_description: wcProduct.short_description || '',
+    price: wcProduct.price,
+    regular_price: wcProduct.regular_price,
+    sale_price: wcProduct.sale_price,
+    stock_status: wcProduct.stock_status,
+    stock_quantity: wcProduct.stock_quantity ?? null,
+    manage_stock: wcProduct.manage_stock,
+    weight: wcProduct.weight || '',
+    dimensions: wcProduct.dimensions || {},
+    categories: (wcProduct.categories || []).map(c => c.name),
+    tags: (wcProduct.tags || []).map(t => t.name),
+    images: (wcProduct.images || []).map(img => ({
+      src: img.src,
+      alt: img.alt || '',
+      name: img.name || '',
+    })),
+    attributes: (wcProduct.attributes || []).map(a => ({
+      name: a.name,
+      options: a.options || [],
+    })),
+    permalink: wcProduct.permalink,
+  };
+}
+
 export default {
   getAllWcProducts,
   getWcProduct,
   extractStockInfo,
+  extractFullProductInfo,
   getStockManagedProducts,
   checkStockLevels,
 };

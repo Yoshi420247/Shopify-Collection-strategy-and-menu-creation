@@ -114,7 +114,10 @@
     "wholesaler:sync:execute": "node src/wholesaler-sync.js --execute",
     "wholesaler:sync:verbose": "node src/wholesaler-sync.js --verbose",
     "wholesaler:sync:live": "node src/wholesaler-sync.js --execute --verbose",
-    "wholesaler:history": "node src/wholesaler-sync.js --history"
+    "wholesaler:history": "node src/wholesaler-sync.js --history",
+    "wholesaler:import": "node src/wholesaler-product-creator.js",
+    "wholesaler:import:execute": "node src/wholesaler-product-creator.js --execute",
+    "wholesaler:import:test": "node src/wholesaler-product-creator.js --execute --limit 3"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

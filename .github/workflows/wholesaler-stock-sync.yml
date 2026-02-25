@@ -12,14 +12,22 @@ on:
           - execute
           - match
           - match-review
+          - import-new
+          - import-new-dry-run
+          - full-pipeline
           - history
       force_rematch:
         description: 'Force re-run product matching (ignores existing mapping)'
         required: false
         default: false
         type: boolean
+      import_limit:
+        description: 'Max new products to import (0 = all)'
+        required: false
+        default: '0'
+        type: string
   schedule:
-    # Run daily at 6 AM UTC — checks wholesaler stock and updates Shopify
+    # Run daily at 6 AM UTC — full autonomous pipeline
     - cron: '0 6 * * *'
 
 env:
@@ -28,11 +36,15 @@ env:
   WC_STORE_URL: ${{ secrets.WC_STORE_URL }}
   WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
   WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
+  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
 
 jobs:
   wholesaler-sync:
     name: Wholesaler Stock Sync
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -59,8 +71,9 @@ jobs:
 
       - name: Run wholesaler sync
         run: |
-          MODE="${{ github.event.inputs.mode || 'execute' }}"
+          MODE="${{ github.event.inputs.mode || 'full-pipeline' }}"
           FORCE="${{ github.event.inputs.force_rematch || 'false' }}"
+          LIMIT="${{ github.event.inputs.import_limit || '0' }}"
 
           case "$MODE" in
             match)
@@ -75,6 +88,18 @@ jobs:
               if [ "$FORCE" = "true" ]; then ARGS="$ARGS --force-rematch"; fi
               node src/product-matcher.js $ARGS
               ;;
+            import-new)
+              echo "Creating new Shopify products from unmatched WC products..."
+              ARGS="--execute"
+              if [ "$LIMIT" != "0" ]; then ARGS="$ARGS --limit $LIMIT"; fi
+              node src/wholesaler-product-creator.js $ARGS
+              ;;
+            import-new-dry-run)
+              echo "Previewing new product creation (dry run)..."
+              ARGS=""
+              if [ "$LIMIT" != "0" ]; then ARGS="--limit $LIMIT"; fi
+              node src/wholesaler-product-creator.js $ARGS
+              ;;
             history)
               echo "Showing sync history..."
               node src/wholesaler-sync.js --history
@@ -82,6 +107,31 @@ jobs:
             execute)
               echo "Running stock sync (LIVE)..."
               node src/wholesaler-sync.js --execute --verbose
+              ;;
+            full-pipeline)
+              echo "══════════════════════════════════════════════════"
+              echo "  FULL AUTONOMOUS PIPELINE"
+              echo "══════════════════════════════════════════════════"
+              echo ""
+
+              echo "── Step 1/3: Product matching ──"
+              MATCH_ARGS="--force-rematch"
+              node src/product-matcher.js $MATCH_ARGS
+              echo ""
+
+              echo "── Step 2/3: Import new products ──"
+              IMPORT_ARGS="--execute"
+              if [ "$LIMIT" != "0" ]; then IMPORT_ARGS="$IMPORT_ARGS --limit $LIMIT"; fi
+              node src/wholesaler-product-creator.js $IMPORT_ARGS
+              echo ""
+
+              echo "── Step 3/3: Stock sync ──"
+              node src/wholesaler-sync.js --execute --verbose
+              echo ""
+
+              echo "══════════════════════════════════════════════════"
+              echo "  FULL PIPELINE COMPLETE"
+              echo "══════════════════════════════════════════════════"
               ;;
             dry-run|*)
               echo "Running stock sync (dry run)..."
@@ -106,6 +156,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wholesaler-sync-log-${{ github.run_number }}
-          path: wholesaler-sync-log.json
+          path: |
+            wholesaler-sync-log.json
+            wholesaler-creation-log.json
           retention-days: 90
           if-no-files-found: ignore
