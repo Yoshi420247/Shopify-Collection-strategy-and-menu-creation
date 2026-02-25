@@ -41,14 +41,14 @@ const KNOWN_FIXES = {
     section: {
       type: 'collection-list',
       blocks: {
-        'cl-block-1': { type: 'collection', settings: { feature_collection: 'hand-pipes', image: 'shopify://shop_images/HP-69-3.5-Display-300x300_6acdada1-2332-4a59-b1f3-a912919564fc.png' } },
-        'cl-block-2': { type: 'collection', settings: { feature_collection: 'bongs', image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png' } },
-        'cl-block-3': { type: 'collection', settings: { feature_collection: 'dab-rigs', image: 'shopify://shop_images/20240124_093738.25-300x300_db289371-2edc-4f15-883d-2ec39e4ff894.png' } },
-        'cl-block-4': { type: 'collection', settings: { feature_collection: 'bubblers', image: 'shopify://shop_images/OMG-FWDryHammer-7.5-300x300_18c1b288-f281-422c-91cb-b02ea0ac76bc.png' } },
-        'cl-block-5': { type: 'collection', settings: { feature_collection: 'rolling-papers-cones', image: 'shopify://shop_images/VIBES-x-Cookies-Cones-53mm-9-30-Display-Box-Blue-Ultra-Thin-300x300_084de0e4-2cbf-4bc1-ad99-723db177acb1.png' } },
-        'cl-block-6': { type: 'collection', settings: { feature_collection: 'made-in-usa-glass', image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png' } },
-        'cl-block-7': { type: 'collection', settings: { feature_collection: 'nectar-collectors', image: 'shopify://shop_images/silicone-nectar-collector-kit-238311.jpg' } },
-        'cl-block-8': { type: 'collection', settings: { feature_collection: 'accessories', image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png' } },
+        'cl-block-1': { type: 'collection', settings: { feature_collection: 'hand-pipes', title: 'Hand Pipes', image: 'shopify://shop_images/HP-69-3.5-Display-300x300_6acdada1-2332-4a59-b1f3-a912919564fc.png' } },
+        'cl-block-2': { type: 'collection', settings: { feature_collection: 'bongs', title: 'Bongs & Water Pipes', image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png' } },
+        'cl-block-3': { type: 'collection', settings: { feature_collection: 'dab-rigs', title: 'Dab Rigs', image: 'shopify://shop_images/20240124_093738.25-300x300_db289371-2edc-4f15-883d-2ec39e4ff894.png' } },
+        'cl-block-4': { type: 'collection', settings: { feature_collection: 'bubblers', title: 'Bubblers', image: 'shopify://shop_images/OMG-FWDryHammer-7.5-300x300_18c1b288-f281-422c-91cb-b02ea0ac76bc.png' } },
+        'cl-block-5': { type: 'collection', settings: { feature_collection: 'rolling-papers-cones', title: 'Rolling Papers & Cones', image: 'shopify://shop_images/VIBES-x-Cookies-Cones-53mm-9-30-Display-Box-Blue-Ultra-Thin-300x300_084de0e4-2cbf-4bc1-ad99-723db177acb1.png' } },
+        'cl-block-6': { type: 'collection', settings: { feature_collection: 'made-in-usa-glass', title: 'Made in USA Glass', image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png' } },
+        'cl-block-7': { type: 'collection', settings: { feature_collection: 'nectar-collectors', title: 'Nectar Collectors', image: 'shopify://shop_images/silicone-nectar-collector-kit-238311.jpg' } },
+        'cl-block-8': { type: 'collection', settings: { feature_collection: 'accessories', title: 'Accessories', image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png' } },
       },
       block_order: ['cl-block-1', 'cl-block-2', 'cl-block-3', 'cl-block-4', 'cl-block-5', 'cl-block-6', 'cl-block-7', 'cl-block-8'],
       settings: { title: 'Shop By Category', align_height: true, collection_height: 200, frontpage_collections_per_row: 4 }
@@ -138,6 +138,17 @@ const KNOWN_FIXES = {
     section: { type: 'featured-collection', settings: { title: 'Everyday Essentials Under $50', collection_description: false, collection: 'everyday-essentials', collection_style: 'grid', products_per: 3, products_limit: 9 } },
     check: (s) => (!s?.settings?.collection ? ['Empty collection handle'] : []),
   },
+
+  'extraction_essentials': {
+    label: 'Featured: Extraction & Packaging',
+    section: { type: 'featured-collection', settings: { title: 'Top Packaging & Extraction Supplies', collection_description: false, collection: 'extraction-packaging', collection_style: 'grid', products_per: 3, products_limit: 9 } },
+    check: (s) => (!s?.settings?.collection ? ['Empty collection handle'] : []),
+  },
+  'glass_jars_featured': {
+    label: 'Featured: Glass Jars',
+    section: { type: 'featured-collection', settings: { title: 'Glass Jars & Containers', collection_description: false, collection: 'glass-jars', collection_style: 'grid', products_per: 3, products_limit: 6 } },
+    check: (s) => (!s?.settings?.collection ? ['Empty collection handle'] : []),
+  },
 };
 
 // ─── API helpers ────────────────────────────────────────────────────────────
@@ -216,17 +227,33 @@ async function main() {
   const totalStructural = fixable.reduce((sum, f) => sum + f.issues.length, 0);
   const totalVisual = visualReport?.totalIssues || 0;
 
+  // Check if visual analysis found placeholder text (indicates sections need force-fixing)
+  const hasPlaceholderText = visualReport?.htmlAnalysis?.htmlIssues?.some(
+    i => i.type === 'placeholder_text'
+  ) || false;
+
   if (totalStructural === 0 && totalVisual === 0) {
     console.log('   ✓ No fixable issues found! Homepage looks good.');
     return;
   }
 
-  if (totalStructural === 0) {
+  if (totalStructural === 0 && !hasPlaceholderText) {
     console.log('   ✓ No auto-fixable structural issues (visual issues above need manual review).');
     return;
   }
 
-  console.log(`\n   ${totalStructural} auto-fixable structural issue(s) across ${fixable.length} section(s).`);
+  if (totalStructural === 0 && hasPlaceholderText) {
+    console.log('   ⚠ Structural checks passed but live HTML has placeholder text.');
+    console.log('     Force-applying all KNOWN_FIXES to repair placeholder issues...');
+    // Add ALL known sections as fixable to force a full repair
+    for (const [sectionId, fix] of Object.entries(KNOWN_FIXES)) {
+      if (!fixable.find(f => f.sectionId === sectionId)) {
+        fixable.push({ sectionId, label: fix.label, issues: ['Force-fix: placeholder text on live page'], section: fix.section });
+      }
+    }
+  }
+
+  console.log(`\n   ${fixable.length} section(s) to fix.`);
 
   if (DRY_RUN) {
     console.log('\n   DRY RUN — no changes applied. Run with --execute to fix.');

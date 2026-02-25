@@ -88,7 +88,7 @@ jobs:
           echo "| Shop By Category | collection-list | COLLECTION TITLE placeholder, missing images |" >> $GITHUB_STEP_SUMMARY
           echo "| Featured Promotions | featured-promotions | Empty promo blocks, missing images |" >> $GITHUB_STEP_SUMMARY
           echo "| Image-Text Blocks | image-text | Missing collection links and images |" >> $GITHUB_STEP_SUMMARY
-          echo "| Featured Collections (x4) | featured-collection | Empty collection handles |" >> $GITHUB_STEP_SUMMARY
+          echo "| Featured Collections (x6) | featured-collection | Empty collection handles, placeholder titles |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Verify" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
