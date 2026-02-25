@@ -1,0 +1,75 @@
+name: Fix Homepage Issues
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'diagnose'
+        type: choice
+        options:
+          - diagnose    # Check for issues without making changes
+          - fix         # Apply fixes to the live store
+
+jobs:
+  fix-homepage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Diagnose Homepage Issues
+        if: ${{ inputs.action == 'diagnose' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🔍 Diagnosing homepage issues..."
+          echo "   Checking for:"
+          echo "   - COLLECTION TITLE placeholder text"
+          echo "   - Missing/placeholder images"
+          echo "   - Empty collection handles"
+          echo ""
+          node src/fix-homepage.js
+
+      - name: Fix Homepage Issues
+        if: ${{ inputs.action == 'fix' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "🔧 Fixing homepage issues..."
+          echo ""
+          node src/fix-homepage.js --execute
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## 🏠 Homepage Fix Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Sections Checked" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Section | Type | What it fixes |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|------|---------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Shop By Category | collection-list | COLLECTION TITLE placeholder, missing images |" >> $GITHUB_STEP_SUMMARY
+          echo "| Featured Promotions | featured-promotions | Empty promo blocks, missing images |" >> $GITHUB_STEP_SUMMARY
+          echo "| Image-Text Blocks | image-text | Missing collection links and images |" >> $GITHUB_STEP_SUMMARY
+          echo "| Featured Collections | featured-collection | Empty collection handles |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Verify" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Live Homepage](https://www.oilslickpad.com)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Theme Editor](https://oil-slick-pad.myshopify.com/admin/themes/140853018904/editor)" >> $GITHUB_STEP_SUMMARY

@@ -86,6 +86,8 @@
     "cart-recovery:test": "node src/abandoned-cart-engine.js --max=5 --verbose",
     "cart-recovery:setup": "node src/setup-cart-recovery-flows.js",
     "cart-recovery:setup:create": "node src/setup-cart-recovery-flows.js --create",
+    "homepage": "node src/fix-homepage.js",
+    "homepage:execute": "node src/fix-homepage.js --execute",
     "deploy-email-templates": "node src/deploy-email-templates.js --dry-run",
     "deploy-email-templates:execute": "node src/deploy-email-templates.js --execute",
     "bulk-tag": "node src/bulk-wholesale-tagger.js",
