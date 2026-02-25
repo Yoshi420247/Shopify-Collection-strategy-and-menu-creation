@@ -123,5 +123,8 @@
     "automation"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "overrides": {
+    "node-fetch": "^3.3.2"
+  }
 }
