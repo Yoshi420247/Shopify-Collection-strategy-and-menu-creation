@@ -6,12 +6,12 @@ on:
       action:
         description: 'Action to perform'
         required: true
-        default: 'visual-audit'
+        default: 'diagnose'
         type: choice
         options:
-          - visual-audit         # Gemini Flash visual analysis + structural checks (no changes)
-          - structural-only      # Fast structural checks only (no Gemini, no changes)
-          - fix                  # Apply auto-fixes to the live store
+          - diagnose              # Investigate + diagnose (no changes)
+          - diagnose-visual       # Full Gemini visual + structural diagnosis
+          - fix                   # Investigate → fix → verify (agentic loop)
 
 jobs:
   fix-homepage:
@@ -29,66 +29,59 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Visual Audit (Gemini Flash)
-        if: ${{ inputs.action == 'visual-audit' }}
+      - name: Diagnose (structural only)
+        if: ${{ inputs.action == 'diagnose' }}
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          echo "Agentic homepage diagnosis (no Gemini)..."
+          echo "  - Fetches live settings + theme templates"
+          echo "  - Deep-diffs sections against desired state"
+          echo "  - Checks collection objects for default titles"
+          echo "  - Fetches live HTML for placeholder text"
+          echo ""
+          node src/fix-homepage.js --skip-visual
+
+      - name: Diagnose (with Gemini visual)
+        if: ${{ inputs.action == 'diagnose-visual' }}
         env:
           SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
-          echo "Diagnosing homepage with Gemini Flash visual analysis..."
-          echo "   - Downloads all homepage section images"
-          echo "   - Sends to Gemini 2.0 Flash for visual inspection"
-          echo "   - Fetches live HTML for placeholder text detection"
-          echo "   - Runs structural checks on JSON settings"
+          echo "Agentic homepage diagnosis with Gemini Flash..."
           echo ""
           node src/fix-homepage.js
 
-      - name: Structural Checks Only
-        if: ${{ inputs.action == 'structural-only' }}
-        env:
-          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
-          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-        run: |
-          echo "Running structural checks only (no Gemini)..."
-          echo ""
-          node src/fix-homepage.js --skip-visual
-
-      - name: Fix Homepage Issues
+      - name: Fix and Verify
         if: ${{ inputs.action == 'fix' }}
         env:
           SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
           SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
-          echo "Visual audit + applying auto-fixes..."
+          echo "Agentic fix: investigate → fix → verify..."
           echo ""
           node src/fix-homepage.js --execute
 
       - name: Generate Summary
         if: always()
         run: |
-          echo "## Homepage Audit Report" >> $GITHUB_STEP_SUMMARY
+          echo "## Agentic Homepage Fixer Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Analysis Modes" >> $GITHUB_STEP_SUMMARY
+          echo "### Agentic Flow" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Mode | Description |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|-------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Visual (Gemini Flash) | Downloads images, analyzes with AI for placeholders, stock photos, low quality |" >> $GITHUB_STEP_SUMMARY
-          echo "| HTML Analysis | Fetches live homepage, scans for placeholder text and structural issues |" >> $GITHUB_STEP_SUMMARY
-          echo "| Structural | Checks JSON settings for empty collection handles, missing images, broken blocks |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Auto-Fixable Sections" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Section | Type | What it fixes |" >> $GITHUB_STEP_SUMMARY
-          echo "|---------|------|---------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Shop By Category | collection-list | COLLECTION TITLE placeholder, missing images |" >> $GITHUB_STEP_SUMMARY
-          echo "| Featured Promotions | featured-promotions | Empty promo blocks, missing images |" >> $GITHUB_STEP_SUMMARY
-          echo "| Image-Text Blocks | image-text | Missing collection links and images |" >> $GITHUB_STEP_SUMMARY
-          echo "| Featured Collections (x6) | featured-collection | Empty collection handles, placeholder titles |" >> $GITHUB_STEP_SUMMARY
+          echo "| Phase | What it does |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 1. Investigate | Fetches live settings, theme templates, collection objects, and live HTML |" >> $GITHUB_STEP_SUMMARY
+          echo "| 2. Diagnose | Deep-diffs settings, identifies root cause of placeholders |" >> $GITHUB_STEP_SUMMARY
+          echo "| 3. Fix | Applies changes at correct level (settings, collections, or templates) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 4. Verify | Re-fetches live page after CDN propagation, checks for placeholder text |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5. Retry | If verify fails, investigates deeper (theme files, HTML context) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Verify" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
