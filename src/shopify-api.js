@@ -1,6 +1,5 @@
-// Shopify API wrapper using child_process for curl (more reliable in some environments)
+// Shopify API wrapper using native fetch
 import { config } from './config.js';
-import { execSync } from 'child_process';
 
 if (!config.shopify.storeUrl) {
   throw new Error('SHOPIFY_STORE_URL environment variable is not set. Set it to your store domain (e.g. "my-store.myshopify.com").');
@@ -35,34 +34,35 @@ async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3)
   }
   lastRequestTime = Date.now();
 
-  // Build curl command
-  let curlCmd = `curl -s --max-time 30 -X ${method} "${url}" `;
-  curlCmd += `-H "X-Shopify-Access-Token: ${config.shopify.accessToken}" `;
-  curlCmd += `-H "Content-Type: application/json" `;
+  const fetchOptions = {
+    method,
+    headers: {
+      'X-Shopify-Access-Token': config.shopify.accessToken,
+      'Content-Type': 'application/json',
+    },
+    signal: AbortSignal.timeout(30000),
+  };
 
   if (body) {
-    // Escape the body for shell
-    const escapedBody = JSON.stringify(body).replace(/'/g, "'\\''");
-    curlCmd += `-d '${escapedBody}'`;
+    fetchOptions.body = JSON.stringify(body);
   }
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const result = execSync(curlCmd, {
-        encoding: 'utf8',
-        maxBuffer: 50 * 1024 * 1024, // 50MB buffer for large responses
-      });
+      const response = await fetch(url, fetchOptions);
 
-      // Check for error responses
-      if (result.includes('upstream connect error') || result.includes('error')) {
-        const parsed = JSON.parse(result);
-        if (parsed.errors) {
-          throw new Error(JSON.stringify(parsed.errors));
-        }
-        return parsed;
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`HTTP ${response.status}: ${text.substring(0, 300)}`);
       }
 
-      return JSON.parse(result);
+      const data = await response.json();
+
+      if (data.errors) {
+        throw new Error(JSON.stringify(data.errors));
+      }
+
+      return data;
     } catch (error) {
       if (attempt < retries) {
         const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff
