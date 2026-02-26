@@ -1,0 +1,130 @@
+{% comment %}
+  Welcome Discount Popup — NEWSMOKE30
+  Oil Slick Pad — oilslickpad.com
+
+  Shows a one-time popup to new visitors announcing the 30% off
+  discount on all "What You Need" products. Uses sessionStorage so
+  it only appears once per browser session (not annoying).
+
+  Include in theme.liquid before </body>:
+    {% render 'welcome-discount-popup' %}
+{% endcomment %}
+
+<div id="welcome-discount-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:99998;justify-content:center;align-items:center;">
+  <div id="welcome-discount-popup" style="background:#fff;border-radius:16px;max-width:520px;width:90%;position:relative;box-shadow:0 24px 80px rgba(0,0,0,0.35);overflow:hidden;animation:welcomePopupIn 0.4s ease-out;">
+
+    <!-- Close button -->
+    <button onclick="closeWelcomePopup()" aria-label="Close" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:28px;cursor:pointer;color:rgba(255,255,255,0.8);z-index:3;line-height:1;">&times;</button>
+
+    <!-- Header with gradient -->
+    <div style="background:linear-gradient(135deg,#1b1f23 0%,#03a196 100%);padding:36px 28px 28px;text-align:center;">
+      <div style="font-size:14px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:8px;font-weight:600;">Welcome to Oil Slick Pad</div>
+      <h2 style="color:#fff;margin:0 0 6px;font-size:32px;font-weight:800;line-height:1.2;">30% OFF</h2>
+      <p style="color:rgba(255,255,255,0.85);margin:0;font-size:15px;line-height:1.4;">All smoking accessories &amp; glass</p>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:28px 28px 24px;">
+      <!-- Discount code box -->
+      <div style="background:#f7f7f7;border:2px dashed #03a196;border-radius:10px;padding:16px;text-align:center;margin-bottom:20px;">
+        <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Use code at checkout</div>
+        <div id="welcome-discount-code" style="font-size:28px;font-weight:800;color:#1b1f23;letter-spacing:2px;font-family:monospace;cursor:pointer;" onclick="copyDiscountCode()" title="Click to copy">NEWSMOKE30</div>
+        <div id="copy-feedback" style="font-size:12px;color:#03a196;margin-top:4px;opacity:0;transition:opacity 0.3s;">Copied!</div>
+      </div>
+
+      <p style="color:#666;font-size:14px;text-align:center;margin:0 0 20px;line-height:1.5;">
+        Save 30% on bongs, rigs, pipes, bangers, torches &amp; more from our full smoke shop collection.
+      </p>
+
+      <!-- CTA button — links to Smoke & Vape collection -->
+      <a href="/collections/smoke-and-vape" onclick="closeWelcomePopup()" style="display:block;text-align:center;padding:16px 24px;background:linear-gradient(135deg,#03a196,#028a80);color:#fff;border-radius:10px;font-size:16px;font-weight:700;text-decoration:none;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 4px 16px rgba(3,161,150,0.3);" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 24px rgba(3,161,150,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(3,161,150,0.3)'">
+        Shop Now &amp; Save 30%
+      </a>
+
+      <!-- No thanks link -->
+      <div style="text-align:center;margin-top:14px;">
+        <button onclick="closeWelcomePopup()" style="background:none;border:none;color:#999;font-size:13px;cursor:pointer;text-decoration:underline;">No thanks, I'll pay full price</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes welcomePopupIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.92); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @media (max-width: 480px) {
+    #welcome-discount-popup {
+      margin: 12px;
+      width: calc(100% - 24px) !important;
+      border-radius: 12px !important;
+    }
+    #welcome-discount-popup h2 { font-size: 26px !important; }
+  }
+</style>
+
+<script>
+(function() {
+  'use strict';
+
+  var POPUP_DELAY_MS = 2500;
+  var SESSION_KEY = 'osp_welcome_popup_shown';
+
+  // Only show once per session
+  if (sessionStorage.getItem(SESSION_KEY)) return;
+
+  function showWelcomePopup() {
+    var overlay = document.getElementById('welcome-discount-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    sessionStorage.setItem(SESSION_KEY, '1');
+  }
+
+  // Show after a short delay so the page loads first
+  setTimeout(showWelcomePopup, POPUP_DELAY_MS);
+
+  // Close popup
+  window.closeWelcomePopup = function() {
+    var overlay = document.getElementById('welcome-discount-overlay');
+    if (overlay) overlay.style.display = 'none';
+  };
+
+  // Close on overlay click
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'welcome-discount-overlay') {
+      closeWelcomePopup();
+    }
+  });
+
+  // Escape key closes popup
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeWelcomePopup();
+    }
+  });
+
+  // Copy discount code to clipboard
+  window.copyDiscountCode = function() {
+    var code = 'NEWSMOKE30';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code);
+    } else {
+      // Fallback for older browsers
+      var textarea = document.createElement('textarea');
+      textarea.value = code;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+    var feedback = document.getElementById('copy-feedback');
+    if (feedback) {
+      feedback.style.opacity = '1';
+      setTimeout(function() { feedback.style.opacity = '0'; }, 2000);
+    }
+  };
+})();
+</script>
