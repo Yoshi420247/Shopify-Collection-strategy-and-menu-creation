@@ -1,0 +1,163 @@
+name: WooCommerce → Shopify Parallel Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run              # Preview products that will be migrated
+          - execute              # Migrate products as drafts
+          - execute-publish      # Migrate and auto-publish (if QA passes)
+          - resume               # Resume from last checkpoint
+          - status               # Show migration progress
+      workers:
+        description: 'Number of parallel workers (1-8)'
+        required: false
+        default: '4'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
+          - '6'
+          - '8'
+      start_index:
+        description: 'Start from product index (0-based, default: 0)'
+        required: false
+        default: '0'
+        type: string
+      batch_size:
+        description: 'Number of products to process (default: all)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  migrate-products:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360   # 6 hour timeout for large catalogs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: claude/fix-homepage-issues-FisEZ
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download migration state
+        if: ${{ inputs.action == 'resume' || inputs.action == 'status' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: .wc-migrate-state.json
+          key: wc-migrate-state-${{ github.run_id }}
+          restore-keys: |
+            wc-migrate-state-
+
+      - name: Run Migration
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          WC_STORE_URL: ${{ secrets.WC_STORE_URL }}
+          WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
+          WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          echo "🚀 WooCommerce → Shopify Parallel Migration"
+          echo "   Action:  ${{ inputs.action }}"
+          echo "   Workers: ${{ inputs.workers }}"
+          echo "   Start:   ${{ inputs.start_index }}"
+          echo "   Count:   ${{ inputs.batch_size || 'all' }}"
+          echo ""
+
+          ARGS="--workers=${{ inputs.workers }}"
+
+          case "${{ inputs.action }}" in
+            "dry-run")
+              ;;
+            "execute")
+              ARGS="$ARGS --execute"
+              ;;
+            "execute-publish")
+              ARGS="$ARGS --execute --publish"
+              ;;
+            "resume")
+              ARGS="$ARGS --execute --resume"
+              ;;
+            "status")
+              node src/wc-migrate-parallel.js --status
+              exit 0
+              ;;
+          esac
+
+          if [ -n "${{ inputs.start_index }}" ] && [ "${{ inputs.start_index }}" != "0" ]; then
+            ARGS="$ARGS --start=${{ inputs.start_index }}"
+          fi
+
+          if [ -n "${{ inputs.batch_size }}" ]; then
+            ARGS="$ARGS --count=${{ inputs.batch_size }}"
+          fi
+
+          echo "Command: node src/wc-migrate-parallel.js $ARGS"
+          echo ""
+
+          eval "node src/wc-migrate-parallel.js $ARGS"
+
+      - name: Save migration state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .wc-migrate-state.json
+          key: wc-migrate-state-${{ github.run_id }}
+
+      - name: Upload state artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-state
+          path: .wc-migrate-state.json
+          if-no-files-found: ignore
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## 🔄 WooCommerce → Shopify Migration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** \`${{ inputs.action }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Workers:** ${{ inputs.workers }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Start index:** ${{ inputs.start_index }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Batch size:** ${{ inputs.batch_size || 'all' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f .wc-migrate-state.json ]; then
+            echo "### Progress" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            COMPLETED=$(node -e "const s=JSON.parse(require('fs').readFileSync('.wc-migrate-state.json','utf8'));console.log(Object.keys(s.completed).length)")
+            FAILED=$(node -e "const s=JSON.parse(require('fs').readFileSync('.wc-migrate-state.json','utf8'));console.log(Object.keys(s.failed).length)")
+            echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Completed | $COMPLETED |" >> $GITHUB_STEP_SUMMARY
+            echo "| ❌ Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📊 Total | $((COMPLETED + FAILED)) |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Performance" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Workers | Estimated Rate |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|---------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 1 (old) | ~2-3/min |" >> $GITHUB_STEP_SUMMARY
+          echo "| 4 | ~8-12/min |" >> $GITHUB_STEP_SUMMARY
+          echo "| 8 | ~15-20/min |" >> $GITHUB_STEP_SUMMARY

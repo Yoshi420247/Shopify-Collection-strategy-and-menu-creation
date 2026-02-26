@@ -117,7 +117,13 @@
     "wholesaler:history": "node src/wholesaler-sync.js --history",
     "wholesaler:import": "node src/wholesaler-product-creator.js",
     "wholesaler:import:execute": "node src/wholesaler-product-creator.js --execute",
-    "wholesaler:import:test": "node src/wholesaler-product-creator.js --execute --limit 3"
+    "wholesaler:import:test": "node src/wholesaler-product-creator.js --execute --limit 3",
+    "migrate": "node src/wc-migrate-parallel.js",
+    "migrate:execute": "node src/wc-migrate-parallel.js --execute",
+    "migrate:publish": "node src/wc-migrate-parallel.js --execute --publish",
+    "migrate:fast": "node src/wc-migrate-parallel.js --execute --workers=8",
+    "migrate:resume": "node src/wc-migrate-parallel.js --execute --resume",
+    "migrate:status": "node src/wc-migrate-parallel.js --status"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
