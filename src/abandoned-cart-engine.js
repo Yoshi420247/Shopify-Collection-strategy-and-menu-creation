@@ -107,6 +107,7 @@ async function createDiscountCode(discountParams) {
         target_type: 'line_item',
         target_selection: 'all',
         allocation_method: 'across',
+        customer_selection: 'all',
         value_type: valueType,
         value: String(value),
         usage_limit: usageLimit || 1,

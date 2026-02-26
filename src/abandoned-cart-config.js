@@ -13,24 +13,25 @@ export const abandonedCartConfig = {
   // =========================================================================
   productCategories: {
     oilSlick: {
-      name: 'Oil Slick',
+      name: 'Oil Slick / Extraction',
       description: 'Packaging & extraction supplies (silicone pads, FEP, PTFE, jars)',
       identifiers: {
         vendors: ['Oil Slick'],
         tags: ['Oil Slick'],
       },
-      maxDiscountPercent: 10,
+      maxDiscountPercent: 15,   // Updated per owner: max 15% for extraction / Oil Slick vendor
       marginProfile: 'low',
       freeShippingThreshold: null, // Do not offer free shipping on low-margin items
     },
     smokeshop: {
       name: 'Smokeshop',
-      description: 'Smoke & vape devices and accessories',
+      description: 'Smoke & vape devices and accessories (YHS Cloud, What You Need, All In Smokeshop)',
       identifiers: {
-        vendors: ['What You Need', 'Cloud YHS'],
-        tags: ['Cloud YHS', 'What You Need'],
+        vendors: ['What You Need', 'Cloud YHS', 'YHS Cloud'],
+        tags: ['Cloud YHS', 'What You Need', 'YHS Cloud'],
+        collections: ['smoke-and-vape', 'all-accessories', 'all-bongs', 'all-rigs', 'all-pipes'],
       },
-      maxDiscountPercent: 40,
+      maxDiscountPercent: 35,   // Updated per owner: max 35% for smokeshop products
       marginProfile: 'high',
       freeShippingThreshold: 75, // Free shipping at $75+ for smokeshop items
     },
@@ -201,8 +202,8 @@ export const abandonedCartConfig = {
       strategy: 'light_discount',
       contentFocus: 'incentive_introduction',
       discountEscalation: {
-        oilSlick: { percent: 5, type: 'percentage' },      // 5% - half of max
-        smokeshop: { percent: 10, type: 'percentage' },     // 10% - quarter of max
+        oilSlick: { percent: 5, type: 'percentage' },       // 5% - starter offer (max 15%)
+        smokeshop: { percent: 10, type: 'percentage' },     // 10% - starter offer (max 35%)
       },
       subjectLineTemplates: [
         'A little something to sweeten the deal',
@@ -238,8 +239,8 @@ export const abandonedCartConfig = {
       strategy: 'strong_discount',
       contentFocus: 'urgency_plus_incentive',
       discountEscalation: {
-        oilSlick: { percent: 8, type: 'percentage' },       // 8% - near max
-        smokeshop: { percent: 25, type: 'percentage' },      // 25% - strong but not max
+        oilSlick: { percent: 10, type: 'percentage' },      // 10% - strong (max 15%)
+        smokeshop: { percent: 25, type: 'percentage' },     // 25% - strong (max 35%)
       },
       subjectLineTemplates: [
         'Last chance: {{discount_percent}}% off expires soon',
@@ -277,8 +278,8 @@ export const abandonedCartConfig = {
       strategy: 'max_discount_or_alternatives',
       contentFocus: 'last_chance_with_alternatives',
       discountEscalation: {
-        oilSlick: { percent: 10, type: 'percentage' },      // 10% - absolute max
-        smokeshop: { percent: 40, type: 'percentage' },      // 40% - absolute max
+        oilSlick: { percent: 15, type: 'percentage' },      // 15% - absolute max per owner
+        smokeshop: { percent: 35, type: 'percentage' },     // 35% - absolute max per owner
       },
       subjectLineTemplates: [
         'Your biggest discount yet - {{discount_percent}}% off',
@@ -367,7 +368,7 @@ export const abandonedCartConfig = {
         showDiscount: true,
         discountRules: {
           oilSlick: 5,
-          smokeshop: 10,
+          smokeshop: 15,
         },
       },
       {
@@ -585,8 +586,8 @@ export const abandonedCartConfig = {
         ],
         showDiscount: true,
         discountRules: {
-          oilSlick: 5,
-          smokeshop: 15,
+          oilSlick: 8,
+          smokeshop: 20,
         },
         showRecommendations: true,
         maxRecommendations: 6,
@@ -633,8 +634,8 @@ export const abandonedCartConfig = {
         ],
         showDiscount: true,
         discountRules: {
-          oilSlick: 5,
-          smokeshop: 15,
+          oilSlick: 8,
+          smokeshop: 20,
         },
       },
     ],

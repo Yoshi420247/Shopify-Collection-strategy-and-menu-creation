@@ -40,3 +40,6 @@ wholesaler-sync-log.json
 
 # Migration state (resume checkpoint, generated at runtime)
 .wc-migrate-state.json
+
+# Test email previews (generated at runtime)
+test-email-previews/

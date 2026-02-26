@@ -4,8 +4,8 @@
 // preventing discount abuse.
 //
 // Key constraints:
-//   - Oil Slick products: MAX 10% discount (low margins)
-//   - Smokeshop products (Cloud YHS / What You Need): MAX 40% discount
+//   - Oil Slick / Extraction products: MAX 15% discount (low margins)
+//   - Smokeshop products (Cloud YHS / What You Need / YHS Cloud): MAX 35% discount
 //   - Mixed carts: Weighted discount based on category split
 //   - Serial abandoners: Rate-limited to prevent gaming
 //   - Loyal customers: Use loyalty rewards, not discounts
