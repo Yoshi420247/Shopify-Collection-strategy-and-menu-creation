@@ -443,6 +443,24 @@ export async function updateCustomer(customerId, data) {
   );
 }
 
+// Product creation
+export async function createProduct(data) {
+  return rateLimitedRequest(
+    `${BASE_URL}/products.json`,
+    'POST',
+    { product: data }
+  );
+}
+
+// Product image upload (base64)
+export async function createProductImage(productId, imageData) {
+  return rateLimitedRequest(
+    `${BASE_URL}/products/${productId}/images.json`,
+    'POST',
+    { image: imageData }
+  );
+}
+
 export default {
   getProducts,
   getProduct,
@@ -479,4 +497,6 @@ export default {
   getAbandonedCheckouts,
   getAbandonedCheckoutCount,
   updateCustomer,
+  createProduct,
+  createProductImage,
 };
