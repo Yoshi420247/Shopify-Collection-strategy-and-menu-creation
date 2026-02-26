@@ -34,16 +34,20 @@ const VISUAL_ONLY = process.argv.includes('--visual-only');
 const SKIP_VISUAL = process.argv.includes('--skip-visual');
 
 // ─── Desired block configurations for Shop By Category grid ─────────────────
-// Each block maps a Shopify collection handle to a display title + product image.
+// Each block maps a Shopify collection handle to a product image.
+// NOTE: The theme renders {{ collection.title }} from the collection object,
+// NOT block.settings.title (which Shopify strips since the schema doesn't define it).
+// The handle MUST resolve to an existing Shopify collection or the theme falls back
+// to the "Collection title" onboarding placeholder.
 const CATEGORY_BLOCKS = {
-  'cl-block-1': { feature_collection: 'hand-pipes', title: 'Hand Pipes', image: 'shopify://shop_images/HP-69-3.5-Display-300x300_6acdada1-2332-4a59-b1f3-a912919564fc.png' },
-  'cl-block-2': { feature_collection: 'bongs', title: 'Bongs & Water Pipes', image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png' },
-  'cl-block-3': { feature_collection: 'dab-rigs', title: 'Dab Rigs', image: 'shopify://shop_images/20240124_093738.25-300x300_db289371-2edc-4f15-883d-2ec39e4ff894.png' },
-  'cl-block-4': { feature_collection: 'bubblers', title: 'Bubblers', image: 'shopify://shop_images/OMG-FWDryHammer-7.5-300x300_18c1b288-f281-422c-91cb-b02ea0ac76bc.png' },
-  'cl-block-5': { feature_collection: 'rolling-papers-cones', title: 'Rolling Papers & Cones', image: 'shopify://shop_images/VIBES-x-Cookies-Cones-53mm-9-30-Display-Box-Blue-Ultra-Thin-300x300_084de0e4-2cbf-4bc1-ad99-723db177acb1.png' },
-  'cl-block-6': { feature_collection: 'made-in-usa-glass', title: 'Made in USA Glass', image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png' },
-  'cl-block-7': { feature_collection: 'nectar-collectors', title: 'Nectar Collectors', image: 'shopify://shop_images/silicone-nectar-collector-kit-238311.jpg' },
-  'cl-block-8': { feature_collection: 'accessories', title: 'Accessories', image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png' },
+  'cl-block-1': { feature_collection: 'hand-pipes', image: 'shopify://shop_images/HP-69-3.5-Display-300x300_6acdada1-2332-4a59-b1f3-a912919564fc.png' },
+  'cl-block-2': { feature_collection: 'bongs', image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png' },
+  'cl-block-3': { feature_collection: 'dab-rigs', image: 'shopify://shop_images/20240124_093738.25-300x300_db289371-2edc-4f15-883d-2ec39e4ff894.png' },
+  'cl-block-4': { feature_collection: 'bubblers', image: 'shopify://shop_images/OMG-FWDryHammer-7.5-300x300_18c1b288-f281-422c-91cb-b02ea0ac76bc.png' },
+  'cl-block-5': { feature_collection: 'rolling-papers-cones', image: 'shopify://shop_images/VIBES-x-Cookies-Cones-53mm-9-30-Display-Box-Blue-Ultra-Thin-300x300_084de0e4-2cbf-4bc1-ad99-723db177acb1.png' },
+  'cl-block-6': { feature_collection: 'made-in-usa-glass', image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png' },
+  'cl-block-7': { feature_collection: 'nectar-collectors', image: 'shopify://shop_images/silicone-nectar-collector-kit-238311.jpg' },
+  'cl-block-8': { feature_collection: 'accessories', image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png' },
 };
 
 // Featured collection sections (section ID → collection handle + title)
@@ -150,6 +154,85 @@ function deepDiff(live, desired, path = '') {
     }
   }
   return diffs;
+}
+
+// ─── Collection handle resolver ─────────────────────────────────────────────
+
+/**
+ * Fetch ALL collections from Shopify and build a handle → title map.
+ * Then resolve any desired handles that don't exist by fuzzy-matching against
+ * actual collection handles/titles.
+ */
+async function fetchAllCollections() {
+  const all = [];
+  // Fetch custom collections (paginated)
+  let page_info = '';
+  for (let i = 0; i < 10; i++) {
+    const url = page_info
+      ? `${BASE_URL}/custom_collections.json?limit=250&page_info=${page_info}`
+      : `${BASE_URL}/custom_collections.json?limit=250`;
+    try {
+      const resp = shopifyRest(url);
+      all.push(...(resp.custom_collections || []));
+      if ((resp.custom_collections || []).length < 250) break;
+    } catch { break; }
+  }
+  // Fetch smart collections
+  for (let i = 0; i < 10; i++) {
+    const url = page_info
+      ? `${BASE_URL}/smart_collections.json?limit=250&page_info=${page_info}`
+      : `${BASE_URL}/smart_collections.json?limit=250`;
+    try {
+      const resp = shopifyRest(url);
+      all.push(...(resp.smart_collections || []));
+      if ((resp.smart_collections || []).length < 250) break;
+    } catch { break; }
+  }
+  return all;
+}
+
+/**
+ * Given a desired handle that doesn't exist, find the best matching real collection.
+ * Uses substring matching and Levenshtein-like scoring.
+ */
+function findBestMatch(desiredHandle, allCollections) {
+  const desired = desiredHandle.toLowerCase().replace(/-/g, ' ');
+  const desiredWords = desired.split(' ');
+
+  let bestMatch = null;
+  let bestScore = 0;
+
+  for (const col of allCollections) {
+    const handle = (col.handle || '').toLowerCase();
+    const title = (col.title || '').toLowerCase();
+
+    // Exact handle match
+    if (handle === desiredHandle) return { collection: col, score: 100, reason: 'exact handle match' };
+
+    // Score based on word overlap
+    let score = 0;
+    for (const word of desiredWords) {
+      if (word.length < 3) continue; // skip tiny words
+      if (handle.includes(word)) score += 30;
+      if (title.includes(word)) score += 20;
+    }
+
+    // Bonus for handle similarity
+    if (handle.includes(desiredHandle) || desiredHandle.includes(handle)) score += 25;
+
+    // Bonus for containing key category words
+    const handleWords = handle.split('-');
+    for (const word of handleWords) {
+      if (desiredWords.includes(word)) score += 15;
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = { collection: col, score, reason: `fuzzy match (score: ${score})` };
+    }
+  }
+
+  return bestMatch;
 }
 
 // ─── Main agentic flow ─────────────────────────────────────────────────────
@@ -282,71 +365,46 @@ async function main() {
     }
   }
 
-  // 1e. Check if Shopify collection objects have default titles
-  console.log('\n1e. Checking Shopify collection objects for default/placeholder titles...');
-  const collectionHandles = [...new Set(Object.values(CATEGORY_BLOCKS).map(b => b.feature_collection))];
+  // 1e. Fetch ALL collections and validate/resolve handles
+  console.log('\n1e. Fetching all Shopify collections to validate handles...');
+  const allCollections = await fetchAllCollections();
+  console.log(`    ✓ Found ${allCollections.length} collections total`);
+
+  // Build handle → collection map
+  const handleMap = new Map();
+  for (const col of allCollections) {
+    handleMap.set(col.handle, col);
+  }
+  console.log(`    Collection handles: ${[...handleMap.keys()].sort().join(', ')}`);
+
+  // Check each desired handle — resolve missing ones
+  const collectionHandles = [...new Set([
+    ...Object.values(CATEGORY_BLOCKS).map(b => b.feature_collection),
+    ...Object.values(FEATURED_SECTIONS).map(s => s.collection),
+  ])];
+  const handleFixes = new Map(); // desiredHandle → resolvedHandle
   const collectionTitleIssues = [];
 
   for (const handle of collectionHandles) {
-    try {
-      const resp = shopifyRest(`${BASE_URL}/custom_collections.json?handle=${handle}`);
-      const collections = resp.custom_collections || [];
-      if (collections.length > 0) {
-        const c = collections[0];
-        const isDefault = /^collection title$/i.test(c.title) || /^collection$/i.test(c.title);
-        if (isDefault) {
-          collectionTitleIssues.push({ handle, id: c.id, currentTitle: c.title, type: 'custom' });
-          console.log(`    ✗ Custom collection "${handle}" has default title: "${c.title}"`);
-        } else {
-          console.log(`    ✓ "${handle}" → "${c.title}"`);
-        }
+    const col = handleMap.get(handle);
+    if (col) {
+      const isDefault = /^collection title$/i.test(col.title) || /^collection$/i.test(col.title);
+      if (isDefault) {
+        collectionTitleIssues.push({ handle, id: col.id, currentTitle: col.title, type: col.rules ? 'smart' : 'custom' });
+        console.log(`    ✗ "${handle}" → "${col.title}" (placeholder title!)`);
       } else {
-        // Try smart collections
-        const smartResp = shopifyRest(`${BASE_URL}/smart_collections.json?handle=${handle}`);
-        const smart = smartResp.smart_collections || [];
-        if (smart.length > 0) {
-          const c = smart[0];
-          const isDefault = /^collection title$/i.test(c.title) || /^collection$/i.test(c.title);
-          if (isDefault) {
-            collectionTitleIssues.push({ handle, id: c.id, currentTitle: c.title, type: 'smart' });
-            console.log(`    ✗ Smart collection "${handle}" has default title: "${c.title}"`);
-          } else {
-            console.log(`    ✓ "${handle}" → "${c.title}"`);
-          }
-        } else {
-          console.log(`    ⚠ Collection "${handle}" not found!`);
-          collectionTitleIssues.push({ handle, id: null, currentTitle: null, type: 'missing' });
-        }
+        console.log(`    ✓ "${handle}" → "${col.title}"`);
       }
-    } catch (err) {
-      console.log(`    ⚠ Error checking "${handle}": ${err.message}`);
-    }
-  }
-
-  // Also check featured section collection handles
-  for (const [, { collection }] of Object.entries(FEATURED_SECTIONS)) {
-    if (!collectionHandles.includes(collection)) {
-      try {
-        const resp = shopifyRest(`${BASE_URL}/custom_collections.json?handle=${collection}`);
-        const c = (resp.custom_collections || [])[0];
-        if (c) {
-          const isDefault = /^collection title$/i.test(c.title);
-          if (isDefault) {
-            collectionTitleIssues.push({ handle: collection, id: c.id, currentTitle: c.title, type: 'custom' });
-            console.log(`    ✗ Custom "${collection}" has default title: "${c.title}"`);
-          }
-        } else {
-          const smartResp = shopifyRest(`${BASE_URL}/smart_collections.json?handle=${collection}`);
-          const s = (smartResp.smart_collections || [])[0];
-          if (s) {
-            const isDefault = /^collection title$/i.test(s.title);
-            if (isDefault) {
-              collectionTitleIssues.push({ handle: collection, id: s.id, currentTitle: s.title, type: 'smart' });
-              console.log(`    ✗ Smart "${collection}" has default title: "${s.title}"`);
-            }
-          }
-        }
-      } catch {}
+    } else {
+      console.log(`    ✗ "${handle}" → NOT FOUND — searching for best match...`);
+      const match = findBestMatch(handle, allCollections);
+      if (match && match.score >= 30) {
+        console.log(`      → Best match: "${match.collection.handle}" ("${match.collection.title}") [${match.reason}]`);
+        handleFixes.set(handle, match.collection.handle);
+      } else {
+        console.log(`      → No good match found (best score: ${match?.score || 0})`);
+        collectionTitleIssues.push({ handle, id: null, currentTitle: null, type: 'missing' });
+      }
     }
   }
 
@@ -454,16 +512,28 @@ async function main() {
     }
   }
 
-  // Diagnosis 2e: Collection object titles
-  if (collectionTitleIssues.length > 0) {
-    fixes.push({ type: 'rename_collections', collections: collectionTitleIssues, reason: 'Collections have default/placeholder titles' });
+  // Diagnosis 2e: Missing/wrong collection handles
+  if (handleFixes.size > 0) {
+    console.log(`2e. ${handleFixes.size} collection handle(s) need remapping:`);
+    for (const [from, to] of handleFixes) {
+      console.log(`    "${from}" → "${to}"`);
+    }
+    fixes.push({ type: 'remap_collection_handles', handleFixes, reason: `${handleFixes.size} handle(s) don't resolve to real collections` });
+    // Handle remapping requires section rebuild
+    if (!fixes.find(f => f.type === 'replace_collection_list_section')) {
+      fixes.push({ type: 'replace_collection_list_section', reason: 'Handles remapped, need to rebuild section' });
+    }
   }
 
-  // Diagnosis 2f: If placeholders exist but all settings look correct,
-  // the issue is likely in how the theme reads the data.
-  // Force a full section replacement to ensure block structure matches what the theme expects.
+  // Diagnosis 2f: Collection object titles
+  if (collectionTitleIssues.filter(c => c.type !== 'missing').length > 0) {
+    fixes.push({ type: 'rename_collections', collections: collectionTitleIssues.filter(c => c.type !== 'missing'), reason: 'Collections have default/placeholder titles' });
+  }
+
+  // Diagnosis 2g: If placeholders exist but all settings look correct,
+  // force a full section replacement to ensure block structure matches what the theme expects.
   if (initialPlaceholders.total > 0 && fixes.length === 0) {
-    console.log('2f. Settings look correct but placeholders exist on live site.');
+    console.log('2g. Settings look correct but placeholders exist on live site.');
     console.log('    → Will force full section replacement to ensure theme compatibility.');
     fixes.push({ type: 'replace_collection_list_section', reason: 'Settings correct but placeholders visible — forcing full replacement' });
   }
@@ -492,8 +562,41 @@ async function main() {
 
   let settingsChanged = false;
 
+  // Apply handle remapping first so rebuilt sections use correct handles
+  const remapFix = fixes.find(f => f.type === 'remap_collection_handles');
+  if (remapFix) {
+    console.log('3-pre. Applying collection handle remapping...');
+    for (const [oldHandle, newHandle] of remapFix.handleFixes) {
+      // Update CATEGORY_BLOCKS
+      for (const blockId of Object.keys(CATEGORY_BLOCKS)) {
+        if (CATEGORY_BLOCKS[blockId].feature_collection === oldHandle) {
+          CATEGORY_BLOCKS[blockId].feature_collection = newHandle;
+          console.log(`    ✓ Block ${blockId}: "${oldHandle}" → "${newHandle}"`);
+        }
+      }
+      // Update FEATURED_SECTIONS
+      for (const sectionId of Object.keys(FEATURED_SECTIONS)) {
+        if (FEATURED_SECTIONS[sectionId].collection === oldHandle) {
+          FEATURED_SECTIONS[sectionId].collection = newHandle;
+          console.log(`    ✓ Featured section ${sectionId}: "${oldHandle}" → "${newHandle}"`);
+        }
+      }
+      // Update PROMO_BLOCKS
+      for (const blockId of Object.keys(PROMO_BLOCKS)) {
+        if (PROMO_BLOCKS[blockId].link === `shopify://collections/${oldHandle}`) {
+          PROMO_BLOCKS[blockId].link = `shopify://collections/${newHandle}`;
+          console.log(`    ✓ Promo ${blockId} link: "${oldHandle}" → "${newHandle}"`);
+        }
+      }
+    }
+  }
+
   for (const fix of fixes) {
     switch (fix.type) {
+      case 'remap_collection_handles':
+        // Already applied above
+        break;
+
       case 'replace_collection_list_section':
       case 'update_collection_list_blocks': {
         console.log('3a. Rebuilding Shop By Category section...');
