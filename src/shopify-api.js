@@ -1,9 +1,5 @@
-// Shopify API wrapper using child_process for curl (more reliable in some environments)
+// Shopify API wrapper using native fetch
 import { config } from './config.js';
-import { execSync } from 'child_process';
-import { writeFileSync, unlinkSync } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
 
 if (!config.shopify.storeUrl) {
   throw new Error('SHOPIFY_STORE_URL environment variable is not set. Set it to your store domain (e.g. "my-store.myshopify.com").');
@@ -12,16 +8,13 @@ if (!config.shopify.storeUrl) {
 const BASE_URL = `https://${config.shopify.storeUrl}/admin/api/${config.shopify.apiVersion}`;
 const GRAPHQL_URL = `${BASE_URL}/graphql.json`;
 
-// Rate limiting
-let lastRequestTime = 0;
+// Rate limiting — serialized queue ensures proper spacing even under concurrency.
 const MIN_REQUEST_INTERVAL = 500; // ~2 req/sec for Shopify REST
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Serialized request queue - ensures REST API requests are properly spaced
-// even when called from multiple concurrent paginateAll() calls.
 let _nextRequestSlot = Promise.resolve();
 function acquireRequestSlot() {
   const slot = _nextRequestSlot.then(() => sleep(MIN_REQUEST_INTERVAL));
@@ -30,53 +23,37 @@ function acquireRequestSlot() {
 }
 
 async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3) {
-  const now = Date.now();
-  const timeSinceLastRequest = now - lastRequestTime;
+  await acquireRequestSlot();
 
-  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-    await sleep(MIN_REQUEST_INTERVAL - timeSinceLastRequest);
-  }
-  lastRequestTime = Date.now();
+  const fetchOptions = {
+    method,
+    headers: {
+      'X-Shopify-Access-Token': config.shopify.accessToken,
+      'Content-Type': 'application/json',
+    },
+    signal: AbortSignal.timeout(30000),
+  };
 
-  // Build curl command
-  let curlCmd = `curl -s --max-time 30 -X ${method} "${url}" `;
-  curlCmd += `-H "X-Shopify-Access-Token: ${config.shopify.accessToken}" `;
-  curlCmd += `-H "Content-Type: application/json" `;
-
-  // Write body to temp file to avoid E2BIG when payload is large (e.g. image base64 data).
-  // The OS has a limit on command-line argument length (~128KB-2MB depending on platform).
-  let tmpFile = null;
   if (body) {
-    const bodyStr = JSON.stringify(body);
-    if (bodyStr.length > 100_000) {
-      // Large payload → use temp file with curl's @file syntax
-      tmpFile = join(tmpdir(), `shopify-api-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`);
-      writeFileSync(tmpFile, bodyStr);
-      curlCmd += `-d @${tmpFile}`;
-    } else {
-      // Small payload → inline is fine
-      const escapedBody = bodyStr.replace(/'/g, "'\\''");
-      curlCmd += `-d '${escapedBody}'`;
-    }
+    fetchOptions.body = JSON.stringify(body);
   }
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const result = execSync(curlCmd, {
-        encoding: 'utf8',
-        maxBuffer: 50 * 1024 * 1024, // 50MB buffer for large responses
-      });
+      const response = await fetch(url, fetchOptions);
 
-      // Check for error responses
-      if (result.includes('upstream connect error') || result.includes('error')) {
-        const parsed = JSON.parse(result);
-        if (parsed.errors) {
-          throw new Error(JSON.stringify(parsed.errors));
-        }
-        return parsed;
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`HTTP ${response.status}: ${text.substring(0, 300)}`);
       }
 
-      return JSON.parse(result);
+      const data = await response.json();
+
+      if (data.errors) {
+        throw new Error(JSON.stringify(data.errors));
+      }
+
+      return data;
     } catch (error) {
       if (attempt < retries) {
         const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff
@@ -86,15 +63,8 @@ async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3)
         console.error(`API Error after ${retries} attempts: ${error.message}`);
         throw error;
       }
-    } finally {
-      // Clean up temp file after last attempt or success
-      if (tmpFile && attempt === retries) {
-        try { unlinkSync(tmpFile); } catch {}
-      }
     }
   }
-  // Clean up temp file on success (finally only runs on last attempt above)
-  if (tmpFile) { try { unlinkSync(tmpFile); } catch {} }
 }
 
 // REST API methods
@@ -464,6 +434,24 @@ export async function updateCustomer(customerId, data) {
   );
 }
 
+// Product creation
+export async function createProduct(data) {
+  return rateLimitedRequest(
+    `${BASE_URL}/products.json`,
+    'POST',
+    { product: data }
+  );
+}
+
+// Product image upload (base64)
+export async function createProductImage(productId, imageData) {
+  return rateLimitedRequest(
+    `${BASE_URL}/products/${productId}/images.json`,
+    'POST',
+    { image: imageData }
+  );
+}
+
 export default {
   getProducts,
   getProduct,
@@ -500,4 +488,6 @@ export default {
   getAbandonedCheckouts,
   getAbandonedCheckoutCount,
   updateCustomer,
+  createProduct,
+  createProductImage,
 };

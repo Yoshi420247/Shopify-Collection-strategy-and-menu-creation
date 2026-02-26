@@ -12,28 +12,39 @@ on:
           - execute
           - match
           - match-review
+          - import-new
+          - import-new-dry-run
+          - fix-drafts
+          - full-pipeline
           - history
       force_rematch:
-        description: 'Force re-run AI product matching (ignores existing mapping)'
+        description: 'Force re-run product matching (ignores existing mapping)'
         required: false
         default: false
         type: boolean
+      import_limit:
+        description: 'Max new products to import (0 = all)'
+        required: false
+        default: '0'
+        type: string
   schedule:
-    # Run daily at 6 AM UTC — checks wholesaler stock and updates Shopify
+    # Run daily at 6 AM UTC — full autonomous pipeline
     - cron: '0 6 * * *'
 
 env:
   SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
   SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
-  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
   WC_STORE_URL: ${{ secrets.WC_STORE_URL }}
   WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
   WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
+  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
 jobs:
   wholesaler-sync:
     name: Wholesaler Stock Sync
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -58,23 +69,52 @@ jobs:
           search_artifacts: true
           workflow: wholesaler-stock-sync.yml
 
+      # Restore creation log so fix-drafts can find previous failed drafts
+      - name: Download creation log
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: wholesaler-creation-log
+          path: .
+          if_no_artifact_found: warn
+          search_artifacts: true
+          workflow: wholesaler-stock-sync.yml
+
       - name: Run wholesaler sync
         run: |
-          MODE="${{ github.event.inputs.mode || 'execute' }}"
+          MODE="${{ github.event.inputs.mode || 'full-pipeline' }}"
           FORCE="${{ github.event.inputs.force_rematch || 'false' }}"
+          LIMIT="${{ github.event.inputs.import_limit || '0' }}"
 
           case "$MODE" in
             match)
-              echo "Running product matching (auto-match all)..."
+              echo "Running strict text-based product matching..."
               ARGS=""
               if [ "$FORCE" = "true" ]; then ARGS="--force-rematch"; fi
               node src/product-matcher.js $ARGS
               ;;
             match-review)
-              echo "Running product matching (review mode)..."
+              echo "Running strict text-based product matching (review mode)..."
               ARGS="--review"
               if [ "$FORCE" = "true" ]; then ARGS="$ARGS --force-rematch"; fi
               node src/product-matcher.js $ARGS
+              ;;
+            import-new)
+              echo "Creating new Shopify products from unmatched WC products..."
+              ARGS="--execute"
+              if [ "$LIMIT" != "0" ]; then ARGS="$ARGS --limit $LIMIT"; fi
+              node src/wholesaler-product-creator.js $ARGS
+              ;;
+            import-new-dry-run)
+              echo "Previewing new product creation (dry run)..."
+              ARGS=""
+              if [ "$LIMIT" != "0" ]; then ARGS="--limit $LIMIT"; fi
+              node src/wholesaler-product-creator.js $ARGS
+              ;;
+            fix-drafts)
+              echo "Fixing failed draft products (re-upload images, QA, publish)..."
+              ARGS="--fix-drafts"
+              if [ "$LIMIT" != "0" ]; then ARGS="$ARGS --limit $LIMIT"; fi
+              node src/wholesaler-product-creator.js $ARGS
               ;;
             history)
               echo "Showing sync history..."
@@ -83,6 +123,35 @@ jobs:
             execute)
               echo "Running stock sync (LIVE)..."
               node src/wholesaler-sync.js --execute --verbose
+              ;;
+            full-pipeline)
+              echo "══════════════════════════════════════════════════"
+              echo "  FULL AUTONOMOUS PIPELINE"
+              echo "══════════════════════════════════════════════════"
+              echo ""
+
+              echo "── Step 1/4: Product matching ──"
+              MATCH_ARGS="--force-rematch"
+              node src/product-matcher.js $MATCH_ARGS
+              echo ""
+
+              echo "── Step 2/4: Import new products ──"
+              IMPORT_ARGS="--execute"
+              if [ "$LIMIT" != "0" ]; then IMPORT_ARGS="$IMPORT_ARGS --limit $LIMIT"; fi
+              node src/wholesaler-product-creator.js $IMPORT_ARGS
+              echo ""
+
+              echo "── Step 3/4: Fix draft products ──"
+              node src/wholesaler-product-creator.js --fix-drafts
+              echo ""
+
+              echo "── Step 4/4: Stock sync ──"
+              node src/wholesaler-sync.js --execute --verbose
+              echo ""
+
+              echo "══════════════════════════════════════════════════"
+              echo "  FULL PIPELINE COMPLETE"
+              echo "══════════════════════════════════════════════════"
               ;;
             dry-run|*)
               echo "Running stock sync (dry run)..."
@@ -102,11 +171,23 @@ jobs:
           retention-days: 90
           if-no-files-found: ignore
 
+      # Persist creation log so fix-drafts can find failed drafts across runs
+      - name: Upload creation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wholesaler-creation-log
+          path: wholesaler-creation-log.json
+          retention-days: 90
+          if-no-files-found: ignore
+
       - name: Upload sync log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: wholesaler-sync-log-${{ github.run_number }}
-          path: wholesaler-sync-log.json
+          path: |
+            wholesaler-sync-log.json
+            wholesaler-creation-log.json
           retention-days: 90
           if-no-files-found: ignore
