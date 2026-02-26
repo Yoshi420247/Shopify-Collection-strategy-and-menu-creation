@@ -1,0 +1,684 @@
+[
+  {
+    "id": 10068520861976,
+    "title": "Lookah Unicorn Mini Electric DAB Rig (950mah)",
+    "old_price": 189.99,
+    "new_price": 79.99,
+    "reason": "Market $43-70 (MSRP $71.99). Was 2.7x market avg.",
+    "variant_ids": [
+      51636079755544,
+      51705027166488,
+      51705027199256,
+      51705027232024,
+      51705027264792,
+      51705027297560,
+      51705027330328,
+      51705027363096
+    ],
+    "variant_prices": [
+      189.99,
+      189.99,
+      189.99,
+      189.99,
+      189.99,
+      189.99,
+      189.99,
+      189.99
+    ]
+  },
+  {
+    "id": 10068516765976,
+    "title": "Lookah Mini Dragon Egg (500mah)",
+    "old_price": 169.99,
+    "new_price": 69.99,
+    "reason": "Market $60-70 for standard. Mini should be less. Was 2.4x market.",
+    "variant_ids": [
+      51636074348824,
+      51705026281752,
+      51705026314520,
+      51705026347288,
+      51705026380056,
+      51705026412824,
+      51705026445592,
+      51705026478360,
+      51705026511128
+    ],
+    "variant_prices": [
+      169.99,
+      169.99,
+      169.99,
+      169.99,
+      169.99,
+      169.99,
+      169.99,
+      169.99,
+      169.99
+    ]
+  },
+  {
+    "id": 10113720680728,
+    "title": "510 Skateboard Battery",
+    "old_price": 54.949999999999996,
+    "new_price": 29.99,
+    "reason": "Market ~$25. Was 2.2x market.",
+    "variant_ids": [
+      51728377217304,
+      51728377708824,
+      51728377741592,
+      51728377774360,
+      51728377807128,
+      51728377839896,
+      51728377872664,
+      51728377905432
+    ],
+    "variant_prices": [
+      54.95,
+      54.95,
+      54.95,
+      54.95,
+      54.95,
+      54.95,
+      54.95,
+      54.95
+    ]
+  },
+  {
+    "id": 10112392691992,
+    "title": "LOOKAH Bear 510 Battery Mod (500mAh)",
+    "old_price": 42.99,
+    "new_price": 26.99,
+    "reason": "Market $17-27 (Element Vape $19.99). Was 2.2x market avg.",
+    "variant_ids": [
+      51726462517528,
+      51726463402264,
+      51726463435032,
+      51726463467800,
+      51726463500568,
+      51726463533336,
+      51726463566104,
+      51726463598872
+    ],
+    "variant_prices": [
+      42.99,
+      42.99,
+      42.99,
+      42.99,
+      42.99,
+      42.99,
+      42.99,
+      42.99
+    ]
+  },
+  {
+    "id": 10113660354840,
+    "title": "LOOKAH FF1 510 Battery Mod (500mAh)",
+    "old_price": 44.99,
+    "new_price": 24.99,
+    "reason": "Market $19-20 (MSRP $29.99). Was 2.3x MSRP.",
+    "variant_ids": [
+      51728292774168,
+      51728293560600,
+      51728293593368,
+      51728293626136,
+      51728293658904,
+      51728293691672,
+      51728293724440,
+      51728293757208
+    ],
+    "variant_prices": [
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99
+    ]
+  },
+  {
+    "id": 10113714127128,
+    "title": "LOOKAH Turtle 510 Battery (400mAh)",
+    "old_price": 44.99,
+    "new_price": 26.99,
+    "reason": "Market $19-20 (MSRP $29.99). Was 2.3x MSRP.",
+    "variant_ids": [
+      51728366207256,
+      51728367616280,
+      51728367649048,
+      51728367681816,
+      51728367714584,
+      51728367747352,
+      51728367780120
+    ],
+    "variant_prices": [
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99
+    ]
+  },
+  {
+    "id": 10068140425496,
+    "title": "2.5\u2033 Plastic Magnetic Grinder",
+    "old_price": 28.74,
+    "new_price": 9.99,
+    "reason": "PLASTIC grinder. Market $5-12. Was 3x market avg.",
+    "variant_ids": [
+      51635414565144,
+      51635414597912,
+      51635414630680,
+      51635414663448
+    ],
+    "variant_prices": [
+      29.99,
+      24.99,
+      29.99,
+      29.99
+    ]
+  },
+  {
+    "id": 10112392790296,
+    "title": "LOOKAH Snail 2.0 510 Battery Mod (350mAh)",
+    "old_price": 36.99,
+    "new_price": 19.99,
+    "reason": "Market $12-20 (Element Vape $15.99). Was 2.3x market avg.",
+    "variant_ids": [
+      51726462615832,
+      51726463074584,
+      51726463107352,
+      51726463140120,
+      51726463172888,
+      51726463205656
+    ],
+    "variant_prices": [
+      36.99,
+      36.99,
+      36.99,
+      36.99,
+      36.99,
+      36.99
+    ]
+  },
+  {
+    "id": 10113701675288,
+    "title": "EMUSH 510 Mushroom Battery",
+    "old_price": 37.99,
+    "new_price": 24.99,
+    "reason": "Novelty 510 battery. Market $20-28. Was 1.5x market top.",
+    "variant_ids": [
+      51728348676376,
+      51728350150936,
+      51728350183704,
+      51728350216472,
+      51728350249240,
+      51728350282008
+    ],
+    "variant_prices": [
+      37.99,
+      37.99,
+      37.99,
+      37.99,
+      37.99,
+      37.99
+    ]
+  },
+  {
+    "id": 10068520108312,
+    "title": "Lookah Guitar 510 Battery Mod (350mah)",
+    "old_price": 34.99,
+    "new_price": 24.99,
+    "reason": "Market $20-28. Was 1.4x market avg.",
+    "variant_ids": [
+      51636078543128,
+      51705027428632,
+      51705027461400,
+      51705027494168,
+      51705027526936,
+      51705027559704,
+      51705027592472,
+      51705027625240
+    ],
+    "variant_prices": [
+      34.99,
+      34.99,
+      34.99,
+      34.99,
+      34.99,
+      34.99,
+      34.99,
+      34.99
+    ]
+  },
+  {
+    "id": 10113705967896,
+    "title": "EXTRE ISCREEN PRO 510 Thread Vape Battery",
+    "old_price": 49.99,
+    "new_price": 34.99,
+    "reason": "Novelty 510 battery. Market $25-35. Was 1.4x market top.",
+    "variant_ids": [
+      51728355164440,
+      51728355524888,
+      51728355557656,
+      51728355590424,
+      51728355623192,
+      51728355655960
+    ],
+    "variant_prices": [
+      49.99,
+      49.99,
+      49.99,
+      49.99,
+      49.99,
+      49.99
+    ]
+  },
+  {
+    "id": 10068510507288,
+    "title": "Lookah Seahorse Pro Plus Nectar Collector (650mah)",
+    "old_price": 59.99,
+    "new_price": 44.99,
+    "reason": "Market $33-40 (SmokeDay $39.99). Was 1.3x market top.",
+    "variant_ids": [
+      51636065009944,
+      51705023398168,
+      51705023430936,
+      51705023463704,
+      51705023496472,
+      51705023529240,
+      51705023562008,
+      51705023594776
+    ],
+    "variant_prices": [
+      59.99,
+      59.99,
+      59.99,
+      59.99,
+      59.99,
+      59.99,
+      59.99,
+      59.99
+    ]
+  },
+  {
+    "id": 9885280338200,
+    "title": "3\u2033 Joint Paper Dispenser Grinder",
+    "old_price": 54.989999999999995,
+    "new_price": 34.99,
+    "reason": "Unique product but $55 excessive. Market for novelty grinders $20-35.",
+    "variant_ids": [
+      50689778614552,
+      51704971165976,
+      51704971198744,
+      51704971231512,
+      51704971264280
+    ],
+    "variant_prices": [
+      54.99,
+      54.99,
+      54.99,
+      54.99,
+      54.99
+    ]
+  },
+  {
+    "id": 9885272244504,
+    "title": "2.5\u2033 Classic Zinc Grinder",
+    "old_price": 24.99,
+    "new_price": 17.99,
+    "reason": "Market $15-25. Was at high end of range for basic zinc.",
+    "variant_ids": [
+      50689769406744,
+      51704952783128,
+      51704952815896,
+      51704952848664,
+      51704952881432
+    ],
+    "variant_prices": [
+      24.99,
+      24.99,
+      24.99,
+      24.99,
+      24.99
+    ]
+  },
+  {
+    "id": 10068521091352,
+    "title": "Lookah Dragon Egg (950mah)",
+    "old_price": 99.99,
+    "new_price": 79.99,
+    "reason": "Market $60-100 (MSRP $99.99). Competitive at $79.99.",
+    "variant_ids": [
+      51636079952152,
+      51705027658008,
+      51705027690776,
+      51705027723544,
+      51705027756312,
+      51705027789080,
+      51705027821848,
+      51705027854616,
+      51705027887384,
+      51705027920152
+    ],
+    "variant_prices": [
+      99.99,
+      99.99,
+      99.99,
+      99.99,
+      99.99,
+      99.99,
+      99.99,
+      99.99,
+      99.99,
+      99.99
+    ]
+  },
+  {
+    "id": 10113660649752,
+    "title": "Smyle Penjamin 510 Battery Writing Pen",
+    "old_price": 44.99,
+    "new_price": 34.99,
+    "reason": "Novelty 510 pen. Market for novelty 510s $20-35.",
+    "variant_ids": [
+      51728293167384,
+      51728294773016,
+      51728294805784,
+      51728294838552
+    ],
+    "variant_prices": [
+      44.99,
+      44.99,
+      44.99,
+      44.99
+    ]
+  },
+  {
+    "id": 10068520403224,
+    "title": "Lookah Ant 710 Battery Mod (950mah)",
+    "old_price": 44.99,
+    "new_price": 34.99,
+    "reason": "Market ~$30-40. Was 1.3x market avg.",
+    "variant_ids": [
+      51636079100184,
+      51705026773272,
+      51705026806040,
+      51705026838808,
+      51705026871576,
+      51705026904344,
+      51705026937112,
+      51705026969880
+    ],
+    "variant_prices": [
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99
+    ]
+  },
+  {
+    "id": 10068520239384,
+    "title": "Lookah Ice Cream Dry Herb Vaporizer (950mah)",
+    "old_price": 69.99,
+    "new_price": 54.99,
+    "reason": "Dry herb vape. Market ~$40-55. Was at top end.",
+    "variant_ids": [
+      51636078706968,
+      51705027952920,
+      51705027985688,
+      51705028018456,
+      51705028051224,
+      51705028083992,
+      51705055674648
+    ],
+    "variant_prices": [
+      69.99,
+      69.99,
+      69.99,
+      69.99,
+      69.99,
+      69.99,
+      69.99
+    ]
+  },
+  {
+    "id": 9885282468120,
+    "title": "Eo Vape (The Baker) Electronic Nectar Collector",
+    "old_price": 99.99,
+    "new_price": 74.99,
+    "reason": "Electronic nectar collector. Market ~$60-80.",
+    "variant_ids": [
+      50689780744472
+    ],
+    "variant_prices": [
+      99.99
+    ]
+  },
+  {
+    "id": 10113659502872,
+    "title": "Smyle Penjamin Car Key 510 Battery",
+    "old_price": 37.99,
+    "new_price": 29.99,
+    "reason": "Novelty 510. Market for novelty 510s $20-35.",
+    "variant_ids": [
+      51728291823896,
+      51728292905240,
+      51728292938008,
+      51728292970776
+    ],
+    "variant_prices": [
+      37.99,
+      37.99,
+      37.99,
+      37.99
+    ]
+  },
+  {
+    "id": 10068517257496,
+    "title": "Robotjamin Cart Battery + Remote Controller by Smyle Labs (limited Edition)",
+    "old_price": 79.99,
+    "new_price": 54.99,
+    "reason": "Has remote controller. Premium novelty. Market ~$40-55.",
+    "variant_ids": [
+      51636074971416
+    ],
+    "variant_prices": [
+      79.99
+    ]
+  },
+  {
+    "id": 10068518404376,
+    "title": "Wandjamin Cart Battery with LED Light & Slide to Hide Feature",
+    "old_price": 52.5,
+    "new_price": 39.99,
+    "reason": "LED light + slide features. Market ~$30-40.",
+    "variant_ids": [
+      51636076413208,
+      51705028870424
+    ],
+    "variant_prices": [
+      52.5,
+      52.5
+    ]
+  },
+  {
+    "id": 10068517814552,
+    "title": "Smyle Purse 510 Cart Battery \u2013 Pursejamin",
+    "old_price": 49.99,
+    "new_price": 34.99,
+    "reason": "Novelty purse design. Market for novelty 510s $25-35.",
+    "variant_ids": [
+      51636075725080,
+      51705026248984
+    ],
+    "variant_prices": [
+      49.99,
+      49.99
+    ]
+  },
+  {
+    "id": 10068518273304,
+    "title": "Raygun Penjamin Battery with Lights and Sound",
+    "old_price": 44.99,
+    "new_price": 34.99,
+    "reason": "Lights and sound. Market ~$25-35.",
+    "variant_ids": [
+      51636076249368,
+      51705028346136,
+      51705028378904,
+      51705028411672,
+      51705028444440
+    ],
+    "variant_prices": [
+      44.99,
+      44.99,
+      44.99,
+      44.99,
+      44.99
+    ]
+  },
+  {
+    "id": 9885281026328,
+    "title": "Eo Vape Butter Knife",
+    "old_price": 45.99,
+    "new_price": 34.99,
+    "reason": "Heated dab tool. Market ~$25-35.",
+    "variant_ids": [
+      50689779302680
+    ],
+    "variant_prices": [
+      45.99
+    ]
+  },
+  {
+    "id": 10068516864280,
+    "title": "Extre Squirt Gun Vape Battery",
+    "old_price": 29.99,
+    "new_price": 24.99,
+    "reason": "Novelty battery. Market ~$20-25.",
+    "variant_ids": [
+      51636074447128,
+      51705026019608,
+      51705026052376,
+      51705026085144
+    ],
+    "variant_prices": [
+      29.99,
+      29.99,
+      29.99,
+      29.99
+    ]
+  },
+  {
+    "id": 9885272867096,
+    "title": "2.5\u2033 Notched Wood Grain Zinc Grinder",
+    "old_price": 24.99,
+    "new_price": 19.99,
+    "reason": "Premium zinc grinder. Market $15-25.",
+    "variant_ids": [
+      50689770029336,
+      51704953569560
+    ],
+    "variant_prices": [
+      24.99,
+      24.99
+    ]
+  },
+  {
+    "id": 10068141474072,
+    "title": "4\u2033 XL Grinder",
+    "old_price": 34.99,
+    "new_price": 27.99,
+    "reason": "4-piece grinder. Market $20-30.",
+    "variant_ids": [
+      51635416006936,
+      51704997282072,
+      51704997314840,
+      51704997347608
+    ],
+    "variant_prices": [
+      34.99,
+      34.99,
+      34.99,
+      34.99
+    ]
+  },
+  {
+    "id": 10068519649560,
+    "title": "Smyle Penjamine 510 Battery Writing Pen",
+    "old_price": 39.99,
+    "new_price": 29.99,
+    "reason": "Novelty pen battery. Market $20-30.",
+    "variant_ids": [
+      51636077986072,
+      51705026150680,
+      51705026183448,
+      51705026216216
+    ],
+    "variant_prices": [
+      39.99,
+      39.99,
+      39.99,
+      39.99
+    ]
+  },
+  {
+    "id": 9885288792344,
+    "title": "Lookah Ant 710 Battery Mod",
+    "old_price": 49.99,
+    "new_price": 39.99,
+    "reason": "Market ~$30-40.",
+    "variant_ids": [
+      50689789296920,
+      51704981684504,
+      51704981717272,
+      51704981750040,
+      51704981782808,
+      51704981815576,
+      51704981848344,
+      51704981881112
+    ],
+    "variant_prices": [
+      49.99,
+      49.99,
+      49.99,
+      49.99,
+      49.99,
+      49.99,
+      49.99,
+      49.99
+    ]
+  },
+  {
+    "id": 10112354713880,
+    "title": "EO Vape Pharaoh Vaporizer",
+    "old_price": 169.95,
+    "new_price": 119.99,
+    "reason": "Desktop vaporizer. Market ~$100-130.",
+    "variant_ids": [
+      51726399635736
+    ],
+    "variant_prices": [
+      169.95
+    ]
+  },
+  {
+    "id": 10112382206232,
+    "title": "EO Vape Rebel Quattro Propel",
+    "old_price": 180.0,
+    "new_price": 129.99,
+    "reason": "Premium vaporizer. Market ~$100-150.",
+    "variant_ids": [
+      51726448558360
+    ],
+    "variant_prices": [
+      180.0
+    ]
+  }
+]
