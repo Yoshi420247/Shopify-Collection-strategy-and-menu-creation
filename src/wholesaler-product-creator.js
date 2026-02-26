@@ -28,6 +28,7 @@ import fs from 'fs';
 import path from 'path';
 
 const CREATION_LOG_FILE = path.join(process.cwd(), 'wholesaler-creation-log.json');
+const EXPECTED_VENDOR = 'What You Need';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -44,6 +45,24 @@ function loadCreationLog() {
 function saveCreationLog(log) {
   if (log.runs.length > 30) log.runs = log.runs.slice(-30);
   fs.writeFileSync(CREATION_LOG_FILE, JSON.stringify(log, null, 2));
+}
+
+// ── Already-created index ─────────────────────────────────────────────
+// Builds a set of WC IDs that already have a Shopify product created
+// (from the creation log). This prevents duplicate creation AND avoids
+// re-running expensive AI pricing on products that are just drafts
+// waiting for fix-drafts to upload their images.
+function buildAlreadyCreatedIndex() {
+  const log = loadCreationLog();
+  const index = new Map(); // wcId → { shopifyId, success }
+  for (const run of log.runs) {
+    for (const r of (run.results || [])) {
+      if (r.shopifyId && r.wcId) {
+        index.set(r.wcId, { shopifyId: r.shopifyId, success: r.success });
+      }
+    }
+  }
+  return index;
 }
 
 // ── Image handling ─────────────────────────────────────────────────────
@@ -365,6 +384,17 @@ export async function createUnmatchedProducts(options = {}) {
 
   console.log(`\nFound ${unmatchedWc.length} unmatched WC products to create.\n`);
 
+  // Filter out WC products that already have a Shopify product from a previous run.
+  // These should go through --fix-drafts instead of being re-created (which would
+  // duplicate the product AND re-run expensive AI price analysis).
+  const alreadyCreated = buildAlreadyCreatedIndex();
+  const preFilterCount = unmatchedWc.length;
+  unmatchedWc = unmatchedWc.filter(wc => !alreadyCreated.has(wc.id));
+  if (preFilterCount !== unmatchedWc.length) {
+    const skippedCount = preFilterCount - unmatchedWc.length;
+    console.log(`Skipping ${skippedCount} products that already have Shopify listings (use --fix-drafts to repair them)\n`);
+  }
+
   if (limit > 0) {
     unmatchedWc = unmatchedWc.slice(0, limit);
     console.log(`Processing first ${unmatchedWc.length} products (--limit ${limit})\n`);
@@ -545,6 +575,13 @@ export async function fixDraftProducts(options = {}) {
         const { product } = await getProduct(entry.shopifyId);
         if (!product) {
           console.log(`  [W${workerId}] Product not found on Shopify — may have been deleted. Skipping.`);
+          skipped++;
+          continue;
+        }
+
+        // Vendor guard — only touch "What You Need" products
+        if (product.vendor !== EXPECTED_VENDOR) {
+          console.log(`  [W${workerId}] Wrong vendor "${product.vendor}" (expected "${EXPECTED_VENDOR}") — skipping.`);
           skipped++;
           continue;
         }
