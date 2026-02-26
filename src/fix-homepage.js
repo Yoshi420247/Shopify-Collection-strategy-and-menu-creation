@@ -114,7 +114,12 @@ async function fetchHomepageHtml() {
 }
 
 function countPlaceholders(html) {
-  if (!html) return { total: 0, patterns: {} };
+  if (!html) return { total: 0, patterns: {}, placeholderSvgCount: 0 };
+
+  // Count placeholder SVG images (theme renders these for empty collections)
+  const svgMatches = html.match(/placeholder-svg/g) || [];
+  const placeholderSvgCount = svgMatches.length;
+
   const stripped = html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
@@ -131,7 +136,7 @@ function countPlaceholders(html) {
   };
 
   const total = Object.values(patterns).reduce((a, b) => a + b, 0);
-  return { total, patterns };
+  return { total, patterns, placeholderSvgCount };
 }
 
 // ─── Investigation helpers ──────────────────────────────────────────────────
@@ -306,13 +311,17 @@ async function main() {
   console.log('\n1c. Fetching live homepage HTML...');
   const initialHtml = await fetchHomepageHtml();
   const initialPlaceholders = countPlaceholders(initialHtml);
-  if (initialPlaceholders.total > 0) {
-    console.log(`    ⚠ Found ${initialPlaceholders.total} placeholder(s) on live site:`);
+  if (initialPlaceholders.total > 0 || initialPlaceholders.placeholderSvgCount > 0) {
+    const issueCount = initialPlaceholders.total + (initialPlaceholders.placeholderSvgCount > 0 ? 1 : 0);
+    console.log(`    ⚠ Found ${issueCount} issue(s) on live site:`);
     for (const [pat, count] of Object.entries(initialPlaceholders.patterns)) {
       if (count > 0) console.log(`      - "${pat}" × ${count}`);
     }
+    if (initialPlaceholders.placeholderSvgCount > 0) {
+      console.log(`      - Placeholder SVG images × ${initialPlaceholders.placeholderSvgCount} (empty collections showing generic product icons)`);
+    }
   } else {
-    console.log('    ✓ No placeholder text found on live site!');
+    console.log('    ✓ No placeholder text or images found on live site!');
     if (!VISUAL_ONLY) {
       console.log('\n    Homepage looks clean. Nothing to fix.');
       return;
@@ -385,6 +394,8 @@ async function main() {
   const handleFixes = new Map(); // desiredHandle → resolvedHandle
   const collectionTitleIssues = [];
 
+  const emptyCollections = []; // Collections that exist but have 0 products
+
   for (const handle of collectionHandles) {
     const col = handleMap.get(handle);
     if (col) {
@@ -395,6 +406,18 @@ async function main() {
       } else {
         console.log(`    ✓ "${handle}" → "${col.title}"`);
       }
+
+      // Check if collection has products (empty = placeholder SVG images on homepage)
+      try {
+        const countResp = shopifyRest(`${BASE_URL}/products/count.json?collection_id=${col.id}`);
+        const productCount = countResp.count || 0;
+        if (productCount === 0) {
+          console.log(`      ⚠ EMPTY — 0 products! Homepage will show placeholder SVG images`);
+          emptyCollections.push({ handle, id: col.id, title: col.title, type: col.rules ? 'smart' : 'custom' });
+        } else {
+          console.log(`      Products: ${productCount}`);
+        }
+      } catch {}
     } else {
       console.log(`    ✗ "${handle}" → NOT FOUND — searching for best match...`);
       const match = findBestMatch(handle, allCollections);
@@ -512,28 +535,58 @@ async function main() {
     }
   }
 
-  // Diagnosis 2e: Missing/wrong collection handles
+  // Diagnosis 2e: Empty collections (exist but have 0 products → placeholder SVGs)
+  if (emptyCollections.length > 0) {
+    console.log(`2e. ${emptyCollections.length} collection(s) are empty (0 products → placeholder images):`);
+    for (const ec of emptyCollections) {
+      console.log(`    "${ec.handle}" ("${ec.title}") — 0 products`);
+      // Try to find a populated alternative with similar name
+      const match = findBestMatch(ec.handle, allCollections.filter(c => {
+        // Exclude the empty collection itself
+        if (c.handle === ec.handle) return false;
+        return true;
+      }));
+      if (match && match.score >= 30) {
+        // Verify the match has products
+        try {
+          const countResp = shopifyRest(`${BASE_URL}/products/count.json?collection_id=${match.collection.id}`);
+          if ((countResp.count || 0) > 0) {
+            console.log(`      → Alternative: "${match.collection.handle}" ("${match.collection.title}", ${countResp.count} products) [${match.reason}]`);
+            handleFixes.set(ec.handle, match.collection.handle);
+          } else {
+            console.log(`      → Best match "${match.collection.handle}" is also empty`);
+          }
+        } catch {}
+      }
+    }
+    // Empty collections that got remapped need section rebuild
+    if (handleFixes.size > 0 && !fixes.find(f => f.type === 'replace_collection_list_section')) {
+      fixes.push({ type: 'replace_collection_list_section', reason: 'Empty collections remapped to populated alternatives' });
+    }
+  }
+
+  // Diagnosis 2f: Missing/wrong collection handles (not found at all)
   if (handleFixes.size > 0) {
-    console.log(`2e. ${handleFixes.size} collection handle(s) need remapping:`);
+    console.log(`2f. ${handleFixes.size} collection handle(s) need remapping:`);
     for (const [from, to] of handleFixes) {
       console.log(`    "${from}" → "${to}"`);
     }
-    fixes.push({ type: 'remap_collection_handles', handleFixes, reason: `${handleFixes.size} handle(s) don't resolve to real collections` });
+    fixes.push({ type: 'remap_collection_handles', handleFixes, reason: `${handleFixes.size} handle(s) need remapping (missing or empty)` });
     // Handle remapping requires section rebuild
     if (!fixes.find(f => f.type === 'replace_collection_list_section')) {
       fixes.push({ type: 'replace_collection_list_section', reason: 'Handles remapped, need to rebuild section' });
     }
   }
 
-  // Diagnosis 2f: Collection object titles
+  // Diagnosis 2g: Collection object titles
   if (collectionTitleIssues.filter(c => c.type !== 'missing').length > 0) {
     fixes.push({ type: 'rename_collections', collections: collectionTitleIssues.filter(c => c.type !== 'missing'), reason: 'Collections have default/placeholder titles' });
   }
 
-  // Diagnosis 2g: If placeholders exist but all settings look correct,
+  // Diagnosis 2h: If placeholders exist but all settings look correct,
   // force a full section replacement to ensure block structure matches what the theme expects.
-  if (initialPlaceholders.total > 0 && fixes.length === 0) {
-    console.log('2g. Settings look correct but placeholders exist on live site.');
+  if ((initialPlaceholders.total > 0 || initialPlaceholders.placeholderSvgCount > 0) && fixes.length === 0) {
+    console.log('2h. Settings look correct but placeholders exist on live site.');
     console.log('    → Will force full section replacement to ensure theme compatibility.');
     fixes.push({ type: 'replace_collection_list_section', reason: 'Settings correct but placeholders visible — forcing full replacement' });
   }
@@ -679,15 +732,10 @@ async function main() {
 
       case 'rename_collections': {
         console.log('3e. Renaming collections with default titles...');
+        // Build desired title map from FEATURED_SECTIONS and handle-to-title lookup
         const desiredTitles = {};
-        for (const b of Object.values(CATEGORY_BLOCKS)) {
-          desiredTitles[b.feature_collection] = b.title;
-        }
-        for (const { collection } of Object.values(FEATURED_SECTIONS)) {
-          if (!desiredTitles[collection]) {
-            const entry = Object.values(FEATURED_SECTIONS).find(f => f.collection === collection);
-            if (entry) desiredTitles[collection] = entry.title;
-          }
+        for (const { collection, title } of Object.values(FEATURED_SECTIONS)) {
+          desiredTitles[collection] = title;
         }
 
         for (const issue of fix.collections) {
@@ -760,29 +808,36 @@ async function main() {
   const verifyHtml = await fetchHomepageHtml();
   const afterPlaceholders = countPlaceholders(verifyHtml);
 
-  console.log(`\n    ┌─────────────────────────────────────┐`);
-  console.log(`    │  VERIFICATION RESULTS                │`);
-  console.log(`    ├─────────────────────────────────────┤`);
-  console.log(`    │  Before: ${String(initialPlaceholders.total).padStart(2)} placeholder(s)           │`);
-  console.log(`    │  After:  ${String(afterPlaceholders.total).padStart(2)} placeholder(s)           │`);
-  console.log(`    └─────────────────────────────────────┘`);
+  const beforeTotal = initialPlaceholders.total + initialPlaceholders.placeholderSvgCount;
+  const afterTotal = afterPlaceholders.total + afterPlaceholders.placeholderSvgCount;
 
-  if (afterPlaceholders.total === 0) {
-    console.log('\n    ✅ SUCCESS! All placeholder text removed from live site.');
+  console.log(`\n    ┌───────────────────────────────────────────┐`);
+  console.log(`    │  VERIFICATION RESULTS                      │`);
+  console.log(`    ├───────────────────────────────────────────┤`);
+  console.log(`    │  Text placeholders:  ${String(initialPlaceholders.total).padStart(2)} → ${String(afterPlaceholders.total).padStart(2)}              │`);
+  console.log(`    │  SVG placeholders:   ${String(initialPlaceholders.placeholderSvgCount).padStart(2)} → ${String(afterPlaceholders.placeholderSvgCount).padStart(2)}              │`);
+  console.log(`    │  Total issues:       ${String(beforeTotal).padStart(2)} → ${String(afterTotal).padStart(2)}              │`);
+  console.log(`    └───────────────────────────────────────────┘`);
+
+  if (afterTotal === 0) {
+    console.log('\n    ✅ SUCCESS! All placeholders removed from live site.');
     console.log(`    Verify at: ${STOREFRONT_URL}`);
     return;
   }
 
-  if (afterPlaceholders.total < initialPlaceholders.total) {
-    console.log(`\n    ⚠ PARTIAL FIX — reduced from ${initialPlaceholders.total} to ${afterPlaceholders.total} placeholders.`);
+  if (afterTotal < beforeTotal) {
+    console.log(`\n    ⚠ PARTIAL FIX — reduced from ${beforeTotal} to ${afterTotal} issues.`);
   } else {
-    console.log('\n    ⚠ Placeholders still present after fix.');
+    console.log('\n    ⚠ Issues still present after fix.');
   }
 
   // Show remaining issues
   console.log('    Remaining:');
   for (const [pat, count] of Object.entries(afterPlaceholders.patterns)) {
     if (count > 0) console.log(`      - "${pat}" × ${count}`);
+  }
+  if (afterPlaceholders.placeholderSvgCount > 0) {
+    console.log(`      - Placeholder SVG images × ${afterPlaceholders.placeholderSvgCount} (from empty collections)`);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
