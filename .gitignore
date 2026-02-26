@@ -37,3 +37,6 @@ data/
 product-mapping.json
 product-mapping-review.json
 wholesaler-sync-log.json
+
+# Migration state (resume checkpoint, generated at runtime)
+.wc-migrate-state.json

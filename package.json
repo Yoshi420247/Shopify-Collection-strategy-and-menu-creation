@@ -114,7 +114,13 @@
     "wholesaler:sync:execute": "node src/wholesaler-sync.js --execute",
     "wholesaler:sync:verbose": "node src/wholesaler-sync.js --verbose",
     "wholesaler:sync:live": "node src/wholesaler-sync.js --execute --verbose",
-    "wholesaler:history": "node src/wholesaler-sync.js --history"
+    "wholesaler:history": "node src/wholesaler-sync.js --history",
+    "migrate": "node src/wc-migrate-parallel.js",
+    "migrate:execute": "node src/wc-migrate-parallel.js --execute",
+    "migrate:publish": "node src/wc-migrate-parallel.js --execute --publish",
+    "migrate:fast": "node src/wc-migrate-parallel.js --execute --workers=8",
+    "migrate:resume": "node src/wc-migrate-parallel.js --execute --resume",
+    "migrate:status": "node src/wc-migrate-parallel.js --status"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

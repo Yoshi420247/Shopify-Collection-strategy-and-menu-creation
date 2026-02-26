@@ -1,6 +1,9 @@
 // Shopify API wrapper using child_process for curl (more reliable in some environments)
 import { config } from './config.js';
 import { execSync } from 'child_process';
+import { writeFileSync, unlinkSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 if (!config.shopify.storeUrl) {
   throw new Error('SHOPIFY_STORE_URL environment variable is not set. Set it to your store domain (e.g. "my-store.myshopify.com").');
@@ -40,10 +43,21 @@ async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3)
   curlCmd += `-H "X-Shopify-Access-Token: ${config.shopify.accessToken}" `;
   curlCmd += `-H "Content-Type: application/json" `;
 
+  // Write body to temp file to avoid E2BIG when payload is large (e.g. image base64 data).
+  // The OS has a limit on command-line argument length (~128KB-2MB depending on platform).
+  let tmpFile = null;
   if (body) {
-    // Escape the body for shell
-    const escapedBody = JSON.stringify(body).replace(/'/g, "'\\''");
-    curlCmd += `-d '${escapedBody}'`;
+    const bodyStr = JSON.stringify(body);
+    if (bodyStr.length > 100_000) {
+      // Large payload → use temp file with curl's @file syntax
+      tmpFile = join(tmpdir(), `shopify-api-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`);
+      writeFileSync(tmpFile, bodyStr);
+      curlCmd += `-d @${tmpFile}`;
+    } else {
+      // Small payload → inline is fine
+      const escapedBody = bodyStr.replace(/'/g, "'\\''");
+      curlCmd += `-d '${escapedBody}'`;
+    }
   }
 
   for (let attempt = 1; attempt <= retries; attempt++) {
@@ -72,8 +86,15 @@ async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3)
         console.error(`API Error after ${retries} attempts: ${error.message}`);
         throw error;
       }
+    } finally {
+      // Clean up temp file after last attempt or success
+      if (tmpFile && attempt === retries) {
+        try { unlinkSync(tmpFile); } catch {}
+      }
     }
   }
+  // Clean up temp file on success (finally only runs on last attempt above)
+  if (tmpFile) { try { unlinkSync(tmpFile); } catch {} }
 }
 
 // REST API methods
