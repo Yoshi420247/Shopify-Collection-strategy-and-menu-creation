@@ -47,35 +47,22 @@ function saveCreationLog(log) {
 }
 
 // ── Image handling ─────────────────────────────────────────────────────
-async function downloadImage(url) {
-  try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
-    if (!response.ok) return null;
-    const buffer = await response.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    return { base64, mediaType: contentType.split(';')[0] };
-  } catch {
-    return null;
-  }
-}
-
+// Uses Shopify's src URL feature — Shopify fetches the image directly from WC's CDN.
+// This avoids the E2BIG error caused by passing multi-MB base64 strings through the API.
 async function uploadWcImagesToShopify(wcImages, shopifyProductId) {
   const uploaded = [];
   for (let i = 0; i < wcImages.length; i++) {
     const img = wcImages[i];
-    console.log(`    Downloading image ${i + 1}/${wcImages.length}...`);
-    const imageData = await downloadImage(img.src);
-    if (!imageData) {
-      console.log(`    Failed to download image ${i + 1}`);
-      continue;
-    }
+    const imgSrc = typeof img === 'string' ? img : img.src;
+    const imgAlt = typeof img === 'string' ? '' : (img.alt || '');
+
+    console.log(`    Uploading image ${i + 1}/${wcImages.length} (via URL)...`);
 
     try {
       const result = await createProductImage(shopifyProductId, {
-        attachment: imageData.base64,
+        src: imgSrc,
         position: i + 1,
-        alt: img.alt || '',
+        alt: imgAlt,
       });
       if (result.image) {
         uploaded.push(result.image);
@@ -354,15 +341,16 @@ async function createSingleProduct(wcProductInfo, options = {}) {
   return result;
 }
 
-// ── Main: create all unmatched products ─────────────────────────────
+// ── Main: create all unmatched products (parallel worker pool) ───────
 export async function createUnmatchedProducts(options = {}) {
-  const { dryRun = false, limit = 0 } = options;
+  const { dryRun = false, limit = 0, concurrency = 5 } = options;
   const startTime = Date.now();
 
   console.log('╔══════════════════════════════════════════════════════════╗');
   console.log('║       Wholesaler → Shopify Product Creator              ║');
   console.log('╚══════════════════════════════════════════════════════════╝');
   console.log(`Mode: ${dryRun ? 'DRY RUN (no changes)' : 'LIVE (will create products)'}`);
+  console.log(`Concurrency: ${concurrency} workers`);
   if (limit > 0) console.log(`Limit: ${limit} products`);
 
   // Load the mapping to get unmatched WC products
@@ -382,56 +370,73 @@ export async function createUnmatchedProducts(options = {}) {
     console.log(`Processing first ${unmatchedWc.length} products (--limit ${limit})\n`);
   }
 
-  // Fetch full product data from WC for each unmatched product
-  const results = [];
+  // Shared state across workers (atomic index for lock-free dispatch)
+  const total = unmatchedWc.length;
+  const results = new Array(total);
+  let nextIndex = 0;
   let created = 0;
   let failed = 0;
   let skipped = 0;
 
-  for (let i = 0; i < unmatchedWc.length; i++) {
-    const wcStub = unmatchedWc[i];
-    console.log(`\n[${i + 1}/${unmatchedWc.length}] Processing WC #${wcStub.id} "${wcStub.name}"...`);
+  async function worker(workerId) {
+    while (nextIndex < total) {
+      const i = nextIndex++;
+      if (i >= total) break; // another worker grabbed the last item
+      const wcStub = unmatchedWc[i];
 
-    // Fetch full product details from WooCommerce
-    let wcProduct;
-    try {
-      const rawProduct = await getWcProduct(wcStub.id);
-      wcProduct = extractFullProductInfo(rawProduct);
-    } catch (err) {
-      console.log(`  Skipping — failed to fetch WC product: ${err.message}`);
-      results.push({ wcId: wcStub.id, wcName: wcStub.name, skipped: true, error: err.message });
-      skipped++;
-      continue;
-    }
+      console.log(`\n[${i + 1}/${total}] [W${workerId}] Processing WC #${wcStub.id} "${wcStub.name}"...`);
 
-    const result = await createSingleProduct(wcProduct, { dryRun });
-    results.push(result);
-
-    if (result.success) {
-      created++;
-
-      // Update the mapping: move this product from unmatched to mapped
-      if (!dryRun && result.shopifyId) {
-        mapping.mappings.push({
-          wc_id: wcProduct.id,
-          wc_name: wcProduct.name,
-          wc_sku: wcProduct.sku,
-          shopify_id: result.shopifyId,
-          shopify_title: wcProduct.name,
-          shopify_status: result.steps.published ? 'active' : 'draft',
-          confidence: 100,
-          reason: 'Auto-created from WC product',
-          approved: true,
-        });
-        mapping.unmatchedWc = mapping.unmatchedWc.filter(p => p.id !== wcProduct.id);
+      // Fetch full product details from WooCommerce
+      let wcProduct;
+      try {
+        const rawProduct = await getWcProduct(wcStub.id);
+        wcProduct = extractFullProductInfo(rawProduct);
+      } catch (err) {
+        console.log(`  [W${workerId}] Skipping — failed to fetch WC product: ${err.message}`);
+        results[i] = { wcId: wcStub.id, wcName: wcStub.name, skipped: true, error: err.message };
+        skipped++;
+        continue;
       }
-    } else if (!result.skipped) {
-      failed++;
-    }
 
-    // Pause between products to avoid overwhelming APIs
-    await sleep(1000);
+      const result = await createSingleProduct(wcProduct, { dryRun, workerId });
+      results[i] = result;
+
+      if (result.success) {
+        created++;
+
+        // Update the mapping: move this product from unmatched to mapped
+        if (!dryRun && result.shopifyId) {
+          mapping.mappings.push({
+            wc_id: wcProduct.id,
+            wc_name: wcProduct.name,
+            wc_sku: wcProduct.sku,
+            shopify_id: result.shopifyId,
+            shopify_title: wcProduct.name,
+            shopify_status: result.steps.published ? 'active' : 'draft',
+            confidence: 100,
+            reason: 'Auto-created from WC product',
+            approved: true,
+          });
+          mapping.unmatchedWc = mapping.unmatchedWc.filter(p => p.id !== wcProduct.id);
+        }
+      } else if (!result.skipped) {
+        failed++;
+      }
+
+      // Periodic mapping save every 25 products (crash recovery)
+      if (!dryRun && (created + failed) % 25 === 0 && created > 0) {
+        saveMapping(mapping);
+        console.log(`  [checkpoint] Saved mapping (${created} created so far)`);
+      }
+    }
   }
+
+  // Launch parallel workers
+  const workers = Math.min(concurrency, total);
+  console.log(`Launching ${workers} parallel workers...\n`);
+  await Promise.all(
+    Array.from({ length: workers }, (_, i) => worker(i + 1))
+  );
 
   // Save updated mapping (with newly created products added)
   if (!dryRun && created > 0) {
@@ -444,12 +449,13 @@ export async function createUnmatchedProducts(options = {}) {
   const logEntry = {
     timestamp: new Date().toISOString(),
     dryRun,
+    concurrency: workers,
     duration: `${duration}s`,
     total: unmatchedWc.length,
     created,
     failed,
     skipped,
-    results: results.map(r => ({
+    results: results.filter(Boolean).map(r => ({
       wcId: r.wcId,
       wcName: r.wcName,
       shopifyId: r.shopifyId,
@@ -468,27 +474,29 @@ export async function createUnmatchedProducts(options = {}) {
   console.log(`  Products created:   ${created}`);
   console.log(`  Products failed:    ${failed}`);
   console.log(`  Products skipped:   ${skipped}`);
+  console.log(`  Workers used:       ${workers}`);
   console.log(`  Duration:           ${duration}s`);
   console.log('══════════════════════════════════════════════════════════');
 
   if (failed > 0) {
     console.log('\n── Failed products ──');
-    for (const r of results.filter(r => !r.success && !r.skipped)) {
+    for (const r of results.filter(r => r && !r.success && !r.skipped)) {
       console.log(`  ! "${r.wcName}" — ${r.error || r.qaIssues?.join(', ') || 'unknown'}`);
     }
   }
 
-  return { created, failed, skipped, results };
+  return { created, failed, skipped, results: results.filter(Boolean) };
 }
 
-// ── Fix draft products (re-upload images, re-run QA, publish) ────────
+// ── Fix draft products (parallel worker pool) ───────────────────────
 export async function fixDraftProducts(options = {}) {
-  const { limit = 0 } = options;
+  const { limit = 0, concurrency = 5 } = options;
   const startTime = Date.now();
 
   console.log('╔══════════════════════════════════════════════════════════╗');
   console.log('║       Fix Draft Products — Image Re-upload & QA        ║');
   console.log('╚══════════════════════════════════════════════════════════╝');
+  console.log(`Concurrency: ${concurrency} workers`);
 
   // Collect draft Shopify IDs from all previous creation log runs
   const creationLog = loadCreationLog();
@@ -518,100 +526,118 @@ export async function fixDraftProducts(options = {}) {
   }
 
   const mapping = loadMapping();
+  const total = toProcess.length;
+  let nextIndex = 0;
   let fixed = 0;
   let failed = 0;
   let skipped = 0;
 
-  for (let i = 0; i < toProcess.length; i++) {
-    const entry = toProcess[i];
-    console.log(`\n[${i + 1}/${toProcess.length}] Fixing Shopify #${entry.shopifyId} "${entry.wcName}"...`);
+  async function worker(workerId) {
+    while (nextIndex < total) {
+      const i = nextIndex++;
+      if (i >= total) break;
+      const entry = toProcess[i];
 
-    try {
-      // Fetch current Shopify product state
-      const { product } = await getProduct(entry.shopifyId);
-      if (!product) {
-        console.log('  Product not found on Shopify — may have been deleted. Skipping.');
-        skipped++;
-        continue;
-      }
+      console.log(`\n[${i + 1}/${total}] [W${workerId}] Fixing Shopify #${entry.shopifyId} "${entry.wcName}"...`);
 
-      if (product.status === 'active' && product.images?.length > 0) {
-        console.log('  Already active with images — skipping.');
-        skipped++;
-        continue;
-      }
-
-      const hasImages = product.images && product.images.length > 0;
-
-      // Upload images if missing
-      if (!hasImages) {
-        console.log('  Missing images — fetching from WooCommerce...');
-        let wcProduct;
-        try {
-          const rawProduct = await getWcProduct(entry.wcId);
-          wcProduct = extractFullProductInfo(rawProduct);
-        } catch (err) {
-          console.log(`  Failed to fetch WC product #${entry.wcId}: ${err.message}`);
-          failed++;
-          continue;
-        }
-
-        if (wcProduct.images && wcProduct.images.length > 0) {
-          console.log(`  Uploading ${wcProduct.images.length} images...`);
-          const uploaded = await uploadWcImagesToShopify(wcProduct.images, entry.shopifyId);
-          console.log(`  Uploaded ${uploaded.length}/${wcProduct.images.length} images`);
-
-          if (uploaded.length === 0) {
-            console.log('  Still no images uploaded — keeping as draft.');
-            failed++;
-            continue;
-          }
-        } else {
-          console.log('  WC product has no images either — skipping.');
+      try {
+        // Fetch current Shopify product state
+        const { product } = await getProduct(entry.shopifyId);
+        if (!product) {
+          console.log(`  [W${workerId}] Product not found on Shopify — may have been deleted. Skipping.`);
           skipped++;
           continue;
         }
-      }
 
-      // Re-run variant detection (needs images)
-      console.log('  Re-running variant detection...');
-      await detectAndCreateVariants({ id: entry.shopifyId });
+        if (product.status === 'active' && product.images?.length > 0) {
+          console.log(`  [W${workerId}] Already active with images — skipping.`);
+          skipped++;
+          continue;
+        }
 
-      // Re-run QA check
-      console.log('  Re-running QA check...');
-      const qa = await qaCheck(entry.shopifyId);
+        const hasImages = product.images && product.images.length > 0;
 
-      if (qa.passed) {
-        console.log('  QA passed — publishing!');
-        await updateProduct(entry.shopifyId, { status: 'active' });
+        // Upload images if missing
+        if (!hasImages) {
+          console.log(`  [W${workerId}] Missing images — fetching from WooCommerce...`);
+          let wcProduct;
+          try {
+            const rawProduct = await getWcProduct(entry.wcId);
+            wcProduct = extractFullProductInfo(rawProduct);
+          } catch (err) {
+            console.log(`  [W${workerId}] Failed to fetch WC product #${entry.wcId}: ${err.message}`);
+            failed++;
+            continue;
+          }
 
-        // Update mapping: add to mappings, remove from unmatchedWc
-        mapping.mappings.push({
-          wc_id: entry.wcId,
-          wc_name: entry.wcName,
-          wc_sku: entry.wcSku || '',
-          shopify_id: entry.shopifyId,
-          shopify_title: entry.wcName,
-          shopify_status: 'active',
-          confidence: 100,
-          reason: 'Auto-created from WC product (fixed draft)',
-          approved: true,
-        });
-        mapping.unmatchedWc = (mapping.unmatchedWc || []).filter(p => p.id !== entry.wcId);
+          if (wcProduct.images && wcProduct.images.length > 0) {
+            console.log(`  [W${workerId}] Uploading ${wcProduct.images.length} images...`);
+            const uploaded = await uploadWcImagesToShopify(wcProduct.images, entry.shopifyId);
+            console.log(`  [W${workerId}] Uploaded ${uploaded.length}/${wcProduct.images.length} images`);
 
-        console.log(`  Published: "${entry.wcName}" → Shopify #${entry.shopifyId}`);
-        fixed++;
-      } else {
-        console.log(`  QA still failing: ${qa.issues.join(', ')}`);
+            if (uploaded.length === 0) {
+              console.log(`  [W${workerId}] Still no images uploaded — keeping as draft.`);
+              failed++;
+              continue;
+            }
+          } else {
+            console.log(`  [W${workerId}] WC product has no images either — skipping.`);
+            skipped++;
+            continue;
+          }
+        }
+
+        // Re-run variant detection (needs images)
+        console.log(`  [W${workerId}] Re-running variant detection...`);
+        await detectAndCreateVariants({ id: entry.shopifyId });
+
+        // Re-run QA check
+        console.log(`  [W${workerId}] Re-running QA check...`);
+        const qa = await qaCheck(entry.shopifyId);
+
+        if (qa.passed) {
+          console.log(`  [W${workerId}] QA passed — publishing!`);
+          await updateProduct(entry.shopifyId, { status: 'active' });
+
+          // Update mapping: add to mappings, remove from unmatchedWc
+          mapping.mappings.push({
+            wc_id: entry.wcId,
+            wc_name: entry.wcName,
+            wc_sku: entry.wcSku || '',
+            shopify_id: entry.shopifyId,
+            shopify_title: entry.wcName,
+            shopify_status: 'active',
+            confidence: 100,
+            reason: 'Auto-created from WC product (fixed draft)',
+            approved: true,
+          });
+          mapping.unmatchedWc = (mapping.unmatchedWc || []).filter(p => p.id !== entry.wcId);
+
+          console.log(`  [W${workerId}] Published: "${entry.wcName}" → Shopify #${entry.shopifyId}`);
+          fixed++;
+        } else {
+          console.log(`  [W${workerId}] QA still failing: ${qa.issues.join(', ')}`);
+          failed++;
+        }
+      } catch (err) {
+        console.log(`  [W${workerId}] Error fixing draft: ${err.message}`);
         failed++;
       }
-    } catch (err) {
-      console.log(`  Error fixing draft: ${err.message}`);
-      failed++;
-    }
 
-    await sleep(1000);
+      // Periodic mapping save every 25 products (crash recovery)
+      if ((fixed + failed) % 25 === 0 && fixed > 0) {
+        saveMapping(mapping);
+        console.log(`  [checkpoint] Saved mapping (${fixed} fixed so far)`);
+      }
+    }
   }
+
+  // Launch parallel workers
+  const workers = Math.min(concurrency, total);
+  console.log(`Launching ${workers} parallel workers...\n`);
+  await Promise.all(
+    Array.from({ length: workers }, (_, i) => worker(i + 1))
+  );
 
   // Save updated mapping
   if (fixed > 0) {
@@ -624,6 +650,7 @@ export async function fixDraftProducts(options = {}) {
   const logEntry = {
     timestamp: new Date().toISOString(),
     mode: 'fix-drafts',
+    concurrency: workers,
     duration: `${duration}s`,
     total: toProcess.length,
     fixed,
@@ -638,10 +665,17 @@ export async function fixDraftProducts(options = {}) {
   console.log(`  Drafts fixed:    ${fixed}`);
   console.log(`  Drafts failed:   ${failed}`);
   console.log(`  Drafts skipped:  ${skipped}`);
+  console.log(`  Workers used:    ${workers}`);
   console.log(`  Duration:        ${duration}s`);
   console.log('══════════════════════════════════════════════════════════');
 
   return { fixed, failed, skipped };
+}
+
+// ── CLI helpers ────────────────────────────────────────────────────────
+function parseIntArg(flag) {
+  const idx = args.indexOf(flag);
+  return idx >= 0 ? parseInt(args[idx + 1] || '0', 10) : 0;
 }
 
 // ── CLI entry point ────────────────────────────────────────────────────
@@ -655,32 +689,34 @@ Usage:
   node src/wholesaler-product-creator.js [options]
 
 Options:
-  --execute      Create products (live mode, default is dry run)
-  --fix-drafts   Fix failed drafts: re-upload images, re-run QA, publish
-  --limit N      Only process first N products
-  --help         Show this help message
+  --execute         Create products (live mode, default is dry run)
+  --fix-drafts      Fix failed drafts: re-upload images, re-run QA, publish
+  --limit N         Only process first N products
+  --concurrency N   Number of parallel workers (default: 5)
+  --help            Show this help message
 
 Example:
-  node src/wholesaler-product-creator.js                       # Dry run
-  node src/wholesaler-product-creator.js --execute             # Create all
-  node src/wholesaler-product-creator.js --execute --limit 5   # Create first 5
-  node src/wholesaler-product-creator.js --fix-drafts          # Fix all drafts
-  node src/wholesaler-product-creator.js --fix-drafts --limit 10
+  node src/wholesaler-product-creator.js                                # Dry run
+  node src/wholesaler-product-creator.js --execute                      # Create all
+  node src/wholesaler-product-creator.js --execute --concurrency 10     # 10 workers
+  node src/wholesaler-product-creator.js --execute --limit 5            # Create first 5
+  node src/wholesaler-product-creator.js --fix-drafts                   # Fix all drafts
+  node src/wholesaler-product-creator.js --fix-drafts --concurrency 8   # 8 workers
 `);
 } else if (args.includes('--fix-drafts')) {
-  const limitIdx = args.indexOf('--limit');
-  const limit = limitIdx >= 0 ? parseInt(args[limitIdx + 1] || '0', 10) : 0;
+  const limit = parseIntArg('--limit');
+  const concurrency = parseIntArg('--concurrency') || 5;
 
-  fixDraftProducts({ limit }).catch(err => {
+  fixDraftProducts({ limit, concurrency }).catch(err => {
     console.error('Fix drafts failed:', err.message);
     process.exit(1);
   });
 } else {
   const dryRun = !args.includes('--execute');
-  const limitIdx = args.indexOf('--limit');
-  const limit = limitIdx >= 0 ? parseInt(args[limitIdx + 1] || '0', 10) : 0;
+  const limit = parseIntArg('--limit');
+  const concurrency = parseIntArg('--concurrency') || 5;
 
-  createUnmatchedProducts({ dryRun, limit }).catch(err => {
+  createUnmatchedProducts({ dryRun, limit, concurrency }).catch(err => {
     console.error('Product creation failed:', err.message);
     process.exit(1);
   });

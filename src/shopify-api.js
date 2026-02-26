@@ -8,16 +8,13 @@ if (!config.shopify.storeUrl) {
 const BASE_URL = `https://${config.shopify.storeUrl}/admin/api/${config.shopify.apiVersion}`;
 const GRAPHQL_URL = `${BASE_URL}/graphql.json`;
 
-// Rate limiting
-let lastRequestTime = 0;
+// Rate limiting — serialized queue ensures proper spacing even under concurrency.
 const MIN_REQUEST_INTERVAL = 500; // ~2 req/sec for Shopify REST
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Serialized request queue - ensures REST API requests are properly spaced
-// even when called from multiple concurrent paginateAll() calls.
 let _nextRequestSlot = Promise.resolve();
 function acquireRequestSlot() {
   const slot = _nextRequestSlot.then(() => sleep(MIN_REQUEST_INTERVAL));
@@ -26,13 +23,7 @@ function acquireRequestSlot() {
 }
 
 async function rateLimitedRequest(url, method = 'GET', body = null, retries = 3) {
-  const now = Date.now();
-  const timeSinceLastRequest = now - lastRequestTime;
-
-  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-    await sleep(MIN_REQUEST_INTERVAL - timeSinceLastRequest);
-  }
-  lastRequestTime = Date.now();
+  await acquireRequestSlot();
 
   const fetchOptions = {
     method,
