@@ -38,7 +38,6 @@ env:
   WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
   GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-  BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
 
 jobs:
   wholesaler-sync:
