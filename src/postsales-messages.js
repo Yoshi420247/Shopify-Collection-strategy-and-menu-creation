@@ -686,7 +686,7 @@ Hand Pipes - Simple, portable, no setup required.
 https://oilslickpad.com/collections/hand-pipes
 
 Made in USA Glass - Handcrafted pieces from American glassblowers.
-https://oilslickpad.com/collections/made-in-usa-glass
+https://oilslickpad.com/collections/made-in-usa
 
 Your 10% off code WELCOME10 is still active if you want to use it.
 

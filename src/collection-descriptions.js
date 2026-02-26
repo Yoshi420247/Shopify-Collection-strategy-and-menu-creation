@@ -443,7 +443,7 @@ const collectionDescriptions = {
 <p>American borosilicate glass goes through more rigorous quality control than mass-produced alternatives. Joints are ground to precise tolerances. Welds are clean and free of stress points. Percolator holes are consistent and properly sized. These details might seem small, but they directly impact how your piece functions, how long it lasts, and how it feels in your hands.</p>
 `,
 
-  'made-in-usa-glass': `
+  'made-in-usa': `
 <h2>Made in USA Glass - Premium American Borosilicate Glass Pieces</h2>
 <p>This collection is dedicated specifically to glass smoking devices crafted by American glassblowers using high-quality borosilicate glass. Every piece here is made domestically - from the raw glass tubing to the finished product. With over 100 pieces in this collection, it is one of the largest selections of American-made glass you will find online.</p>
 <p>American borosilicate glass is the industry standard for high-quality smoking devices. It withstands thermal shock better than imported alternatives, meaning it can handle the repeated heating and cooling of daily use without cracking. The glass is clear, free of impurities, and worked by experienced blowers who understand the craft.</p>

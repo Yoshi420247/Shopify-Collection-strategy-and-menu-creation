@@ -41,11 +41,11 @@ const SKIP_VISUAL = process.argv.includes('--skip-visual');
 // to the "Collection title" onboarding placeholder.
 const CATEGORY_BLOCKS = {
   'cl-block-1': { feature_collection: 'hand-pipes', image: 'shopify://shop_images/HP-69-3.5-Display-300x300_6acdada1-2332-4a59-b1f3-a912919564fc.png' },
-  'cl-block-2': { feature_collection: 'bongs', image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png' },
+  'cl-block-2': { feature_collection: 'all-bongs', image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png' },
   'cl-block-3': { feature_collection: 'dab-rigs', image: 'shopify://shop_images/20240124_093738.25-300x300_db289371-2edc-4f15-883d-2ec39e4ff894.png' },
   'cl-block-4': { feature_collection: 'bubblers', image: 'shopify://shop_images/OMG-FWDryHammer-7.5-300x300_18c1b288-f281-422c-91cb-b02ea0ac76bc.png' },
   'cl-block-5': { feature_collection: 'rolling-papers-cones', image: 'shopify://shop_images/VIBES-x-Cookies-Cones-53mm-9-30-Display-Box-Blue-Ultra-Thin-300x300_084de0e4-2cbf-4bc1-ad99-723db177acb1.png' },
-  'cl-block-6': { feature_collection: 'made-in-usa-glass', image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png' },
+  'cl-block-6': { feature_collection: 'made-in-usa', image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png' },
   'cl-block-7': { feature_collection: 'nectar-collectors', image: 'shopify://shop_images/silicone-nectar-collector-kit-238311.jpg' },
   'cl-block-8': { feature_collection: 'accessories', image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png' },
 };
@@ -54,7 +54,7 @@ const CATEGORY_BLOCKS = {
 const FEATURED_SECTIONS = {
   '1556571858712': { collection: 'value-dab-rigs', title: 'Affordable Quality Dab Rigs' },
   '1602299209890': { collection: 'hand-pipes', title: 'Premium Hand Pipes' },
-  '1602299393597': { collection: 'made-in-usa-glass', title: 'Made in USA Glass' },
+  '1602299393597': { collection: 'made-in-usa', title: 'Made in USA Glass' },
   '1602299824926': { collection: 'everyday-essentials', title: 'Everyday Essentials Under $50' },
   'extraction_essentials': { collection: 'extraction-packaging', title: 'Top Packaging & Extraction Supplies' },
   'glass_jars_featured': { collection: 'glass-jars', title: 'Glass Jars & Containers' },
@@ -63,9 +63,9 @@ const FEATURED_SECTIONS = {
 // Promotion blocks
 const PROMO_BLOCKS = {
   'promo-dab-rigs': { image: 'shopify://shop_images/IMG_5303.2.2-300x300_de7b49df-eee1-4aeb-a047-38e72d44f643.png', link: 'shopify://collections/dab-rigs', title: 'Dab Rigs', text: '<p>Premium glass dab rigs for the smoothest concentrate experience. From mini rigs to recyclers.</p>', button_label: 'Shop Dab Rigs' },
-  'promo-bongs': { image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png', link: 'shopify://collections/bongs', title: 'Bongs & Water Pipes', text: '<p>High-quality glass bongs for flower enthusiasts. Beakers, straight tubes, and more.</p>', button_label: 'Shop Bongs' },
+  'promo-bongs': { image: 'shopify://shop_images/IMG_9314.2.22-300x300_88304ee8-d100-4fb8-a439-2663aeaddaaa.png', link: 'shopify://collections/bongs-water-pipes', title: 'Bongs & Water Pipes', text: '<p>High-quality glass bongs for flower enthusiasts. Beakers, straight tubes, and more.</p>', button_label: 'Shop Bongs' },
   'promo-hand-pipes': { image: 'shopify://shop_images/HP-69-3.5-Display-300x300_6acdada1-2332-4a59-b1f3-a912919564fc.png', link: 'shopify://collections/hand-pipes', title: 'Hand Pipes', text: '<p>Portable glass spoon pipes, chillums, and one-hitters. Perfect for on-the-go.</p>', button_label: 'Shop Pipes' },
-  'promo-made-usa': { image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png', link: 'shopify://collections/made-in-usa-glass', title: 'Made in USA', text: '<p>Support American glassblowers. Premium quality, handcrafted in the USA.</p>', button_label: 'Shop USA Glass' },
+  'promo-made-usa': { image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png', link: 'shopify://collections/made-in-usa', title: 'Made in USA', text: '<p>Support American glassblowers. Premium quality, handcrafted in the USA.</p>', button_label: 'Shop USA Glass' },
   'promo-quartz': { image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png', link: 'shopify://collections/quartz-bangers', title: 'Quartz Bangers', text: '<p>Premium quartz bangers for perfect low-temp dabs. Multiple sizes and styles.</p>', button_label: 'Shop Quartz' },
   'promo-extraction': { image: 'shopify://shop_images/18oz-child-resistant-glass-jars-with-black-caps-28-grams-1-ounce-capacity-airtight-and-durable-24-pack-the-ultimate-storage-solution-for-cannabis-flower-food-an-557906_abc9f373-8f50-4919-b36d-a294a802f4c8.jpg', link: 'shopify://collections/extraction-packaging', title: 'Extraction & Packaging', text: '<p>Professional-grade silicone mats, glass jars, and packaging supplies.</p>', button_label: 'Shop Extraction' },
 };
@@ -74,7 +74,7 @@ const PROMO_BLOCKS = {
 const IMAGE_TEXT_BLOCKS = {
   'it-block-1': { image: 'shopify://shop_images/IMG_5303.2.2-300x300_de7b49df-eee1-4aeb-a047-38e72d44f643.png', image_crop: 'none', title: 'Premium Dab Rigs', text: '<p>Explore our collection of high-quality glass dab rigs. From mini rigs to recyclers, find the perfect piece for smooth, flavorful concentrates.</p>', button_label: 'Shop Dab Rigs', link: 'shopify://collections/dab-rigs', bg_color: '', text_color: '' },
   'it-block-2': { image: 'shopify://shop_images/GHQ-30-45-14-Display-300x300_4bb48a4a-9697-4d19-af0f-d44d0ab65364.png', image_crop: 'none', title: 'Quartz Bangers and Accessories', text: '<p>Upgrade your setup with premium quartz bangers, carb caps, and dab tools. Quality accessories for the perfect low-temp dab.</p>', button_label: 'Shop Accessories', link: 'shopify://collections/quartz-bangers', bg_color: '', text_color: '' },
-  'it-block-3': { image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png', image_crop: 'none', title: 'Made in USA Glass', text: '<p>Support American craftsmanship with our selection of USA-made glass pieces. Handcrafted quality from domestic glassblowers.</p>', button_label: 'Shop USA Glass', link: 'shopify://collections/made-in-usa-glass', bg_color: '', text_color: '' },
+  'it-block-3': { image: 'shopify://shop_images/CHV-FWR-VEN-10-300x300_4a4982ec-5c8c-4c93-a29e-e3570bfb6305.png', image_crop: 'none', title: 'Made in USA Glass', text: '<p>Support American craftsmanship with our selection of USA-made glass pieces. Handcrafted quality from domestic glassblowers.</p>', button_label: 'Shop USA Glass', link: 'shopify://collections/made-in-usa', bg_color: '', text_color: '' },
 };
 
 // ─── API helpers ────────────────────────────────────────────────────────────
