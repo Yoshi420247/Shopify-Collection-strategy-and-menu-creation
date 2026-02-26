@@ -3,11 +3,12 @@
 ## Summary
 
 - **Vendor**: What You Need (WYN Distribution)
-- **Total active products reviewed**: 1,579
+- **Total active products reviewed**: 1,602
 - **Products repriced**: 33
-- **Products verified as competitive**: 1,546
+- **Products verified as competitive**: 1,569
 - **Success rate**: 33/33 (100%)
 - **Average price reduction**: 30%
+- **Additional fixes**: 56 backwards compare_at_price variants cleared, 12 miscategorized products corrected
 
 ## Methodology
 
@@ -143,6 +144,51 @@ The overpriced products were concentrated in two areas:
 2. **Novelty 510 batteries** (Smyle Labs, Extre) — priced 20-45% above the $20-35 novelty battery market
 
 Glass products (hand pipes, bubblers, rigs) were already well-priced, suggesting the original pricing was done correctly for glass but not recalibrated for electronic accessories.
+
+---
+
+## Additional Fixes Found During Verification
+
+### Backwards compare_at_price (32 products, 56 variants)
+
+During the second verification pass, discovered 32 products where `compare_at_price` was set *lower* than the current price — displaying as reversed "sales" (e.g., "Was $10.99, Now $19.99"). These were likely remnants from a previous price increase that didn't clear the old compare_at value.
+
+**Fix**: Cleared `compare_at_price` on all 56 affected variants. 100% success.
+
+Notable examples:
+- 5″ Iridescent Donut Rig: price $59.99, was showing compare_at $27.99
+- 8″ Encore Bread & Butter Recycler: price $129.99, was showing compare_at $71.99
+- Sandblast Honeycomb Rig: price $159.99, was showing compare_at $95.99
+
+### Miscategorized Products (12 products)
+
+Found 12 products assigned to incorrect `product_type` categories:
+
+| Product | Was | Corrected To |
+|---------|-----|-------------|
+| 15" Encore Half Highlighter Beaker | Lighters & Torches | Bongs & Water Pipes |
+| 16" Deep Etch Aquarium Cone Perc Beaker | Rolling Accessories | Bongs & Water Pipes |
+| 17" Encore Highlighter Beaker | Lighters & Torches | Bongs & Water Pipes |
+| 5" Silicone Beaker | Rolling Accessories | Bongs & Water Pipes |
+| 8" Watercolor Beaker w/ Downstem & Bowl | Bowls & Slides | Bongs & Water Pipes |
+| 4.5″ Confetti Glass Bubbler | Flower Bowls | Bubblers |
+| 4.5″ Fume Bubbler | Flower Bowls | Bubblers |
+| 4.5″ Glass Bubbler | Flower Bowls | Bubblers |
+| 4″ Canework Bubbler | Flower Bowls | Bubblers |
+| 4″ Net Design Mini Hammer Bubbler | Flower Bowls | Bubblers |
+| 7″ Silicone Character Bubbler | Flower Bowls | Bubblers |
+| 7″ Color Lip Reclaim Rig | Essentials & Accessories | Dab Rigs |
+
+### High-Value Products Verified (Not Overpriced)
+
+The following categories of high-price products were investigated and confirmed as correctly priced:
+
+- **Made-in-USA art glass** ($599–$4,999): Hand-blown artist pieces by Darby Ray, Bowman, Kerby, Peaselburg — pricing normal for art glass market
+- **Monark & Black Sheep premium pieces** ($220–$450): Established premium brands, pricing within brand norms
+- **Cookies licensed products** ($199–$259): Licensed brand premium justified
+- **Miyagi Paints dab tools** ($124–$149): Art tools, premium pricing appropriate
+- **Rolling paper cartons/displays** ($129–$300): Bulk quantities (900 cones, display boxes), not individual packs
+- **CUSTOM B2B orders** (various): Wholesale quantity pricing, correctly excluded from retail audit
 
 ---
 
