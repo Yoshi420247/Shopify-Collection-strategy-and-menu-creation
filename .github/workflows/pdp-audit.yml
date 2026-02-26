@@ -1,0 +1,103 @@
+name: PDP Quality Audit
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - execute
+          - rewrite-all
+      vendor:
+        description: 'Filter by vendor (blank = all products)'
+        required: false
+        default: ''
+        type: string
+      threshold:
+        description: 'Quality threshold (1-10, rewrites below this)'
+        required: false
+        default: '7'
+        type: string
+      limit:
+        description: 'Max products to audit (0 = all)'
+        required: false
+        default: '0'
+        type: string
+      product_ids:
+        description: 'Specific product IDs (comma-separated, overrides vendor/limit)'
+        required: false
+        default: ''
+        type: string
+      concurrency:
+        description: 'Parallel workers (1-5, mind API rate limits)'
+        required: false
+        default: '3'
+        type: string
+
+env:
+  SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+  SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+jobs:
+  pdp-audit:
+    name: Audit & Rewrite PDPs
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run PDP audit
+        run: |
+          MODE="${{ github.event.inputs.mode || 'dry-run' }}"
+          VENDOR="${{ github.event.inputs.vendor || '' }}"
+          THRESHOLD="${{ github.event.inputs.threshold || '7' }}"
+          LIMIT="${{ github.event.inputs.limit || '0' }}"
+          PRODUCT_IDS="${{ github.event.inputs.product_ids || '' }}"
+          CONCURRENCY="${{ github.event.inputs.concurrency || '3' }}"
+
+          ARGS="--threshold=${THRESHOLD} --concurrency=${CONCURRENCY}"
+
+          if [ "$MODE" = "execute" ]; then
+            ARGS="$ARGS --execute"
+          elif [ "$MODE" = "rewrite-all" ]; then
+            ARGS="$ARGS --execute --rewrite-all"
+          fi
+
+          if [ -n "$VENDOR" ]; then
+            ARGS="$ARGS --vendor=${VENDOR}"
+          fi
+
+          if [ "$LIMIT" != "0" ]; then
+            ARGS="$ARGS --limit=${LIMIT}"
+          fi
+
+          if [ -n "$PRODUCT_IDS" ]; then
+            ARGS="$ARGS --product-ids=${PRODUCT_IDS}"
+          fi
+
+          echo "Running: node src/pdp-auditor.js $ARGS"
+          node src/pdp-auditor.js $ARGS
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdp-audit-report-${{ github.run_number }}
+          path: pdp-audit-report.json
+          retention-days: 90
+          if-no-files-found: ignore

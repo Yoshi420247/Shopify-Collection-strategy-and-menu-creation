@@ -117,7 +117,14 @@
     "wholesaler:history": "node src/wholesaler-sync.js --history",
     "wholesaler:import": "node src/wholesaler-product-creator.js",
     "wholesaler:import:execute": "node src/wholesaler-product-creator.js --execute",
-    "wholesaler:import:test": "node src/wholesaler-product-creator.js --execute --limit 3"
+    "wholesaler:import:test": "node src/wholesaler-product-creator.js --execute --limit 3",
+    "pdp:audit": "node src/pdp-auditor.js",
+    "pdp:audit:execute": "node src/pdp-auditor.js --execute",
+    "pdp:audit:test": "node src/pdp-auditor.js --limit 5",
+    "pdp:audit:strict": "node src/pdp-auditor.js --threshold 8",
+    "pdp:audit:rewrite-all": "node src/pdp-auditor.js --execute --rewrite-all",
+    "pdp:audit:product": "node src/pdp-auditor.js --product-ids=",
+    "pdp:audit:vendor": "node src/pdp-auditor.js --vendor="
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
