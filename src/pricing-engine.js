@@ -1,7 +1,7 @@
 // Pricing engine for wholesaler → Shopify product pricing
 // 1. Calculates Shopify unit cost from WYN wholesale price using tiered multipliers
-// 2. Researches competitor retail prices via Brave Search + AI analysis
-// 3. Recommends optimal retail price considering market, margins, and psychology
+// 2. Researches competitor prices + recommends retail price via Gemini Flash w/ Google Search grounding
+// 3. Single AI call: searches the web, analyzes competitors, and recommends pricing
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // ── Tiered cost multiplier: WYN price → Shopify unit cost ────────────
@@ -27,80 +27,21 @@ export function calculateCost(wynPrice) {
   return Math.round(price * 1.4 * 100) / 100;
 }
 
-// ── Competitor price research via Brave Search ───────────────────────
-async function searchCompetitorPrices(productName, productType) {
-  const braveApiKey = process.env.BRAVE_API_KEY;
-  if (!braveApiKey) {
-    console.log('    BRAVE_API_KEY not set — skipping competitor research');
-    return [];
-  }
-
-  // Build search queries focused on retail pricing
-  const queries = [
-    `${productName} price buy online`,
-    `${productName} ${productType || ''} smoke shop price`,
-  ];
-
-  const allPrices = [];
-
-  for (const query of queries) {
-    try {
-      const url = new URL('https://api.search.brave.com/res/v1/web/search');
-      url.searchParams.set('q', query);
-      url.searchParams.set('count', '10');
-
-      const response = await fetch(url.toString(), {
-        headers: {
-          'Accept': 'application/json',
-          'Accept-Encoding': 'gzip',
-          'X-Subscription-Token': braveApiKey,
-        },
-        signal: AbortSignal.timeout(10000),
-      });
-
-      if (!response.ok) continue;
-
-      const data = await response.json();
-      const results = data.web?.results || [];
-
-      // Extract prices from snippets and titles
-      for (const result of results) {
-        const text = `${result.title || ''} ${result.description || ''}`;
-        const priceMatches = text.match(/\$(\d+(?:\.\d{2})?)/g);
-        if (priceMatches) {
-          for (const match of priceMatches) {
-            const price = parseFloat(match.replace('$', ''));
-            if (price >= 1 && price <= 500) {
-              allPrices.push({
-                price,
-                source: result.url || '',
-                title: result.title || '',
-              });
-            }
-          }
-        }
-      }
-    } catch {
-      // Search failed — not critical
-    }
-
-    await new Promise(r => setTimeout(r, 300));
-  }
-
-  return allPrices;
-}
-
-// ── AI-powered retail price recommendation ──────────────────────────
-async function aiPriceAnalysis(productName, productType, cost, competitorPrices) {
+// ── Grounded price research + AI recommendation (single Gemini Flash call) ──
+// Uses Google Search grounding so Gemini searches the web for competitor prices
+// and recommends optimal retail pricing — all in one fast, cheap API call.
+async function groundedPriceAnalysis(productName, productType, cost) {
   const apiKey = process.env.GOOGLE_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    console.log('    GOOGLE_API_KEY not set — skipping grounded price research');
+    return null;
+  }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-  const competitorText = competitorPrices.length > 0
-    ? `Competitor prices found:\n${competitorPrices.map(p => `  $${p.price} — ${p.title}`).join('\n')}`
-    : 'No competitor prices found.';
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.0-flash',
+    tools: [{ googleSearch: {} }],
+  });
 
   const prompt = `You are a retail pricing analyst for an online smoke shop.
 
@@ -108,31 +49,40 @@ Product: "${productName}"
 Category: ${productType || 'Smoke Shop Products'}
 My cost: $${cost.toFixed(2)}
 
-${competitorText}
+Search the web for current retail prices of this product (or very similar products) at online smoke shops, head shops, and vape retailers. Look for real prices people are charging.
 
-Determine the optimal retail price. Consider:
-1. If competitors found: price competitively within the market range
-2. Minimum acceptable margin: 40% above cost
+Then determine the optimal retail price. Consider:
+1. Competitor prices you found: price competitively within the market range
+2. Minimum acceptable margin: 40% above cost ($${(cost * 1.4).toFixed(2)})
 3. Use psychological pricing: .99 endings for under $50, .95 or round for $50+
 4. Smoke shop products typically have 50-150% markup over cost
 
-Return ONLY a JSON object:
+Return ONLY a JSON object (no markdown fences):
 {
   "recommended_price": number,
   "price_floor": number,
   "price_ceiling": number,
   "confidence": "high"|"medium"|"low",
-  "reasoning": "brief explanation"
-}
-
-Return valid JSON only, no markdown fences.`;
+  "reasoning": "brief explanation including competitor prices found",
+  "competitor_prices": [{"price": number, "source": "store name or url"}]
+}`;
 
   try {
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
     const jsonStr = text.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
-    return JSON.parse(jsonStr);
-  } catch {
+    const parsed = JSON.parse(jsonStr);
+
+    // Extract competitor data for downstream logging
+    const competitorData = (parsed.competitor_prices || []).map(p => ({
+      price: p.price,
+      source: p.source || '',
+      title: p.source || '',
+    }));
+
+    return { aiResult: parsed, competitorData };
+  } catch (err) {
+    console.log(`    Grounded price analysis failed: ${err.message || 'unknown error'}`);
     return null;
   }
 }
@@ -181,32 +131,29 @@ export async function determinePrice(productName, wynPrice, productType) {
     };
   }
 
-  // Step 1: Search for competitor prices
-  const competitorPrices = await searchCompetitorPrices(productName, productType);
+  // Step 1: Grounded AI analysis — searches web + recommends price in one call
+  const grounded = await groundedPriceAnalysis(productName, productType, cost);
 
-  // Step 2: Try AI-powered price analysis
-  const aiResult = await aiPriceAnalysis(productName, productType, cost, competitorPrices);
-
-  if (aiResult && aiResult.recommended_price > cost) {
+  if (grounded?.aiResult?.recommended_price > cost) {
     // Ensure minimum margin of 40%
     const minPrice = cost * 1.4;
-    const finalPrice = Math.max(aiResult.recommended_price, minPrice);
+    const finalPrice = Math.max(grounded.aiResult.recommended_price, minPrice);
 
     return {
       cost,
       retailPrice: Math.round(finalPrice * 100) / 100,
-      competitorData: competitorPrices,
-      source: 'ai_analysis',
-      aiAnalysis: aiResult,
+      competitorData: grounded.competitorData,
+      source: 'ai_grounded_search',
+      aiAnalysis: grounded.aiResult,
     };
   }
 
-  // Step 3: Fallback to formula
+  // Step 2: Fallback to formula
   const formulaPrice = formulaRetailPrice(cost);
   return {
     cost,
     retailPrice: formulaPrice,
-    competitorData: competitorPrices,
+    competitorData: grounded?.competitorData || [],
     source: 'formula',
   };
 }
