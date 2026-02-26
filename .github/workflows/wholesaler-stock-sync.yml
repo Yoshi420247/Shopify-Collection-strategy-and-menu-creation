@@ -14,6 +14,7 @@ on:
           - match-review
           - import-new
           - import-new-dry-run
+          - fix-drafts
           - full-pipeline
           - history
       force_rematch:
@@ -68,6 +69,16 @@ jobs:
           search_artifacts: true
           workflow: wholesaler-stock-sync.yml
 
+      # Restore creation log so fix-drafts can find previous failed drafts
+      - name: Download creation log
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: wholesaler-creation-log
+          path: .
+          if_no_artifact_found: warn
+          search_artifacts: true
+          workflow: wholesaler-stock-sync.yml
+
       - name: Run wholesaler sync
         run: |
           MODE="${{ github.event.inputs.mode || 'full-pipeline' }}"
@@ -99,6 +110,12 @@ jobs:
               if [ "$LIMIT" != "0" ]; then ARGS="--limit $LIMIT"; fi
               node src/wholesaler-product-creator.js $ARGS
               ;;
+            fix-drafts)
+              echo "Fixing failed draft products (re-upload images, QA, publish)..."
+              ARGS="--fix-drafts"
+              if [ "$LIMIT" != "0" ]; then ARGS="$ARGS --limit $LIMIT"; fi
+              node src/wholesaler-product-creator.js $ARGS
+              ;;
             history)
               echo "Showing sync history..."
               node src/wholesaler-sync.js --history
@@ -113,18 +130,22 @@ jobs:
               echo "══════════════════════════════════════════════════"
               echo ""
 
-              echo "── Step 1/3: Product matching ──"
+              echo "── Step 1/4: Product matching ──"
               MATCH_ARGS="--force-rematch"
               node src/product-matcher.js $MATCH_ARGS
               echo ""
 
-              echo "── Step 2/3: Import new products ──"
+              echo "── Step 2/4: Import new products ──"
               IMPORT_ARGS="--execute"
               if [ "$LIMIT" != "0" ]; then IMPORT_ARGS="$IMPORT_ARGS --limit $LIMIT"; fi
               node src/wholesaler-product-creator.js $IMPORT_ARGS
               echo ""
 
-              echo "── Step 3/3: Stock sync ──"
+              echo "── Step 3/4: Fix draft products ──"
+              node src/wholesaler-product-creator.js --fix-drafts
+              echo ""
+
+              echo "── Step 4/4: Stock sync ──"
               node src/wholesaler-sync.js --execute --verbose
               echo ""
 
@@ -147,6 +168,16 @@ jobs:
           path: |
             product-mapping.json
             product-mapping-review.json
+          retention-days: 90
+          if-no-files-found: ignore
+
+      # Persist creation log so fix-drafts can find failed drafts across runs
+      - name: Upload creation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wholesaler-creation-log
+          path: wholesaler-creation-log.json
           retention-days: 90
           if-no-files-found: ignore
 

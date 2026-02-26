@@ -481,6 +481,169 @@ export async function createUnmatchedProducts(options = {}) {
   return { created, failed, skipped, results };
 }
 
+// ── Fix draft products (re-upload images, re-run QA, publish) ────────
+export async function fixDraftProducts(options = {}) {
+  const { limit = 0 } = options;
+  const startTime = Date.now();
+
+  console.log('╔══════════════════════════════════════════════════════════╗');
+  console.log('║       Fix Draft Products — Image Re-upload & QA        ║');
+  console.log('╚══════════════════════════════════════════════════════════╝');
+
+  // Collect draft Shopify IDs from all previous creation log runs
+  const creationLog = loadCreationLog();
+  const draftEntries = [];
+
+  for (const run of creationLog.runs) {
+    for (const r of (run.results || [])) {
+      if (r.shopifyId && !r.success) {
+        // Deduplicate: keep latest entry per Shopify ID
+        const existing = draftEntries.findIndex(d => d.shopifyId === r.shopifyId);
+        if (existing >= 0) draftEntries[existing] = r;
+        else draftEntries.push(r);
+      }
+    }
+  }
+
+  if (draftEntries.length === 0) {
+    console.log('\nNo failed drafts found in creation log. Nothing to fix.');
+    return { fixed: 0, failed: 0, skipped: 0 };
+  }
+
+  let toProcess = draftEntries;
+  console.log(`\nFound ${toProcess.length} draft products to fix.`);
+  if (limit > 0) {
+    toProcess = toProcess.slice(0, limit);
+    console.log(`Processing first ${toProcess.length} (--limit ${limit})`);
+  }
+
+  const mapping = loadMapping();
+  let fixed = 0;
+  let failed = 0;
+  let skipped = 0;
+
+  for (let i = 0; i < toProcess.length; i++) {
+    const entry = toProcess[i];
+    console.log(`\n[${i + 1}/${toProcess.length}] Fixing Shopify #${entry.shopifyId} "${entry.wcName}"...`);
+
+    try {
+      // Fetch current Shopify product state
+      const { product } = await getProduct(entry.shopifyId);
+      if (!product) {
+        console.log('  Product not found on Shopify — may have been deleted. Skipping.');
+        skipped++;
+        continue;
+      }
+
+      if (product.status === 'active' && product.images?.length > 0) {
+        console.log('  Already active with images — skipping.');
+        skipped++;
+        continue;
+      }
+
+      const hasImages = product.images && product.images.length > 0;
+
+      // Upload images if missing
+      if (!hasImages) {
+        console.log('  Missing images — fetching from WooCommerce...');
+        let wcProduct;
+        try {
+          const rawProduct = await getWcProduct(entry.wcId);
+          wcProduct = extractFullProductInfo(rawProduct);
+        } catch (err) {
+          console.log(`  Failed to fetch WC product #${entry.wcId}: ${err.message}`);
+          failed++;
+          continue;
+        }
+
+        if (wcProduct.images && wcProduct.images.length > 0) {
+          console.log(`  Uploading ${wcProduct.images.length} images...`);
+          const uploaded = await uploadWcImagesToShopify(wcProduct.images, entry.shopifyId);
+          console.log(`  Uploaded ${uploaded.length}/${wcProduct.images.length} images`);
+
+          if (uploaded.length === 0) {
+            console.log('  Still no images uploaded — keeping as draft.');
+            failed++;
+            continue;
+          }
+        } else {
+          console.log('  WC product has no images either — skipping.');
+          skipped++;
+          continue;
+        }
+      }
+
+      // Re-run variant detection (needs images)
+      console.log('  Re-running variant detection...');
+      await detectAndCreateVariants({ id: entry.shopifyId });
+
+      // Re-run QA check
+      console.log('  Re-running QA check...');
+      const qa = await qaCheck(entry.shopifyId);
+
+      if (qa.passed) {
+        console.log('  QA passed — publishing!');
+        await updateProduct(entry.shopifyId, { status: 'active' });
+
+        // Update mapping: add to mappings, remove from unmatchedWc
+        mapping.mappings.push({
+          wc_id: entry.wcId,
+          wc_name: entry.wcName,
+          wc_sku: entry.wcSku || '',
+          shopify_id: entry.shopifyId,
+          shopify_title: entry.wcName,
+          shopify_status: 'active',
+          confidence: 100,
+          reason: 'Auto-created from WC product (fixed draft)',
+          approved: true,
+        });
+        mapping.unmatchedWc = (mapping.unmatchedWc || []).filter(p => p.id !== entry.wcId);
+
+        console.log(`  Published: "${entry.wcName}" → Shopify #${entry.shopifyId}`);
+        fixed++;
+      } else {
+        console.log(`  QA still failing: ${qa.issues.join(', ')}`);
+        failed++;
+      }
+    } catch (err) {
+      console.log(`  Error fixing draft: ${err.message}`);
+      failed++;
+    }
+
+    await sleep(1000);
+  }
+
+  // Save updated mapping
+  if (fixed > 0) {
+    saveMapping(mapping);
+    console.log(`\nUpdated product mapping with ${fixed} fixed entries.`);
+  }
+
+  // Log results
+  const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    mode: 'fix-drafts',
+    duration: `${duration}s`,
+    total: toProcess.length,
+    fixed,
+    failed,
+    skipped,
+  };
+  const log = loadCreationLog();
+  log.runs.push(logEntry);
+  saveCreationLog(log);
+
+  console.log('\n══════════════════════════════════════════════════════════');
+  console.log(`  Drafts fixed:    ${fixed}`);
+  console.log(`  Drafts failed:   ${failed}`);
+  console.log(`  Drafts skipped:  ${skipped}`);
+  console.log(`  Duration:        ${duration}s`);
+  console.log('══════════════════════════════════════════════════════════');
+
+  return { fixed, failed, skipped };
+}
+
 // ── CLI entry point ────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 
@@ -492,15 +655,26 @@ Usage:
   node src/wholesaler-product-creator.js [options]
 
 Options:
-  --execute     Create products (live mode, default is dry run)
-  --limit N     Only process first N unmatched products
-  --help        Show this help message
+  --execute      Create products (live mode, default is dry run)
+  --fix-drafts   Fix failed drafts: re-upload images, re-run QA, publish
+  --limit N      Only process first N products
+  --help         Show this help message
 
 Example:
-  node src/wholesaler-product-creator.js                    # Dry run
-  node src/wholesaler-product-creator.js --execute          # Create all
-  node src/wholesaler-product-creator.js --execute --limit 5 # Create first 5
+  node src/wholesaler-product-creator.js                       # Dry run
+  node src/wholesaler-product-creator.js --execute             # Create all
+  node src/wholesaler-product-creator.js --execute --limit 5   # Create first 5
+  node src/wholesaler-product-creator.js --fix-drafts          # Fix all drafts
+  node src/wholesaler-product-creator.js --fix-drafts --limit 10
 `);
+} else if (args.includes('--fix-drafts')) {
+  const limitIdx = args.indexOf('--limit');
+  const limit = limitIdx >= 0 ? parseInt(args[limitIdx + 1] || '0', 10) : 0;
+
+  fixDraftProducts({ limit }).catch(err => {
+    console.error('Fix drafts failed:', err.message);
+    process.exit(1);
+  });
 } else {
   const dryRun = !args.includes('--execute');
   const limitIdx = args.indexOf('--limit');
