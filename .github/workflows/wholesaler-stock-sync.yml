@@ -28,8 +28,8 @@ on:
         default: '0'
         type: string
   schedule:
-    # Run daily at 6 AM UTC — full autonomous pipeline
-    - cron: '0 6 * * *'
+    # Run every 4 hours — keeps inventory quantities tightly synced with WyndDistribution
+    - cron: '0 */4 * * *'
 
 env:
   SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}

@@ -13,24 +13,26 @@ function sleep(ms) {
 }
 
 function validateConfig() {
-  const missing = [];
-  if (!WC_BASE_URL) missing.push('WC_STORE_URL');
-  if (!WC_CONSUMER_KEY) missing.push('WC_CONSUMER_KEY');
-  if (!WC_CONSUMER_SECRET) missing.push('WC_CONSUMER_SECRET');
-  if (missing.length > 0) {
+  if (!WC_BASE_URL) {
     throw new Error(
-      `Missing WooCommerce config: ${missing.join(', ')}\n` +
-      `Set these in your .env file. The wholesaler generates API keys at:\n` +
-      `  WordPress Admin → WooCommerce → Settings → Advanced → REST API`
+      `Missing WC_STORE_URL in .env file.\n` +
+      `Set it to the wholesaler's WooCommerce store URL (e.g. https://wyndistribution.com)`
     );
+  }
+  // WC credentials are optional — wyndistribution.com has a public REST API
+  if (WC_CONSUMER_KEY && WC_CONSUMER_SECRET) {
+    console.log('  Using WooCommerce API with authentication');
   }
 }
 
-// Build the WooCommerce API URL with authentication params
+// Build the WooCommerce API URL with optional authentication params
 function buildUrl(endpoint, params = {}) {
   const url = new URL(`/wp-json/wc/v3/${endpoint}`, WC_BASE_URL);
-  url.searchParams.set('consumer_key', WC_CONSUMER_KEY);
-  url.searchParams.set('consumer_secret', WC_CONSUMER_SECRET);
+  // Only add auth params if credentials are configured
+  if (WC_CONSUMER_KEY && WC_CONSUMER_SECRET) {
+    url.searchParams.set('consumer_key', WC_CONSUMER_KEY);
+    url.searchParams.set('consumer_secret', WC_CONSUMER_SECRET);
+  }
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
   }

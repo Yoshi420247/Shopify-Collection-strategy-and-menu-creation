@@ -1,15 +1,17 @@
-// Wholesaler Stock Sync Engine
-// Monitors WooCommerce (wholesaler) stock levels and updates Shopify product status:
-//   - Stock ≤ 3 on wholesaler → Set Shopify product to "draft" (hidden)
-//   - Stock > 3 on wholesaler AND Shopify status is "draft" → Set to "active" (visible)
+// Wholesaler → Shopify Exact Inventory Sync Engine
+// Mirrors WyndDistribution (WooCommerce) stock quantities to Shopify:
+//   1. Sets Shopify inventory_quantity to match the exact WC stock_quantity
+//   2. Products with 0 stock → set to "draft" (hidden from storefront)
+//   3. Products with stock > 0 that were drafted → set to "active" (visible)
+//
+// This replaces the old threshold-based draft/active toggle with true quantity mirroring.
 import 'dotenv/config';
-import { checkStockLevels, getAllWcProducts, extractStockInfo } from './woocommerce-client.js';
-import { getProduct, updateProduct, paginateAll } from './shopify-api.js';
+import { getAllWcProducts, extractStockInfo } from './woocommerce-client.js';
+import { getProduct, updateProduct, getLocations, setInventoryLevel, paginateAll } from './shopify-api.js';
 import { loadMapping } from './product-matcher.js';
 import fs from 'fs';
 import path from 'path';
 
-const STOCK_THRESHOLD = 3; // Products with stock ≤ this get drafted
 const SYNC_LOG_FILE = path.join(process.cwd(), 'wholesaler-sync-log.json');
 
 function sleep(ms) {
@@ -32,17 +34,41 @@ function saveSyncLog(log) {
   fs.writeFileSync(SYNC_LOG_FILE, JSON.stringify(log, null, 2));
 }
 
+// ── Fetch all WC products in bulk (much faster than one-by-one) ───────
+async function fetchAllWcStock() {
+  const allProducts = await getAllWcProducts();
+  const stockMap = new Map();
+  for (const product of allProducts) {
+    const info = extractStockInfo(product);
+    stockMap.set(info.id, info);
+  }
+  return stockMap;
+}
+
+// ── Get primary Shopify inventory location ────────────────────────────
+async function getPrimaryLocationId() {
+  const data = await getLocations();
+  const locations = data.locations || [];
+  if (locations.length === 0) {
+    throw new Error('No inventory locations found in Shopify');
+  }
+  // Use the first active location (primary warehouse)
+  const primary = locations.find(l => l.active) || locations[0];
+  console.log(`  Shopify location: ${primary.name} (ID: ${primary.id})`);
+  return primary.id;
+}
+
 // ── Core sync logic ────────────────────────────────────────────────────
 export async function runStockSync(options = {}) {
   const { dryRun = true, verbose = false } = options;
   const startTime = Date.now();
 
-  console.log('╔══════════════════════════════════════════════════════════╗');
-  console.log('║         Wholesaler → Shopify Stock Sync                 ║');
-  console.log('╚══════════════════════════════════════════════════════════╝');
-  console.log(`Mode: ${dryRun ? 'DRY RUN (no changes)' : 'LIVE (will update Shopify)'}`);
-  console.log(`Stock threshold: ≤ ${STOCK_THRESHOLD} → draft | > ${STOCK_THRESHOLD} → active`);
-  console.log('');
+  console.log('╔══════════════════════════════════════════════════════════════╗');
+  console.log('║     WyndDistribution → Shopify Exact Inventory Sync        ║');
+  console.log('╠══════════════════════════════════════════════════════════════╣');
+  console.log(`║  Mode: ${dryRun ? 'DRY RUN (no changes)' : 'LIVE — updating Shopify inventory'}`.padEnd(63) + '║');
+  console.log('║  Syncs: exact quantities + draft/active status             ║');
+  console.log('╚══════════════════════════════════════════════════════════════╝\n');
 
   // 1. Load product mapping
   const mapping = loadMapping();
@@ -56,25 +82,34 @@ export async function runStockSync(options = {}) {
   const approvedMappings = mapping.mappings.filter(m => m.approved !== false);
   console.log(`Loaded ${approvedMappings.length} product mappings (last updated: ${mapping.lastUpdated})\n`);
 
-  // 2. Fetch current stock from WooCommerce
-  console.log('Checking wholesaler stock levels...');
-  const wcProductIds = approvedMappings.map(m => m.wc_id);
-  const wcStockData = await checkStockLevels(wcProductIds);
+  // 2. Get Shopify inventory location
+  console.log('Getting Shopify inventory location...');
+  const locationId = await getPrimaryLocationId();
+  console.log('');
 
-  // Build a map of WC ID → stock info
-  const wcStockMap = new Map();
-  for (const item of wcStockData) {
-    if (!item.error) {
-      wcStockMap.set(item.id, item);
-    }
+  // 3. Fetch ALL WC products in bulk (much faster than one-by-one)
+  console.log('Fetching all WyndDistribution stock levels (bulk)...');
+  const wcStockMap = await fetchAllWcStock();
+  console.log(`  Loaded stock data for ${wcStockMap.size} WC products\n`);
+
+  // 4. Fetch all Shopify "What You Need" products with variant data
+  console.log('Fetching Shopify products with inventory data...');
+  const shopifyProducts = await paginateAll('products.json', 'products', {
+    limit: 250,
+    fields: 'id,title,status,variants,vendor',
+  });
+  // Build a lookup by product ID
+  const shopifyMap = new Map();
+  for (const p of shopifyProducts) {
+    shopifyMap.set(p.id, p);
   }
+  console.log(`  Loaded ${shopifyProducts.length} Shopify products\n`);
 
-  // 3. Fetch current Shopify product statuses
-  console.log('Fetching current Shopify product statuses...\n');
-
-  // 4. Determine required actions
-  const actions = [];
+  // 5. Determine required actions for each mapped product
+  const inventoryActions = [];
+  const statusActions = [];
   const errors = [];
+  let alreadyInSync = 0;
 
   for (const pair of approvedMappings) {
     const wcStock = wcStockMap.get(pair.wc_id);
@@ -83,89 +118,118 @@ export async function runStockSync(options = {}) {
       errors.push({
         wc_id: pair.wc_id,
         wc_name: pair.wc_name,
-        error: 'Could not fetch WC stock data',
+        error: 'WC product not found in bulk fetch',
       });
       continue;
     }
 
-    // Get current Shopify product status
-    let shopifyProduct;
-    try {
-      const result = await getProduct(pair.shopify_id);
-      shopifyProduct = result.product;
-    } catch (err) {
+    const shopifyProduct = shopifyMap.get(pair.shopify_id);
+    if (!shopifyProduct) {
       errors.push({
         shopify_id: pair.shopify_id,
         shopify_title: pair.shopify_title,
-        error: `Could not fetch Shopify product: ${err.message}`,
+        error: 'Shopify product not found in bulk fetch',
       });
       continue;
     }
 
-    const currentStatus = shopifyProduct.status; // 'active', 'draft', 'archived'
-    const stockQty = wcStock.stock_quantity;
-    const stockStatus = wcStock.stock_status;
+    const currentStatus = shopifyProduct.status;
+    const wcQty = wcStock.stock_quantity;
+    const wcStockStatus = wcStock.stock_status;
 
-    // Determine if stock is effectively low
-    // stock_quantity could be null if manage_stock is false — use stock_status as fallback
-    let isLowStock;
-    if (stockQty !== null) {
-      isLowStock = stockQty <= STOCK_THRESHOLD;
+    // Determine the target quantity
+    // If WC tracks quantity, use it. If not, use stock_status as a heuristic.
+    let targetQty;
+    if (wcQty !== null && wcQty !== undefined) {
+      targetQty = Math.max(0, wcQty); // Clamp to 0 minimum
     } else {
-      // No quantity tracking — go by stock_status
-      isLowStock = stockStatus === 'outofstock';
+      // No quantity tracking — infer from stock_status
+      targetQty = wcStockStatus === 'instock' ? 10 : 0;
     }
 
-    if (verbose) {
-      console.log(`  ${pair.wc_name}`);
-      console.log(`    WC stock: ${stockQty !== null ? stockQty : stockStatus} | Shopify status: ${currentStatus}`);
+    // Check each Shopify variant's inventory
+    const variants = shopifyProduct.variants || [];
+    let productNeedsInventoryUpdate = false;
+
+    for (const variant of variants) {
+      const currentShopifyQty = variant.inventory_quantity ?? 0;
+      const inventoryItemId = variant.inventory_item_id;
+
+      if (currentShopifyQty !== targetQty) {
+        productNeedsInventoryUpdate = true;
+        inventoryActions.push({
+          shopify_id: pair.shopify_id,
+          shopify_title: pair.shopify_title,
+          variant_id: variant.id,
+          variant_title: variant.title,
+          inventory_item_id: inventoryItemId,
+          wc_id: pair.wc_id,
+          wc_name: pair.wc_name,
+          wc_qty: wcQty,
+          wc_stock_status: wcStockStatus,
+          current_shopify_qty: currentShopifyQty,
+          target_qty: targetQty,
+        });
+      }
     }
 
-    if (isLowStock && currentStatus === 'active') {
-      // LOW STOCK → draft the product on Shopify
-      actions.push({
+    // Determine status change (draft/active)
+    const isOutOfStock = targetQty === 0;
+
+    if (isOutOfStock && currentStatus === 'active') {
+      statusActions.push({
         type: 'set_draft',
         shopify_id: pair.shopify_id,
         shopify_title: pair.shopify_title,
-        wc_id: pair.wc_id,
         wc_name: pair.wc_name,
-        wc_stock: stockQty,
-        wc_stock_status: stockStatus,
+        target_qty: targetQty,
         current_status: currentStatus,
         new_status: 'draft',
-        reason: stockQty !== null
-          ? `Wholesaler stock (${stockQty}) ≤ ${STOCK_THRESHOLD}`
-          : `Wholesaler stock status: ${stockStatus}`,
+        reason: `Out of stock on WyndDistribution (qty: ${wcQty ?? wcStockStatus})`,
       });
-    } else if (!isLowStock && currentStatus === 'draft') {
-      // STOCK RECOVERED → activate the product on Shopify
-      actions.push({
+    } else if (!isOutOfStock && currentStatus === 'draft') {
+      statusActions.push({
         type: 'set_active',
         shopify_id: pair.shopify_id,
         shopify_title: pair.shopify_title,
-        wc_id: pair.wc_id,
         wc_name: pair.wc_name,
-        wc_stock: stockQty,
-        wc_stock_status: stockStatus,
+        target_qty: targetQty,
         current_status: currentStatus,
         new_status: 'active',
-        reason: stockQty !== null
-          ? `Wholesaler stock recovered (${stockQty} > ${STOCK_THRESHOLD})`
-          : `Wholesaler stock status: ${stockStatus}`,
+        reason: `Back in stock on WyndDistribution (qty: ${targetQty})`,
       });
+    }
+
+    if (!productNeedsInventoryUpdate && !isOutOfStock === (currentStatus === 'active') || (!isOutOfStock === (currentStatus !== 'draft') && !productNeedsInventoryUpdate)) {
+      alreadyInSync++;
     }
   }
 
-  // 5. Report planned actions
-  const draftActions = actions.filter(a => a.type === 'set_draft');
-  const activateActions = actions.filter(a => a.type === 'set_active');
+  // 6. Report planned actions
+  const draftActions = statusActions.filter(a => a.type === 'set_draft');
+  const activateActions = statusActions.filter(a => a.type === 'set_active');
 
-  console.log('\n══════════════════════════════════════════════════════════');
-  console.log(`  Products to DRAFT (low stock):    ${draftActions.length}`);
+  console.log('══════════════════════════════════════════════════════════════');
+  console.log(`  Inventory updates needed:         ${inventoryActions.length} variant(s)`);
+  console.log(`  Products to DRAFT (out of stock): ${draftActions.length}`);
   console.log(`  Products to ACTIVATE (restocked):  ${activateActions.length}`);
-  console.log(`  Products unchanged:                ${approvedMappings.length - actions.length - errors.length}`);
+  console.log(`  Already in sync:                   ${alreadyInSync}`);
   console.log(`  Errors/skipped:                    ${errors.length}`);
-  console.log('══════════════════════════════════════════════════════════\n');
+  console.log('══════════════════════════════════════════════════════════════\n');
+
+  // Show inventory changes
+  if (inventoryActions.length > 0) {
+    console.log('── Inventory Quantity Changes ──');
+    const shown = verbose ? inventoryActions : inventoryActions.slice(0, 50);
+    for (const a of shown) {
+      const variantLabel = a.variant_title !== 'Default Title' ? ` [${a.variant_title}]` : '';
+      console.log(`  ${a.current_shopify_qty} → ${a.target_qty}  "${a.shopify_title}"${variantLabel}`);
+    }
+    if (!verbose && inventoryActions.length > 50) {
+      console.log(`  ... and ${inventoryActions.length - 50} more (use --verbose to see all)`);
+    }
+    console.log('');
+  }
 
   if (draftActions.length > 0) {
     console.log('── Products to DRAFT (hiding from store) ──');
@@ -191,55 +255,102 @@ export async function runStockSync(options = {}) {
     console.log('');
   }
 
-  // 6. Execute updates (if not dry run)
-  const results = { drafted: [], activated: [], failed: [] };
+  // 7. Execute updates (if not dry run)
+  const results = {
+    inventoryUpdated: 0,
+    inventoryFailed: 0,
+    drafted: 0,
+    activated: 0,
+    statusFailed: 0,
+  };
 
-  if (!dryRun && actions.length > 0) {
-    console.log('Applying changes to Shopify...\n');
+  if (!dryRun) {
+    // 7a. Update inventory quantities
+    if (inventoryActions.length > 0) {
+      console.log(`Updating ${inventoryActions.length} inventory levels on Shopify...\n`);
 
-    for (const action of actions) {
-      try {
-        await updateProduct(action.shopify_id, { status: action.new_status });
-        console.log(`  ✔ ${action.type === 'set_draft' ? 'Drafted' : 'Activated'}: "${action.shopify_title}"`);
+      for (let i = 0; i < inventoryActions.length; i++) {
+        const action = inventoryActions[i];
+        const variantLabel = action.variant_title !== 'Default Title' ? ` [${action.variant_title}]` : '';
 
-        if (action.type === 'set_draft') {
-          results.drafted.push(action);
-        } else {
-          results.activated.push(action);
+        try {
+          await setInventoryLevel(action.inventory_item_id, locationId, action.target_qty);
+          results.inventoryUpdated++;
+
+          if (verbose || i < 20 || i % 50 === 0) {
+            console.log(`  [${i + 1}/${inventoryActions.length}] ✔ ${action.current_shopify_qty} → ${action.target_qty}  "${action.shopify_title}"${variantLabel}`);
+          }
+        } catch (err) {
+          results.inventoryFailed++;
+          console.error(`  [${i + 1}/${inventoryActions.length}] ✘ Failed: "${action.shopify_title}"${variantLabel}: ${err.message}`);
         }
-      } catch (err) {
-        console.error(`  ✘ Failed to update "${action.shopify_title}": ${err.message}`);
-        results.failed.push({ ...action, error: err.message });
-      }
 
-      // Brief pause between updates
-      await sleep(600);
+        // Rate limiting: ~2 req/sec
+        await sleep(550);
+      }
+      console.log('');
     }
-  } else if (dryRun && actions.length > 0) {
-    console.log('DRY RUN — no changes made. Run with --execute to apply.');
+
+    // 7b. Update product status (draft/active)
+    if (statusActions.length > 0) {
+      console.log(`Updating ${statusActions.length} product statuses...\n`);
+
+      for (const action of statusActions) {
+        try {
+          await updateProduct(action.shopify_id, { status: action.new_status });
+          if (action.type === 'set_draft') {
+            results.drafted++;
+            console.log(`  ✔ Drafted: "${action.shopify_title}"`);
+          } else {
+            results.activated++;
+            console.log(`  ✔ Activated: "${action.shopify_title}"`);
+          }
+        } catch (err) {
+          results.statusFailed++;
+          console.error(`  ✘ Failed: "${action.shopify_title}": ${err.message}`);
+        }
+        await sleep(600);
+      }
+      console.log('');
+    }
+
+    if (inventoryActions.length === 0 && statusActions.length === 0) {
+      console.log('All products are already in sync. No changes needed.\n');
+    }
+  } else if (inventoryActions.length > 0 || statusActions.length > 0) {
+    console.log('DRY RUN — no changes made. Run with --execute to apply.\n');
   } else {
-    console.log('No changes needed. All products are in sync.');
+    console.log('All products are already in sync. No changes needed.\n');
   }
 
-  // 7. Save sync log
+  // 8. Save sync log
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
   const logEntry = {
     timestamp: new Date().toISOString(),
     dryRun,
     duration: `${duration}s`,
     productsChecked: approvedMappings.length,
-    drafted: dryRun ? draftActions.length : results.drafted.length,
-    activated: dryRun ? activateActions.length : results.activated.length,
-    failed: results.failed.length,
+    inventoryUpdated: dryRun ? inventoryActions.length : results.inventoryUpdated,
+    inventoryFailed: results.inventoryFailed,
+    drafted: dryRun ? draftActions.length : results.drafted,
+    activated: dryRun ? activateActions.length : results.activated,
+    statusFailed: results.statusFailed,
     errors: errors.length,
-    actions: dryRun ? actions : [...results.drafted, ...results.activated, ...results.failed],
+    alreadyInSync,
   };
 
   const syncLog = loadSyncLog();
   syncLog.runs.push(logEntry);
   saveSyncLog(syncLog);
 
-  console.log(`\nSync completed in ${duration}s. Log saved to ${SYNC_LOG_FILE}`);
+  console.log('══════════════════════════════════════════════════════════════');
+  console.log(`  Sync completed in ${duration}s`);
+  console.log(`  Inventory updated: ${logEntry.inventoryUpdated} | Failed: ${logEntry.inventoryFailed}`);
+  console.log(`  Drafted: ${logEntry.drafted} | Activated: ${logEntry.activated}`);
+  console.log(`  Already in sync: ${alreadyInSync} | Errors: ${errors.length}`);
+  console.log('══════════════════════════════════════════════════════════════');
+  console.log(`Log saved to ${SYNC_LOG_FILE}\n`);
+
   return logEntry;
 }
 
@@ -251,21 +362,23 @@ export function showSyncHistory() {
     return;
   }
 
-  console.log('\n══ Wholesaler Sync History ══════════════════════════════');
+  console.log('\n══ Wholesaler Inventory Sync History ════════════════════════');
   console.log(`Total runs: ${log.runs.length}\n`);
 
   // Show last 10 runs
   const recent = log.runs.slice(-10);
   for (const run of recent) {
     const mode = run.dryRun ? '[DRY]' : '[LIVE]';
-    console.log(`  ${run.timestamp} ${mode} — checked: ${run.productsChecked}, drafted: ${run.drafted}, activated: ${run.activated}, failed: ${run.failed}`);
+    const inv = run.inventoryUpdated !== undefined ? `, inv: ${run.inventoryUpdated}` : '';
+    console.log(`  ${run.timestamp} ${mode} — checked: ${run.productsChecked}${inv}, drafted: ${run.drafted}, activated: ${run.activated}`);
   }
 
   // Summary stats
   const liveRuns = log.runs.filter(r => !r.dryRun);
+  const totalInvUpdated = liveRuns.reduce((s, r) => s + (r.inventoryUpdated || 0), 0);
   const totalDrafted = liveRuns.reduce((s, r) => s + r.drafted, 0);
   const totalActivated = liveRuns.reduce((s, r) => s + r.activated, 0);
-  console.log(`\nLifetime (live runs): ${liveRuns.length} syncs, ${totalDrafted} drafted, ${totalActivated} activated`);
+  console.log(`\nLifetime (live runs): ${liveRuns.length} syncs, ${totalInvUpdated} inventory updates, ${totalDrafted} drafted, ${totalActivated} activated`);
 }
 
 // ── CLI entry point ────────────────────────────────────────────────────
