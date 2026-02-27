@@ -135,8 +135,9 @@ export async function determinePrice(productName, wynPrice, productType) {
   const grounded = await groundedPriceAnalysis(productName, productType, cost);
 
   if (grounded?.aiResult?.recommended_price > cost) {
-    // Ensure minimum margin of 40%
-    const minPrice = cost * 1.4;
+    // Ensure minimum margin of 40% AND at least 2× raw wholesale
+    const wynNum = parseFloat(wynPrice) || 0;
+    const minPrice = Math.max(cost * 1.4, wynNum * 2);
     const finalPrice = Math.max(grounded.aiResult.recommended_price, minPrice);
 
     return {
@@ -150,9 +151,20 @@ export async function determinePrice(productName, wynPrice, productType) {
 
   // Step 2: Fallback to formula
   const formulaPrice = formulaRetailPrice(cost);
+
+  // Safety: retail must be at least 2x the wholesale price to prevent
+  // accidentally listing at wholesale/cost.  If somehow the calculated
+  // retail is too close to the raw WYN price, force the formula price.
+  const wynNum = parseFloat(wynPrice) || 0;
+  let finalRetail = formulaPrice;
+  if (wynNum > 0 && finalRetail < wynNum * 2) {
+    finalRetail = formulaRetailPrice(wynNum * 2);       // recalculate from 2× wholesale as cost
+    console.log(`    ⚠ Retail $${formulaPrice} too close to wholesale $${wynNum}, raised to $${finalRetail}`);
+  }
+
   return {
     cost,
-    retailPrice: formulaPrice,
+    retailPrice: finalRetail,
     competitorData: grounded?.competitorData || [],
     source: 'formula',
   };

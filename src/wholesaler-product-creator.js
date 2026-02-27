@@ -252,6 +252,17 @@ async function createSingleProduct(wcProductInfo, options = {}) {
     const productType = determineProductType(productName);
 
     const pricing = await determinePrice(productName, wynPrice, productType);
+
+    // Safety: never create a product with retail ≤ wholesale
+    if (wynPrice > 0 && pricing.retailPrice > 0 && pricing.retailPrice <= wynPrice * 1.5) {
+      console.log(`  │    ⚠ Retail $${pricing.retailPrice} too close to wholesale $${wynPrice} — recalculating`);
+      const safeCost = wynPrice * 2;
+      pricing.retailPrice = safeCost * 2;
+      pricing.retailPrice = Math.ceil(pricing.retailPrice) - 0.01;
+      pricing.cost = safeCost;
+      pricing.source += '_price_guard';
+    }
+
     result.steps.pricing = {
       wynPrice,
       shopifyCost: pricing.cost,
