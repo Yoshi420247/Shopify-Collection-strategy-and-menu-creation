@@ -1,0 +1,68 @@
+name: Product Info Defaults — "What's Included" Messaging
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run    # Preview changes without modifying Shopify
+          - execute    # Apply changes to live store
+
+jobs:
+  product-info-defaults:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Product Info Defaults
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.action }}" == "execute" ]; then
+            ARGS="--execute"
+            echo "Mode: EXECUTE — will update collection descriptions, tag products, and add What's In The Box sections"
+          else
+            echo "Mode: DRY RUN — preview only, no changes will be made"
+          fi
+
+          echo "Running: node src/product-info-defaults.js $ARGS"
+          node src/product-info-defaults.js $ARGS
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Product Info Defaults" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### What This Does" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Collection Callout Banners** — Adds styled banners to Bongs & Dab Rigs collection descriptions" >> $GITHUB_STEP_SUMMARY
+          echo "2. **Product Tags** — Tags all bongs with \`includes:flower-bowl\` and dab rigs with \`includes:quartz-banger\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. **What's In The Box** — Appends standardized included-accessories section to product descriptions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | \`${{ inputs.action }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Bongs & Water Pipes Collection](https://oilslickpad.com/collections/bongs-water-pipes)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Dab Rigs Collection](https://oilslickpad.com/collections/dab-rigs)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Products](https://oil-slick-pad.myshopify.com/admin/products)" >> $GITHUB_STEP_SUMMARY

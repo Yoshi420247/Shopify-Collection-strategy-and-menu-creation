@@ -105,6 +105,8 @@
     "image-report:test": "node src/check-product-images.js --max=10",
     "image-report:csv": "node src/check-product-images.js --csv",
     "image-report:product": "node src/check-product-images.js --product-ids=",
+    "product-info": "node src/product-info-defaults.js",
+    "product-info:execute": "node src/product-info-defaults.js --execute",
     "wholesaler:match": "node src/product-matcher.js",
     "wholesaler:match-review": "node src/product-matcher.js --review",
     "wholesaler:match-force": "node src/product-matcher.js --force-rematch",
