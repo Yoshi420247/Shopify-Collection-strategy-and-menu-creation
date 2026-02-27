@@ -455,11 +455,30 @@ async function main() {
         const a = inventoryActions[i];
         const vLabel = a.variant_title !== 'Default Title' ? ` [${a.variant_title}]` : '';
 
-        const result = curlPost(
+        let result = curlPost(
           `${BASE_URL}/inventory_levels/set.json`,
           { location_id: locationId, inventory_item_id: a.inventory_item_id, available: a.target_qty },
           shopifyHeaders
         );
+
+        // If tracking is not enabled, enable it and retry
+        if (result && result.errors && JSON.stringify(result.errors).includes('tracking')) {
+          // Enable inventory tracking on this variant
+          const trackResult = curlPut(
+            `${BASE_URL}/variants/${a.variant_id}.json`,
+            { variant: { id: a.variant_id, inventory_management: 'shopify' } },
+            shopifyHeaders
+          );
+          if (trackResult && trackResult.variant) {
+            await sleep(550);
+            // Retry the inventory level set
+            result = curlPost(
+              `${BASE_URL}/inventory_levels/set.json`,
+              { location_id: locationId, inventory_item_id: a.inventory_item_id, available: a.target_qty },
+              shopifyHeaders
+            );
+          }
+        }
 
         if (result && result.inventory_level) {
           invUpdated++;
