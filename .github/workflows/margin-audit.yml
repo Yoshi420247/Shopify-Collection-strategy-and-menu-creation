@@ -9,8 +9,13 @@ on:
         default: 'dry-run'
         type: choice
         options:
-          - dry-run       # Report only — no price changes
-          - execute       # Fix all under-margin prices
+          - dry-run       # Report only — no changes
+          - execute       # Fix all costs and under-margin prices
+      recalculate_costs:
+        description: 'Recalculate Shopify costs from WooCommerce prices first'
+        required: false
+        default: true
+        type: boolean
       verbose:
         description: 'Show every product in output'
         required: false
@@ -24,12 +29,15 @@ on:
 env:
   SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
   SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+  WC_STORE_URL: ${{ secrets.WC_STORE_URL }}
+  WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
+  WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
 
 jobs:
   margin-audit:
     name: Margin Audit
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -44,7 +52,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Restore audit cache
+      - name: Restore cache
         uses: actions/cache@v4
         with:
           path: data/
@@ -52,18 +60,49 @@ jobs:
           restore-keys: |
             margin-audit-cache-${{ github.ref }}-
 
-      - name: Run Margin Audit
+      # Download product mapping so cost recalculation can match WC → Shopify
+      - name: Download product mapping
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: wholesaler-product-mapping
+          path: .
+          if_no_artifact_found: warn
+          search_artifacts: true
+          workflow: wholesaler-stock-sync.yml
+
+      # Step 1: Recalculate Shopify costs from WooCommerce wholesale prices
+      - name: "Step 1: Recalculate Costs from WC Prices"
+        if: ${{ github.event.inputs.recalculate_costs != 'false' }}
         run: |
           ARGS=""
-
-          # Scheduled runs auto-execute fixes; manual runs respect the action input
           ACTION="${{ github.event.inputs.action || 'execute' }}"
 
           if [ "$ACTION" == "execute" ]; then
             ARGS="$ARGS --execute"
-            echo "Mode: EXECUTE — will fix under-margin prices"
+            echo "═══ COST RECALCULATION (LIVE) ═══"
           else
-            echo "Mode: DRY RUN — report only"
+            echo "═══ COST RECALCULATION (DRY RUN) ═══"
+          fi
+
+          if [ "${{ github.event.inputs.verbose }}" == "true" ]; then
+            ARGS="$ARGS --verbose"
+          fi
+
+          echo "Running: node src/recalculate-costs.js $ARGS"
+          node src/recalculate-costs.js $ARGS
+          echo ""
+
+      # Step 2: Margin audit — check retail prices and fix under-margin
+      - name: "Step 2: Margin Audit & Price Fixes"
+        run: |
+          ARGS=""
+          ACTION="${{ github.event.inputs.action || 'execute' }}"
+
+          if [ "$ACTION" == "execute" ]; then
+            ARGS="$ARGS --execute"
+            echo "═══ MARGIN AUDIT (LIVE — fixing under-margin prices) ═══"
+          else
+            echo "═══ MARGIN AUDIT (DRY RUN) ═══"
           fi
 
           if [ "${{ github.event.inputs.verbose }}" == "true" ]; then
@@ -76,32 +115,41 @@ jobs:
           echo "Running: node src/margin-audit.js $ARGS"
           node src/margin-audit.js $ARGS
 
-      - name: Save audit cache
+      - name: Save cache
         if: always()
         uses: actions/cache/save@v4
         with:
           path: data/
           key: margin-audit-cache-${{ github.ref }}-${{ github.run_number }}
 
-      - name: Upload audit log
+      - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: margin-audit-log-${{ github.run_number }}
-          path: data/margin-audit-log.json
+          name: margin-audit-logs-${{ github.run_number }}
+          path: |
+            data/margin-audit-log.json
+            data/cost-recalc-log.json
           retention-days: 90
           if-no-files-found: ignore
 
       - name: Generate Summary
         if: always()
         run: |
-          echo "## Margin Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "## Margin Audit Pipeline Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Action | \`${{ github.event.inputs.action || 'execute (scheduled)' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Recalculate Costs | \`${{ github.event.inputs.recalculate_costs || 'true (scheduled)' }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Min Margin | \`40%\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Vendor | \`What You Need\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cost Tiers | \`2.0x (\$0.50-\$4) · 1.5x (\$4.01-\$200) · 1.25x (\$200.01+)\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pipeline Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Cost Recalculation** — Pull WC wholesale prices → apply multiplier tiers → update Shopify inventory costs" >> $GITHUB_STEP_SUMMARY
+          echo "2. **Margin Audit** — Check all retail prices against 40% minimum margin → auto-fix under-margin prices" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
