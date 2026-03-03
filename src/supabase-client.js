@@ -4,46 +4,55 @@
 // across engine runs. Enables discount rate-limiting enforcement and
 // long-running experiment tracking.
 //
-// Expects env vars: SUPABASE_URL, SUPABASE_SERVICE_KEY
+// Expects env vars: SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL),
+//                   SUPABASE_SERVICE_KEY (or SUPABASE_SERVICE_ROLE_KEY)
 //
 // On first run, auto-creates required tables if they don't exist.
 // ============================================================================
 
-import { execSync } from 'child_process';
-
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ACCESS_TOKEN;
+// Support both naming conventions for cross-repo compatibility
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ACCESS_TOKEN;
 
 function supabaseEnabled() {
   return !!(SUPABASE_URL && SUPABASE_KEY);
 }
 
 /**
- * Makes a REST request to Supabase PostgREST API.
+ * Makes a REST request to Supabase PostgREST API using native fetch().
  */
-function supabaseRequest(path, method = 'GET', body = null, extraHeaders = {}) {
+async function supabaseRequest(path, method = 'GET', body = null, extraHeaders = {}) {
   if (!supabaseEnabled()) return null;
 
   const url = `${SUPABASE_URL}/rest/v1/${path}`;
-  let curlCmd = `curl -s --max-time 15 -X ${method} "${url}" `;
-  curlCmd += `-H "apikey: ${SUPABASE_KEY}" `;
-  curlCmd += `-H "Authorization: Bearer ${SUPABASE_KEY}" `;
-  curlCmd += `-H "Content-Type: application/json" `;
-  curlCmd += `-H "Prefer: return=representation" `;
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+    ...extraHeaders,
+  };
 
-  for (const [key, val] of Object.entries(extraHeaders)) {
-    curlCmd += `-H "${key}: ${val}" `;
-  }
-
+  const opts = { method, headers };
   if (body) {
-    const escaped = JSON.stringify(body).replace(/'/g, "'\\''");
-    curlCmd += `-d '${escaped}'`;
+    opts.body = JSON.stringify(body);
   }
 
   try {
-    const result = execSync(curlCmd, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
-    if (!result || result.trim() === '') return null;
-    return JSON.parse(result);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const response = await fetch(url, { ...opts, signal: controller.signal });
+    clearTimeout(timeout);
+
+    const text = await response.text();
+    if (!text || text.trim() === '') return null;
+
+    if (!response.ok) {
+      console.error(`  Supabase error (${method} ${path}): ${response.status} ${text.slice(0, 200)}`);
+      return null;
+    }
+
+    return JSON.parse(text);
   } catch (error) {
     console.error(`  Supabase error (${method} ${path}): ${error.message}`);
     return null;
@@ -101,21 +110,29 @@ async function ensureTables() {
     CREATE INDEX IF NOT EXISTS idx_ab_test ON cart_ab_test_results(test_id, variant_id);
   `;
 
-  // Use Supabase SQL RPC
   const url = `${SUPABASE_URL}/rest/v1/rpc/exec_sql`;
-  let curlCmd = `curl -s --max-time 30 -X POST "${url}" `;
-  curlCmd += `-H "apikey: ${SUPABASE_KEY}" `;
-  curlCmd += `-H "Authorization: Bearer ${SUPABASE_KEY}" `;
-  curlCmd += `-H "Content-Type: application/json" `;
-  const escaped = JSON.stringify({ query: sql }).replace(/'/g, "'\\''");
-  curlCmd += `-d '${escaped}'`;
-
   try {
-    execSync(curlCmd, { encoding: 'utf8', maxBuffer: 5 * 1024 * 1024 });
-    console.log('  Supabase tables verified.');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query: sql }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (response.ok) {
+      console.log('  Supabase tables verified.');
+    } else {
+      console.log('  Supabase: tables assumed to exist (create manually if needed).');
+    }
   } catch {
     // Tables may already exist or RPC may not be set up - that's fine.
-    // The REST endpoints will work if tables exist.
     console.log('  Supabase: tables assumed to exist (create manually if needed).');
   }
 }
@@ -168,8 +185,8 @@ export const supabase = {
    * Checks if a recovery email has already been sent for this checkout at this sequence position.
    * Prevents duplicate sends across engine runs.
    */
-  hasAlreadySent(checkoutId, emailId) {
-    const result = supabaseRequest(
+  async hasAlreadySent(checkoutId, emailId) {
+    const result = await supabaseRequest(
       `cart_recovery_sessions?checkout_id=eq.${checkoutId}&email_id=eq.${emailId}&select=id`,
       'GET'
     );
@@ -179,8 +196,8 @@ export const supabase = {
   /**
    * Gets all recovery sessions for a specific checkout.
    */
-  getSessionsForCheckout(checkoutId) {
-    const raw = supabaseRequest(
+  async getSessionsForCheckout(checkoutId) {
+    const raw = await supabaseRequest(
       `cart_recovery_sessions?checkout_id=eq.${checkoutId}&order=created_at.asc`,
       'GET'
     );
@@ -209,12 +226,12 @@ export const supabase = {
    * Checks if a customer is eligible for a new discount code
    * based on rate limits (max 2/month, 4/quarter, 30-day cooldown after redemption).
    */
-  checkDiscountEligibility(email, rateLimits) {
+  async checkDiscountEligibility(email, rateLimits) {
     if (!email || !supabaseEnabled()) return true;
 
     // Count codes issued in last 30 days
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const rawMonth = supabaseRequest(
+    const rawMonth = await supabaseRequest(
       `cart_discount_codes?customer_email=eq.${encodeURIComponent(email)}&created_at=gte.${thirtyDaysAgo}&select=id`,
       'GET'
     );
@@ -226,7 +243,7 @@ export const supabase = {
 
     // Count codes issued in last 90 days
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
-    const rawQuarter = supabaseRequest(
+    const rawQuarter = await supabaseRequest(
       `cart_discount_codes?customer_email=eq.${encodeURIComponent(email)}&created_at=gte.${ninetyDaysAgo}&select=id`,
       'GET'
     );
@@ -239,7 +256,7 @@ export const supabase = {
     // Check for recent redemption (cooldown)
     const cooldownDays = rateLimits?.cooldownAfterRedemption || 30;
     const cooldownDate = new Date(Date.now() - cooldownDays * 24 * 60 * 60 * 1000).toISOString();
-    const rawRedeemed = supabaseRequest(
+    const rawRedeemed = await supabaseRequest(
       `cart_discount_codes?customer_email=eq.${encodeURIComponent(email)}&redeemed=eq.true&created_at=gte.${cooldownDate}&select=id`,
       'GET'
     );
@@ -273,8 +290,8 @@ export const supabase = {
    * Fetches aggregated A/B test results for all tests.
    * Returns { testId: { variantId: { impressions, opens, clicks, conversions, revenue } } }
    */
-  getABTestResults() {
-    const raw = supabaseRequest(
+  async getABTestResults() {
+    const raw = await supabaseRequest(
       'cart_ab_test_results?select=test_id,variant_id,event_type,value',
       'GET'
     );
@@ -319,9 +336,9 @@ export const supabase = {
   /**
    * Gets recovery session stats for a time period.
    */
-  getRecoveryStats(days = 7) {
+  async getRecoveryStats(days = 7) {
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-    const raw = supabaseRequest(
+    const raw = await supabaseRequest(
       `cart_recovery_sessions?created_at=gte.${since}&order=created_at.desc`,
       'GET'
     );
@@ -331,9 +348,9 @@ export const supabase = {
   /**
    * Gets discount code usage stats.
    */
-  getDiscountStats(days = 30) {
+  async getDiscountStats(days = 30) {
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-    const raw = supabaseRequest(
+    const raw = await supabaseRequest(
       `cart_discount_codes?created_at=gte.${since}&order=created_at.desc`,
       'GET'
     );

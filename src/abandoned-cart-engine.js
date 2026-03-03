@@ -177,7 +177,7 @@ class AbandonedCartEngine {
 
     // Load persisted A/B test results
     if (supabase.enabled) {
-      const persistedResults = supabase.getABTestResults();
+      const persistedResults = await supabase.getABTestResults();
       this.abTestManager.loadResults(persistedResults);
       console.log('  A/B test results loaded from Supabase.\n');
     }
@@ -228,7 +228,7 @@ class AbandonedCartEngine {
     const sequencePosition = this.determineSequencePosition(checkout);
 
     // 4. Check for duplicate sends (skip if already sent this email for this checkout)
-    if (supabase.enabled && supabase.hasAlreadySent(checkout.id, sequencePosition.email.id)) {
+    if (supabase.enabled && await supabase.hasAlreadySent(checkout.id, sequencePosition.email.id)) {
       console.log(`  SKIP: Email "${sequencePosition.email.name}" already sent for this checkout.`);
       this.results.duplicatesSkipped++;
       this.results.skipped++;
@@ -238,7 +238,7 @@ class AbandonedCartEngine {
     // 5. Check discount eligibility (rate limiting via Supabase)
     let isDiscountEligible;
     if (supabase.enabled) {
-      isDiscountEligible = supabase.checkDiscountEligibility(
+      isDiscountEligible = await supabase.checkDiscountEligibility(
         checkout.email,
         abandonedCartConfig.discountRules.customerRateLimits
       );
@@ -559,9 +559,9 @@ class AbandonedCartEngine {
 
     // Print Supabase stats if available
     if (supabase.enabled) {
-      const sessions = supabase.getRecoveryStats(7);
+      const sessions = await supabase.getRecoveryStats(7);
       console.log(`  Recovery sessions logged (7d): ${sessions.length}`);
-      const discounts = supabase.getDiscountStats(30);
+      const discounts = await supabase.getDiscountStats(30);
       console.log(`  Discount codes issued (30d): ${discounts.length}`);
 
       // A/B test report
