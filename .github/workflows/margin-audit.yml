@@ -1,0 +1,108 @@
+name: Margin Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run       # Report only — no price changes
+          - execute       # Fix all under-margin prices
+      verbose:
+        description: 'Show every product in output'
+        required: false
+        default: false
+        type: boolean
+
+  schedule:
+    # Run every Monday at 7 AM UTC (after the Sunday bulk tagger, before the week starts)
+    - cron: '0 7 * * 1'
+
+env:
+  SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+  SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+
+jobs:
+  margin-audit:
+    name: Margin Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore audit cache
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: margin-audit-cache-${{ github.ref }}-${{ github.run_number }}
+          restore-keys: |
+            margin-audit-cache-${{ github.ref }}-
+
+      - name: Run Margin Audit
+        run: |
+          ARGS=""
+
+          # Scheduled runs auto-execute fixes; manual runs respect the action input
+          ACTION="${{ github.event.inputs.action || 'execute' }}"
+
+          if [ "$ACTION" == "execute" ]; then
+            ARGS="$ARGS --execute"
+            echo "Mode: EXECUTE — will fix under-margin prices"
+          else
+            echo "Mode: DRY RUN — report only"
+          fi
+
+          if [ "${{ github.event.inputs.verbose }}" == "true" ]; then
+            ARGS="$ARGS --verbose"
+          fi
+
+          # Always include report for the summary
+          ARGS="$ARGS --report"
+
+          echo "Running: node src/margin-audit.js $ARGS"
+          node src/margin-audit.js $ARGS
+
+      - name: Save audit cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/
+          key: margin-audit-cache-${{ github.ref }}-${{ github.run_number }}
+
+      - name: Upload audit log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: margin-audit-log-${{ github.run_number }}
+          path: data/margin-audit-log.json
+          retention-days: 90
+          if-no-files-found: ignore
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Margin Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | \`${{ github.event.inputs.action || 'execute (scheduled)' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Min Margin | \`40%\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Vendor | \`What You Need\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Shopify Admin - Products](https://oil-slick-pad.myshopify.com/admin/products)" >> $GITHUB_STEP_SUMMARY

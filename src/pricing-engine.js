@@ -6,13 +6,24 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // ── Tiered cost multiplier: WYN price → Shopify unit cost ────────────
 const COST_TIERS = [
-  { min: 0.50, max: 4.00,   multiplier: 2.5 },
-  { min: 4.01, max: 20.00,  multiplier: 2.0 },
-  { min: 20.01, max: 40.00, multiplier: 1.8 },
-  { min: 40.01, max: 100.00, multiplier: 1.6 },
-  { min: 100.01, max: 200.00, multiplier: 1.5 },
-  { min: 200.01, max: Infinity, multiplier: 1.4 },
+  { min: 0.50, max: 4.00,   multiplier: 2.0 },
+  { min: 4.01, max: 200.00, multiplier: 1.5 },
+  { min: 200.01, max: Infinity, multiplier: 1.25 },
 ];
+
+// ── Minimum margin failsafe ─────────────────────────────────────────
+// 40% margin means (retail - cost) / retail >= 0.40
+// Rearranged: retail >= cost / 0.60
+const MIN_MARGIN = 0.40;
+
+export function enforceMinMargin(retailPrice, cost) {
+  const minRetail = cost / (1 - MIN_MARGIN); // cost / 0.60
+  if (retailPrice < minRetail) {
+    // Round up to nearest cent to ensure we meet the threshold
+    return Math.ceil(minRetail * 100) / 100;
+  }
+  return retailPrice;
+}
 
 export function calculateCost(wynPrice) {
   const price = parseFloat(wynPrice);
@@ -24,7 +35,7 @@ export function calculateCost(wynPrice) {
     }
   }
   // Fallback: lowest multiplier
-  return Math.round(price * 1.4 * 100) / 100;
+  return Math.round(price * 1.25 * 100) / 100;
 }
 
 // ── Grounded price research + AI recommendation (single Gemini Flash call) ──
@@ -53,7 +64,7 @@ Search the web for current retail prices of this product (or very similar produc
 
 Then determine the optimal retail price. Consider:
 1. Competitor prices you found: price competitively within the market range
-2. Minimum acceptable margin: 40% above cost ($${(cost * 1.4).toFixed(2)})
+2. Minimum acceptable margin: 40% gross margin, so price must be at least $${(cost / 0.60).toFixed(2)}
 3. Use psychological pricing: .99 endings for under $50, .95 or round for $50+
 4. Smoke shop products typically have 50-150% markup over cost
 
@@ -135,9 +146,8 @@ export async function determinePrice(productName, wynPrice, productType) {
   const grounded = await groundedPriceAnalysis(productName, productType, cost);
 
   if (grounded?.aiResult?.recommended_price > cost) {
-    // Ensure minimum margin of 40%
-    const minPrice = cost * 1.4;
-    const finalPrice = Math.max(grounded.aiResult.recommended_price, minPrice);
+    // Enforce 40% minimum margin failsafe
+    const finalPrice = enforceMinMargin(grounded.aiResult.recommended_price, cost);
 
     return {
       cost,
@@ -148,14 +158,15 @@ export async function determinePrice(productName, wynPrice, productType) {
     };
   }
 
-  // Step 2: Fallback to formula
-  const formulaPrice = formulaRetailPrice(cost);
+  // Step 2: Fallback to formula — also enforce 40% minimum margin
+  const formulaPrice = enforceMinMargin(formulaRetailPrice(cost), cost);
   return {
     cost,
-    retailPrice: formulaPrice,
+    retailPrice: Math.round(formulaPrice * 100) / 100,
     competitorData: grounded?.competitorData || [],
     source: 'formula',
   };
 }
 
-export default { calculateCost, determinePrice };
+export { MIN_MARGIN, COST_TIERS };
+export default { calculateCost, determinePrice, enforceMinMargin, MIN_MARGIN, COST_TIERS };
