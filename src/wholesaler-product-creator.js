@@ -331,6 +331,13 @@ async function createSingleProduct(wcProductInfo, options = {}) {
     const variantResult = await detectAndCreateVariants(shopifyProduct);
     result.steps.variants = variantResult;
 
+    // ── Step 7b: Re-set cost on any new variants created by AI detection ──
+    if (variantResult.detected && variantResult.applied) {
+      console.log('  │  Step 6b: Re-setting cost on new variants...');
+      await setCostOnProduct(shopifyProduct.id, pricing.cost);
+      result.steps.costReapplied = true;
+    }
+
     // ── Step 8: QA check ──
     console.log('  │  Step 7: Running QA check...');
     const qa = await qaCheck(shopifyProduct.id);
