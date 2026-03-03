@@ -6,7 +6,8 @@
  * applies the current COST_TIERS multiplier to get the correct Shopify unit cost,
  * and updates the inventory item cost field on Shopify.
  *
- * This ensures all Shopify costs reflect the latest pricing rules.
+ * Uses bulk WC product fetching (paginated) to avoid Imunify360 bot-protection
+ * that blocks rapid individual API requests on the wholesaler's server.
  *
  * Usage:
  *   node src/recalculate-costs.js              # Dry-run report
@@ -14,20 +15,27 @@
  *   node src/recalculate-costs.js --verbose    # Show every product
  */
 import 'dotenv/config';
-import { getWcProduct } from './woocommerce-client.js';
+import { getAllWcProducts } from './woocommerce-client.js';
 import {
   paginateAll,
-  getProduct,
   getInventoryItem,
   updateInventoryItem,
 } from './shopify-api.js';
 import { calculateCost, COST_TIERS } from './pricing-engine.js';
-import { loadMapping } from './product-matcher.js';
 import { config } from './config.js';
 import fs from 'fs';
 import path from 'path';
 
 const VENDOR = config.vendor || 'What You Need';
+const MAPPING_FILE = path.join(process.cwd(), 'product-mapping.json');
+
+// Read mapping directly to avoid product-matcher.js CLI side effects
+function loadMapping() {
+  if (fs.existsSync(MAPPING_FILE)) {
+    return JSON.parse(fs.readFileSync(MAPPING_FILE, 'utf8'));
+  }
+  return { mappings: [], unmatchedWc: [], unmatchedShopify: [], lastUpdated: null };
+}
 const LOG_FILE = path.join(process.cwd(), 'data', 'cost-recalc-log.json');
 
 function sleep(ms) {
@@ -77,24 +85,32 @@ export async function recalculateCosts(options = {}) {
   }
   console.log(`Loaded ${approvedMappings.length} product mappings\n`);
 
-  // 2. Also get all WYN Shopify products that may NOT be in the mapping
-  //    (e.g., products created manually or from other sources)
+  // 2. Fetch ALL WC products in bulk (paginated — ~22 pages of 100)
+  //    This avoids Imunify360 bot-protection that blocks rapid individual requests
+  console.log('Fetching all WooCommerce products (bulk)...');
+  const allWcProducts = await getAllWcProducts();
+  const wcProductMap = new Map();
+  for (const wc of allWcProducts) {
+    wcProductMap.set(wc.id, wc);
+  }
+  console.log(`Loaded ${wcProductMap.size} WC products into memory\n`);
+
+  // 3. Fetch all WYN Shopify products (active + draft separately)
   console.log('Fetching all Shopify products by vendor...');
-  const shopifyProducts = await paginateAll('products.json', 'products', {
+  const activeProducts = await paginateAll('products.json', 'products', {
     vendor: VENDOR,
     limit: 250,
-    fields: 'id,title,variants,status,vendor',
   });
+  console.log(`  Active: ${activeProducts.length}`);
 
-  // Also fetch drafts
   const draftProducts = await paginateAll('products.json', 'products', {
     vendor: VENDOR,
     limit: 250,
     status: 'draft',
-    fields: 'id,title,variants,status,vendor',
   });
+  console.log(`  Draft: ${draftProducts.length}`);
 
-  const allShopifyProducts = [...shopifyProducts, ...draftProducts];
+  const allShopifyProducts = [...activeProducts, ...draftProducts];
   console.log(`Found ${allShopifyProducts.length} total "${VENDOR}" products on Shopify\n`);
 
   // Build mapping lookup: Shopify ID → WC ID
@@ -103,12 +119,13 @@ export async function recalculateCosts(options = {}) {
     shopifyToWcMap.set(m.shopify_id, m.wc_id);
   }
 
-  // 3. Process each Shopify product
+  // 4. Process each Shopify product
   const results = {
     updated: [],
     unchanged: [],
     noMapping: [],
-    wcFetchError: [],
+    noWcPrice: [],
+    wcNotFound: [],
     costFetchError: [],
     costUpdateError: [],
   };
@@ -125,20 +142,18 @@ export async function recalculateCosts(options = {}) {
       continue;
     }
 
-    // Fetch WC product to get current wholesale price
-    let wcProduct;
-    try {
-      wcProduct = await getWcProduct(wcId);
-    } catch (err) {
-      results.wcFetchError.push({ id: product.id, title: product.title, wcId, error: err.message });
-      if (verbose) console.log(`  ! WC FETCH ERROR: "${product.title}" — ${err.message}`);
+    // Look up WC product from pre-fetched data (no API call needed)
+    const wcProduct = wcProductMap.get(wcId);
+    if (!wcProduct) {
+      results.wcNotFound.push({ id: product.id, title: product.title, wcId });
+      if (verbose) console.log(`  ? WC NOT FOUND: "${product.title}" — WC id ${wcId} not in bulk data`);
       continue;
     }
 
     const wynPrice = parseFloat(wcProduct.price || wcProduct.regular_price || 0);
     if (wynPrice <= 0) {
       if (verbose) console.log(`  ? SKIP: "${product.title}" — WC price is $0`);
-      results.noMapping.push({ id: product.id, title: product.title, reason: 'WC price is $0' });
+      results.noWcPrice.push({ id: product.id, title: product.title, wcId });
       continue;
     }
 
@@ -206,31 +221,32 @@ export async function recalculateCosts(options = {}) {
       }
     }
 
-    if (processed % 25 === 0) {
+    if (processed % 100 === 0) {
       console.log(`  ... processed ${processed}/${allShopifyProducts.length} products`);
     }
   }
 
-  // 4. Summary
+  // 5. Summary
   console.log('\n══════════════════════════════════════════════════════════');
   console.log(`  Total products processed:  ${processed}`);
   console.log(`  Costs updated:             ${results.updated.length}`);
   console.log(`  Costs already correct:     ${results.unchanged.length}`);
   console.log(`  No WC mapping:             ${results.noMapping.length}`);
-  console.log(`  WC fetch errors:           ${results.wcFetchError.length}`);
+  console.log(`  No WC price:               ${results.noWcPrice.length}`);
+  console.log(`  WC product not found:      ${results.wcNotFound.length}`);
   console.log(`  Cost fetch errors:         ${results.costFetchError.length}`);
   console.log(`  Cost update errors:        ${results.costUpdateError.length}`);
   console.log('══════════════════════════════════════════════════════════\n');
 
   if (results.updated.length > 0) {
     console.log('── Cost Changes ──');
-    for (const item of results.updated.slice(0, 30)) {
+    for (const item of results.updated.slice(0, 50)) {
       const delta = item.newCost - item.oldCost;
       const sign = delta >= 0 ? '+' : '';
       console.log(`  $${item.oldCost.toFixed(2)} → $${item.newCost.toFixed(2)} (${sign}${delta.toFixed(2)}) | WC $${item.wynPrice} | ${item.title}`);
     }
-    if (results.updated.length > 30) {
-      console.log(`  ... and ${results.updated.length - 30} more`);
+    if (results.updated.length > 50) {
+      console.log(`  ... and ${results.updated.length - 50} more`);
     }
     console.log('');
   }
@@ -239,7 +255,7 @@ export async function recalculateCosts(options = {}) {
     console.log(`DRY RUN — ${results.updated.length} costs would be updated. Run with --execute to apply.`);
   }
 
-  // 5. Save log
+  // 6. Save log
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
   const logEntry = {
     timestamp: new Date().toISOString(),
@@ -249,7 +265,8 @@ export async function recalculateCosts(options = {}) {
     updated: results.updated.length,
     unchanged: results.unchanged.length,
     noMapping: results.noMapping.length,
-    wcFetchErrors: results.wcFetchError.length,
+    noWcPrice: results.noWcPrice.length,
+    wcNotFound: results.wcNotFound.length,
     costFetchErrors: results.costFetchError.length,
     costUpdateErrors: results.costUpdateError.length,
     changes: results.updated.map(i => ({

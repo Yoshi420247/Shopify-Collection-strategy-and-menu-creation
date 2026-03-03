@@ -1,5 +1,6 @@
 // Configuration for the Shopify Collection Strategy Bot
 import 'dotenv/config';
+import './proxy-setup.js';
 
 export const config = {
   shopify: {

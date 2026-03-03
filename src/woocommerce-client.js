@@ -1,6 +1,7 @@
 // WooCommerce REST API client for wholesaler product/stock data
 // Uses the WooCommerce REST API v3 with consumer key/secret authentication
 import 'dotenv/config';
+import './proxy-setup.js';
 
 const WC_BASE_URL = process.env.WC_STORE_URL;
 const WC_CONSUMER_KEY = process.env.WC_CONSUMER_KEY;
@@ -101,7 +102,14 @@ export async function getAllWcProducts() {
     totalPages = result.totalPages;
     const batch = result.data;
 
-    if (!batch || batch.length === 0) break;
+    // Guard against non-array responses (e.g. Imunify360 bot-protection error)
+    if (!Array.isArray(batch)) {
+      const msg = batch?.message || 'unexpected non-array response';
+      console.error(`  WC API error on page ${page}: ${msg}`);
+      throw new Error(`WC API returned non-array: ${msg}`);
+    }
+
+    if (batch.length === 0) break;
 
     allProducts.push(...batch);
     console.log(`  Page ${page}/${totalPages}: fetched ${batch.length} (total: ${allProducts.length})`);
