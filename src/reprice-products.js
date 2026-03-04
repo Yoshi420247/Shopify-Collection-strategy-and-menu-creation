@@ -248,6 +248,12 @@ async function repriceProduct(product, options = {}) {
   };
 }
 
+// ── CLI argument helpers ──────────────────────────────────────────────
+function parseArgValue(flag) {
+  const arg = process.argv.find(a => a.startsWith(`${flag}=`));
+  return arg ? arg.split('=')[1] : null;
+}
+
 // ── Main ──────────────────────────────────────────────────────────────
 async function main() {
   const args = process.argv.slice(2);
@@ -255,20 +261,54 @@ async function main() {
   const limitIdx = args.indexOf('--limit');
   const limit = limitIdx >= 0 ? parseInt(args[limitIdx + 1] || '0', 10) : 0;
 
+  // --product-ids=1234,5678,9012  — reprice specific products only
+  const productIdsArg = parseArgValue('--product-ids');
+  const targetProductIds = productIdsArg
+    ? productIdsArg.split(',').map(id => parseInt(id.trim(), 10)).filter(Boolean)
+    : [];
+
   console.log('╔══════════════════════════════════════════════════════════════╗');
   console.log('║          Reprice Active "What You Need" Products            ║');
   console.log('╚══════════════════════════════════════════════════════════════╝');
   console.log(`Mode: ${dryRun ? 'DRY RUN (no changes)' : 'LIVE (will update prices)'}`);
+  if (targetProductIds.length > 0) console.log(`Product IDs: ${targetProductIds.join(', ')}`);
   if (limit > 0) console.log(`Limit: ${limit} products`);
 
-  // Fetch all active "What You Need" products
-  console.log(`\nFetching active "${VENDOR}" products from Shopify...`);
-  const allProducts = await getAllProductsByVendor(VENDOR);
-  const activeProducts = allProducts.filter(p => p.status === 'active');
-  console.log(`Found ${allProducts.length} total, ${activeProducts.length} active\n`);
+  let toProcess;
 
-  let toProcess = activeProducts;
-  if (limit > 0) toProcess = toProcess.slice(0, limit);
+  if (targetProductIds.length > 0) {
+    // Fetch specific products by ID
+    console.log(`\nFetching ${targetProductIds.length} specific product(s)...`);
+    const fetched = [];
+    for (const id of targetProductIds) {
+      try {
+        const { product } = await getProduct(id);
+        if (!product) {
+          console.log(`  Product #${id}: not found`);
+        } else if (product.vendor !== VENDOR) {
+          console.log(`  Product #${id} "${product.title}": skipped (vendor "${product.vendor}" ≠ "${VENDOR}")`);
+        } else if (product.status !== 'active') {
+          console.log(`  Product #${id} "${product.title}": skipped (status "${product.status}" ≠ "active")`);
+        } else {
+          fetched.push(product);
+          console.log(`  Product #${id} "${product.title}": OK`);
+        }
+      } catch (err) {
+        console.log(`  Product #${id}: error fetching — ${err.message}`);
+      }
+    }
+    toProcess = fetched;
+    console.log(`\n${toProcess.length} product(s) to reprice\n`);
+  } else {
+    // Fetch all active "What You Need" products
+    console.log(`\nFetching active "${VENDOR}" products from Shopify...`);
+    const allProducts = await getAllProductsByVendor(VENDOR);
+    const activeProducts = allProducts.filter(p => p.status === 'active');
+    console.log(`Found ${allProducts.length} total, ${activeProducts.length} active\n`);
+
+    toProcess = activeProducts;
+    if (limit > 0) toProcess = toProcess.slice(0, limit);
+  }
 
   const results = [];
   let repriced = 0;

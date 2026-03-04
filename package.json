@@ -126,7 +126,8 @@
     "migrate:status": "node src/wc-migrate-parallel.js --status",
     "reprice": "node src/reprice-products.js",
     "reprice:execute": "node src/reprice-products.js --execute",
-    "reprice:test": "node src/reprice-products.js --limit 5"
+    "reprice:test": "node src/reprice-products.js --limit 5",
+    "reprice:product": "node src/reprice-products.js --product-ids="
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

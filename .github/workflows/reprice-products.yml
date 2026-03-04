@@ -12,9 +12,14 @@ on:
           - dry-run       # Show proposed price changes only (safe)
           - execute       # Apply price changes to Shopify
       limit:
-        description: 'Max products to process (0 = all)'
+        description: 'Max products to process (0 = all, ignored when product_ids is set)'
         required: false
         default: '0'
+        type: string
+      product_ids:
+        description: 'Comma-separated Shopify product IDs to reprice (e.g. 1234567890,9876543210)'
+        required: false
+        default: ''
         type: string
 
 jobs:
@@ -44,12 +49,15 @@ jobs:
           if [ "${{ inputs.mode }}" == "execute" ]; then
             ARGS="--execute"
           fi
-          if [ "${{ inputs.limit }}" != "0" ] && [ -n "${{ inputs.limit }}" ]; then
+          if [ -n "${{ inputs.product_ids }}" ]; then
+            ARGS="$ARGS --product-ids=${{ inputs.product_ids }}"
+          elif [ "${{ inputs.limit }}" != "0" ] && [ -n "${{ inputs.limit }}" ]; then
             ARGS="$ARGS --limit ${{ inputs.limit }}"
           fi
 
           echo "=== Reprice Active 'What You Need' Products ==="
           echo "Mode: ${{ inputs.mode }}"
+          echo "Product IDs: ${{ inputs.product_ids || 'all' }}"
           echo "Limit: ${{ inputs.limit }}"
           echo "Command: node src/reprice-products.js $ARGS"
           echo ""
