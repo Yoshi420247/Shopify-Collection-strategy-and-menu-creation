@@ -52,10 +52,10 @@ My cost: $${cost.toFixed(2)}
 Search the web for current retail prices of this product (or very similar products) at online smoke shops, head shops, and vape retailers. Look for real prices people are charging.
 
 Then determine the optimal retail price. Consider:
-1. Competitor prices you found: price competitively within the market range
-2. Minimum acceptable margin: 40% above cost ($${(cost * 1.4).toFixed(2)})
+1. Competitor prices you found: price competitively within the market range — trust what the market is actually charging over any assumptions about typical markups
+2. Minimum acceptable margin: 15% above cost ($${(cost * 1.15).toFixed(2)})
 3. Use psychological pricing: .99 endings for under $50, .95 or round for $50+
-4. Smoke shop products typically have 50-150% markup over cost
+4. If most competitors price this product at or near our cost, recommend a price that is competitive with the market — do NOT inflate above market just to hit a markup target
 
 Return ONLY a JSON object (no markdown fences):
 {
@@ -119,8 +119,10 @@ function formulaRetailPrice(cost) {
 
 // ── Main pricing function ────────────────────────────────────────────
 // Returns: { cost, retailPrice, competitorData, source }
-export async function determinePrice(productName, wynPrice, productType) {
-  const cost = calculateCost(wynPrice);
+// Options:
+//   skipCostMultiplier: true  — use wynPrice as-is (for repricing when cost is already known)
+export async function determinePrice(productName, wynPrice, productType, options = {}) {
+  const cost = options.skipCostMultiplier ? parseFloat(wynPrice) : calculateCost(wynPrice);
 
   if (cost <= 0) {
     return {
@@ -135,8 +137,8 @@ export async function determinePrice(productName, wynPrice, productType) {
   const grounded = await groundedPriceAnalysis(productName, productType, cost);
 
   if (grounded?.aiResult?.recommended_price > cost) {
-    // Ensure minimum margin of 40%
-    const minPrice = cost * 1.4;
+    // Ensure minimum margin of 15%
+    const minPrice = cost * 1.15;
     const finalPrice = Math.max(grounded.aiResult.recommended_price, minPrice);
 
     return {

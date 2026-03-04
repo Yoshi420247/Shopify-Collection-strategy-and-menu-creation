@@ -1,0 +1,77 @@
+name: Reprice Active WYN Products
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run       # Show proposed price changes only (safe)
+          - execute       # Apply price changes to Shopify
+      limit:
+        description: 'Max products to process (0 = all)'
+        required: false
+        default: '0'
+        type: string
+
+jobs:
+  reprice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Reprice products
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.mode }}" == "execute" ]; then
+            ARGS="--execute"
+          fi
+          if [ "${{ inputs.limit }}" != "0" ] && [ -n "${{ inputs.limit }}" ]; then
+            ARGS="$ARGS --limit ${{ inputs.limit }}"
+          fi
+
+          echo "=== Reprice Active 'What You Need' Products ==="
+          echo "Mode: ${{ inputs.mode }}"
+          echo "Limit: ${{ inputs.limit }}"
+          echo "Command: node src/reprice-products.js $ARGS"
+          echo ""
+
+          node src/reprice-products.js $ARGS
+
+      - name: Upload reprice log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reprice-log-${{ github.run_number }}
+          path: reprice-log.json
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Reprice Workflow Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** \`${{ inputs.mode }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Limit:** ${{ inputs.limit }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.mode }}" == "dry-run" ]; then
+            echo "> **Next step:** Review the log artifact, then re-run with mode=\`execute\` to apply changes." >> $GITHUB_STEP_SUMMARY
+          fi

@@ -123,7 +123,10 @@
     "migrate:publish": "node src/wc-migrate-parallel.js --execute --publish",
     "migrate:fast": "node src/wc-migrate-parallel.js --execute --workers=8",
     "migrate:resume": "node src/wc-migrate-parallel.js --execute --resume",
-    "migrate:status": "node src/wc-migrate-parallel.js --status"
+    "migrate:status": "node src/wc-migrate-parallel.js --status",
+    "reprice": "node src/reprice-products.js",
+    "reprice:execute": "node src/reprice-products.js --execute",
+    "reprice:test": "node src/reprice-products.js --limit 5"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
