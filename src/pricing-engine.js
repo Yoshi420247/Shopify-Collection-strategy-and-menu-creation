@@ -119,8 +119,10 @@ function formulaRetailPrice(cost) {
 
 // ── Main pricing function ────────────────────────────────────────────
 // Returns: { cost, retailPrice, competitorData, source }
-export async function determinePrice(productName, wynPrice, productType) {
-  const cost = calculateCost(wynPrice);
+// Options:
+//   skipCostMultiplier: true  — use wynPrice as-is (for repricing when cost is already known)
+export async function determinePrice(productName, wynPrice, productType, options = {}) {
+  const cost = options.skipCostMultiplier ? parseFloat(wynPrice) : calculateCost(wynPrice);
 
   if (cost <= 0) {
     return {
