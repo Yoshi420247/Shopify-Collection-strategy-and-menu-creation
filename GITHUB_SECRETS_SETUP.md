@@ -1,6 +1,6 @@
-# GitHub Secrets Setup for Nano Banana Image Generator
+# GitHub Secrets Setup
 
-This guide explains how to securely store API keys as GitHub secrets for the image generation workflow.
+This guide explains how to securely store API keys as GitHub secrets for the automated workflows (image generation, product repricing, etc.).
 
 ## Required Secrets
 
@@ -91,6 +91,35 @@ professional studio lighting, white background, no text or branding
 ### Workflow Not Appearing
 - Push the `.github/workflows/generate-images.yml` file to your repository
 - Workflows only appear after the file is pushed to main/default branch
+
+## Using the Reprice Products Workflow
+
+### Manual Trigger (GitHub Actions UI)
+
+1. Go to **Actions** tab in your repository
+2. Select **Reprice Active WYN Products** workflow
+3. Click **Run workflow**
+4. Fill in the inputs:
+   - **mode**: `dry-run` (preview changes) or `execute` (apply changes)
+   - **limit**: Max products to process (0 = all)
+   - **product_ids**: (Optional) Comma-separated Shopify product IDs
+5. Click **Run workflow**
+
+### What It Does
+
+- Fetches all active "What You Need" vendor products
+- Runs AI competitor research via Gemini with Google Search grounding
+- Recommends market-competitive prices based on real competitor data
+- Applies prices to all variants (proportional for quantity variants)
+- Uploads a reprice log artifact for review
+
+### Required Secrets
+
+Uses `SHOPIFY_STORE`, `SHOPIFY_ACCESS_TOKEN`, and `GOOGLE_API_KEY`.
+
+**Note:** The `GOOGLE_API_KEY` is required for the AI pricing research. Without it, the script falls back to formula-based pricing.
+
+---
 
 ## Security Notes
 
