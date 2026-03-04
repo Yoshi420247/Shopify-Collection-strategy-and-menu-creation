@@ -1,0 +1,6140 @@
+{
+  "runs": [
+    {
+      "timestamp": "2026-03-04T04:00:10.817937Z",
+      "summary": {
+        "lookah_products_repriced": 18,
+        "other_products_repriced": 680,
+        "total_variant_updates": 1653,
+        "skipped_custom": 21,
+        "skipped_no_cost": 6,
+        "skipped_no_change": 39,
+        "skipped_price_increase": 81,
+        "avg_margin_before": 154,
+        "avg_margin_after": 83
+      },
+      "products": [
+        {
+          "product_id": 9885265658136,
+          "title": "1.25\u2033 30mm Quartz Control Tower Hollow Insert",
+          "category": "Quartz",
+          "cost": 4.0,
+          "old_price": 29.99,
+          "new_price": 9.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068513292568,
+          "title": "1.25\u2033 30MM QUARTZ CONTROL TOWER SOLID INSERT",
+          "category": "Quartz",
+          "cost": 4.0,
+          "old_price": 24.99,
+          "new_price": 9.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114862842136,
+          "title": "1.5\" Mushroom Carb Cap",
+          "category": "Smoke Shop Products",
+          "cost": 8.0,
+          "old_price": 22.99,
+          "new_price": 17.49,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10112036110616,
+          "title": "1.5\" Silicone Carb Cap",
+          "category": "Rolling Accessories",
+          "cost": 2.0,
+          "old_price": 6.99,
+          "new_price": 4.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112352452888,
+          "title": "1.5\" Yellow Flower Pendant",
+          "category": "Smoke Shop Products",
+          "cost": 2.0,
+          "old_price": 6.99,
+          "new_price": 4.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885265854744,
+          "title": "1.5\u2033 10mm Quartz Nectar Tip",
+          "category": "Nectar Collectors & Straws",
+          "cost": 5.0,
+          "old_price": 19.99,
+          "new_price": 12.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885265821976,
+          "title": "1.5\u2033 10mm Titanium Nectar Tip",
+          "category": "Nectar Collectors & Straws",
+          "cost": 5.0,
+          "old_price": 12.99,
+          "new_price": 12.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885287153944,
+          "title": "1.5\u2033 Blue & Yellow Dot Pendant",
+          "category": "Pendants",
+          "cost": 45.0,
+          "old_price": 99.99,
+          "new_price": 79.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885268017432,
+          "title": "1.5\u2033 Color Top Hat Spinner Carb Cap",
+          "category": "Flower Bowls",
+          "cost": 8.0,
+          "old_price": 24.99,
+          "new_price": 17.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068488716568,
+          "title": "1.5\u2033 COLOR UFO CARB CAP",
+          "category": "Carb Caps",
+          "cost": 2.0,
+          "old_price": 9.99,
+          "new_price": 5.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068492583192,
+          "title": "1.5\u2033 DICHRO W/ OPAL TERP SLURPER CARB CAP SETS",
+          "category": "Carb Caps",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885282894104,
+          "title": "1.5\u2033 Finer Glass Mushroom Pendant",
+          "category": "Made In Usa",
+          "cost": 30.0,
+          "old_price": 59.99,
+          "new_price": 54.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068491075864,
+          "title": "1.5\u2033 FUME DOT IMPLOSION CARB CAP",
+          "category": "Carb Caps",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885266051352,
+          "title": "1.5\u2033 Green & White Butterfly Pendant",
+          "category": "Pendants",
+          "cost": 5.0,
+          "old_price": 19.99,
+          "new_price": 12.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068492058904,
+          "title": "1.5\u2033 OPALINE TOWER TOP CARB CAP",
+          "category": "Carb Caps",
+          "cost": 18.75,
+          "old_price": 35.99,
+          "new_price": 34.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885266084120,
+          "title": "1.5\u2033 Red Flower Pendant",
+          "category": "Pendants",
+          "cost": 5.0,
+          "old_price": 29.99,
+          "new_price": 12.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885285417240,
+          "title": "1.5\u2033 Square Pendant",
+          "category": "Made In Usa",
+          "cost": 37.5,
+          "old_price": 84.99,
+          "new_price": 69.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885288071448,
+          "title": "1.5\u2033 Wigwag Pendant",
+          "category": "Made In Usa",
+          "cost": 45.0,
+          "old_price": 89.99,
+          "new_price": 84.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885282926872,
+          "title": "1.75\u2033 All Out Red Pendant",
+          "category": "Made In Usa",
+          "cost": 30.0,
+          "old_price": 84.99,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885285646616,
+          "title": "1.75\u2033 All Out Red w/ Purple & Orange Wigwag Pendant",
+          "category": "Made In Usa",
+          "cost": 37.5,
+          "old_price": 84.99,
+          "new_price": 69.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885288104216,
+          "title": "1.75\u2033 Rick & Morty Blue Pendant",
+          "category": "Pendants",
+          "cost": 45.0,
+          "old_price": 94.99,
+          "new_price": 79.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885285351704,
+          "title": "10 M 90\u00b0 240mm Competition Banger",
+          "category": "Quartz",
+          "cost": 37.5,
+          "old_price": 94.99,
+          "new_price": 69.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885266116888,
+          "title": "10 M 90\u00b0 to 14 F 90\u00b0 Drop Down",
+          "category": "Essentials & Accessories",
+          "cost": 5.0,
+          "old_price": 14.99,
+          "new_price": 12.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114858680600,
+          "title": "10\" Color Neck Hemp Leaf Sandblast Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 30.0,
+          "old_price": 79.95,
+          "new_price": 54.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10121229304088,
+          "title": "10\" Decal Tree Perc Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 40.0,
+          "old_price": 74.95,
+          "new_price": 69.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114867790104,
+          "title": "10\" Dog Stained Glass Decal Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 7
+        },
+        {
+          "product_id": 10114852684056,
+          "title": "10\" Element Glass Large Steamroller - Made in USA",
+          "category": "Steamrollers",
+          "cost": 27.0,
+          "old_price": 79.95,
+          "new_price": 49.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114868445464,
+          "title": "10\" Encalmo Base Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114849341720,
+          "title": "10\" Encore Pounder w/ Reversal Decal Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 94.95,
+          "new_price": 69.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10114867593496,
+          "title": "10\" Fillacello Decal Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 18.75,
+          "old_price": 69.99,
+          "new_price": 34.99,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10114857894168,
+          "title": "10\" Flower Bouquet Decal Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114868085016,
+          "title": "10\" Iridescent Color Top Twist Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 22.5,
+          "old_price": 49.99,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113697480984,
+          "title": "10\" Monark Color Accent Fab Egg (one off)",
+          "category": "Smoke Shop Products",
+          "cost": 75.0,
+          "old_price": 189.95,
+          "new_price": 119.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114825060632,
+          "title": "10\" Rainbow Mushroom Decal Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114863890712,
+          "title": "10\" Soda Lime Perfume Style Bong",
+          "category": "Water Pipes",
+          "cost": 37.5,
+          "old_price": 74.95,
+          "new_price": 64.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114870214936,
+          "title": "10\" Wood Banger & Flower Bowl Display Stand",
+          "category": "Bowls & Slides",
+          "cost": 15.0,
+          "old_price": 49.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112052232472,
+          "title": "10'' Color Lip Straight",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112059441432,
+          "title": "10'' Fume Beaker - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 89.95,
+          "new_price": 69.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112058786072,
+          "title": "10'' Fume Straight - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 89.95,
+          "new_price": 69.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112106791192,
+          "title": "10'' Wigwag Decal Beaker w/ Wigwag Downstem",
+          "category": "Smoke Shop Products",
+          "cost": 18.75,
+          "old_price": 59.95,
+          "new_price": 34.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112550043928,
+          "title": "10.5\" Encore Clear 9mm Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 89.95,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068502151448,
+          "title": "10.5\u2033 RIGCEPTION RIG",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 45.0,
+          "old_price": 129.99,
+          "new_price": 69.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068498972952,
+          "title": "10\u201d SLIME ETCH ZOMBIE RIG",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 90.0,
+          "old_price": 150.0,
+          "new_price": 139.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885287088408,
+          "title": "10\u2033  Encore Color Lip/Foot 18mm Joint Cake Rig",
+          "category": "Wyn Brands",
+          "cost": 45.0,
+          "old_price": 84.99,
+          "new_price": 74.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885286727960,
+          "title": "10\u2033  Wrap and Rake Beaker \u2013 Made in USA",
+          "category": "Made In Usa",
+          "cost": 45.0,
+          "old_price": 89.99,
+          "new_price": 84.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885291053336,
+          "title": "10\u2033 Color Accent Barrel Body Incycler",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 60.0,
+          "old_price": 119.99,
+          "new_price": 89.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068120109336,
+          "title": "10\u2033 Donut Decal Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068118667544,
+          "title": "10\u2033 Encalmo Decal Wrap Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068120404248,
+          "title": "10\u2033 Fruit Decal Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 7
+        },
+        {
+          "product_id": 10068124926232,
+          "title": "10\u2033 Glitter Wigwag Decal Straight",
+          "category": "Bongs & Water Pipes",
+          "cost": 18.75,
+          "old_price": 49.95,
+          "new_price": 34.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068118831384,
+          "title": "10\u2033 Heart Tree Glass Accent Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 22.5,
+          "old_price": 54.99,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885278044440,
+          "title": "10\u2033 Iridescent Straight",
+          "category": "Bongs & Water Pipes",
+          "cost": 16.5,
+          "old_price": 37.99,
+          "new_price": 29.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885297475864,
+          "title": "10\u2033 Kerby/Bowman Collab Mech Burd #2 Rig",
+          "category": "Made In Usa",
+          "cost": 3125.0,
+          "old_price": 6999.99,
+          "new_price": 4699.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068121092376,
+          "title": "10\u2033 Labubu Decal Wrapped Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885295280408,
+          "title": "10\u2033 Monark Color Accent Dual Chamber Recycler",
+          "category": "Wyn Brands",
+          "cost": 112.5,
+          "old_price": 199.99,
+          "new_price": 159.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885294362904,
+          "title": "10\u2033 Monark Seed of Life Incycler",
+          "category": "Wyn Brands",
+          "cost": 97.5,
+          "old_price": 229.99,
+          "new_price": 149.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068118995224,
+          "title": "10\u2033 Sculpted Piggy Bank Bong",
+          "category": "Bongs & Water Pipes",
+          "cost": 37.5,
+          "old_price": 69.99,
+          "new_price": 64.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885279813912,
+          "title": "10\u2033 Single Color Mushroom Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 18.75,
+          "old_price": 41.99,
+          "new_price": 34.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068120699160,
+          "title": "10\u2033 Trippy Mushroom Decal Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068496941336,
+          "title": "10\u2033 VAC STACK HORN INLINE RIG",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 37.5,
+          "old_price": 129.99,
+          "new_price": 64.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068121878808,
+          "title": "10\u2033 Watercolor Straight",
+          "category": "Bongs & Water Pipes",
+          "cost": 37.5,
+          "old_price": 69.99,
+          "new_price": 64.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114854322456,
+          "title": "11\" Encore Facet Henny",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 89.95,
+          "new_price": 69.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114851832088,
+          "title": "11\" Encore Lace Work Henny Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 52.5,
+          "old_price": 159.95,
+          "new_price": 79.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885295509784,
+          "title": "11\u2033 Monark Color Fume Taurus Bong",
+          "category": "Wyn Brands",
+          "cost": 120.0,
+          "old_price": 219.99,
+          "new_price": 169.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068509720856,
+          "title": "11\u2033 RBR GLASS NECTAR COLLECTOR",
+          "category": "Nectar Collectors & Straws",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068122108184,
+          "title": "11\u2033 Tribal Decal Showerhead Mini Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 45.0,
+          "old_price": 99.95,
+          "new_price": 69.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10113671823640,
+          "title": "12\" Baseball Bat Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 37.5,
+          "old_price": 74.95,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114867069208,
+          "title": "12\" Decal Welded Double Tree Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 69.95,
+          "new_price": 64.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10113640988952,
+          "title": "12\" Encore Clear Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 69.95,
+          "new_price": 64.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114850095384,
+          "title": "12\" Encore Clear Elephant Joint Straight",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 74.95,
+          "new_price": 64.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10112551649560,
+          "title": "12\" Encore Double Stack Disc Recycler (one off)",
+          "category": "Smoke Shop Products",
+          "cost": 60.0,
+          "old_price": 130.0,
+          "new_price": 89.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114848555288,
+          "title": "12\" Encore Henny Unbreakable Perc Pounder",
+          "category": "Smoke Shop Products",
+          "cost": 75.0,
+          "old_price": 130.0,
+          "new_price": 119.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10114854191384,
+          "title": "12\" Encore Unbreakable Perc Pounder",
+          "category": "Smoke Shop Products",
+          "cost": 75.0,
+          "old_price": 130.0,
+          "new_price": 119.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10112110330136,
+          "title": "12'' Black Sheep 75mm Clear Ratchet Wine Bottle",
+          "category": "Smoke Shop Products",
+          "cost": 120.0,
+          "old_price": 319.95,
+          "new_price": 169.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112359760152,
+          "title": "12'' Encore Half Color 8 Tree Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 99.95,
+          "new_price": 69.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10112086016280,
+          "title": "12'' Encore Two-Tone Double Uptake Chromatic Wave Recycler (one off)",
+          "category": "Smoke Shop Products",
+          "cost": 67.5,
+          "old_price": 119.95,
+          "new_price": 109.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068122304792,
+          "title": "12\u201d Color Lip 50 X 5mm Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 30.0,
+          "old_price": 69.99,
+          "new_price": 54.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068121682200,
+          "title": "12\u2033 Color Lip 7mm Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 37.5,
+          "old_price": 89.95,
+          "new_price": 64.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885286957336,
+          "title": "12\u2033 Color Lip 9mm Thick Straight",
+          "category": "Bongs & Water Pipes",
+          "cost": 45.0,
+          "old_price": 89.99,
+          "new_price": 69.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885278011672,
+          "title": "12\u2033 Color Lip Straight",
+          "category": "Bongs & Water Pipes",
+          "cost": 16.5,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068126335256,
+          "title": "12\u2033 Iridescent Ribbed St",
+          "category": "Bongs & Water Pipes",
+          "cost": 37.5,
+          "old_price": 89.95,
+          "new_price": 64.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885292790040,
+          "title": "12\u2033 Monark Grid Perc Incycler",
+          "category": "Wyn Brands",
+          "cost": 75.0,
+          "old_price": 169.99,
+          "new_price": 109.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068119159064,
+          "title": "13.5\u2033 Color Lip 7mm Thick Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 37.5,
+          "old_price": 89.99,
+          "new_price": 64.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068122534168,
+          "title": "13\u201d Texture Meso Decal Double Matrix",
+          "category": "Bongs & Water Pipes",
+          "cost": 60.0,
+          "old_price": 130.0,
+          "new_price": 89.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885294690584,
+          "title": "13\u2033 Highway Color Fume Accent Twin Turbo Ratchet",
+          "category": "Bongs & Water Pipes",
+          "cost": 105.0,
+          "old_price": 209.99,
+          "new_price": 149.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068496613656,
+          "title": "13\u2033 TRIBAL SANDBLAST RIG",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 67.5,
+          "old_price": 129.99,
+          "new_price": 109.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885266149656,
+          "title": "14 F 90\u00b0 to 14 F 90\u00b0 Drop Down",
+          "category": "Essentials & Accessories",
+          "cost": 5.0,
+          "old_price": 19.99,
+          "new_price": 12.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114859335960,
+          "title": "14 M 45\u00b0 Encore 38mm Dry Ash Catcher",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 49.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114869821720,
+          "title": "14 M 90\u00b0 120mm Competition Banger Set",
+          "category": "Smoke Shop Products",
+          "cost": 22.5,
+          "old_price": 44.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885284991256,
+          "title": "14 M 90\u00b0 240mm Competition Banger",
+          "category": "Quartz",
+          "cost": 37.5,
+          "old_price": 94.99,
+          "new_price": 69.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114856517912,
+          "title": "14 M 90\u00b0 Encore 38mm Dry Ash Catcher",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10117346558232,
+          "title": "14 M 90\u00b0 Encore Dry Ash Catcher",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 34.99,
+          "new_price": 29.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885267329304,
+          "title": "14 M 90\u00b0 Quartz Enail Banger",
+          "category": "Quartz",
+          "cost": 6.0,
+          "old_price": 24.99,
+          "new_price": 12.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885283549464,
+          "title": "14 M 90\u00b0 Terp Wheel Banger",
+          "category": "Quartz",
+          "cost": 30.0,
+          "old_price": 59.99,
+          "new_price": 54.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114869395736,
+          "title": "14\" 7mm Thick Wigwag Decal Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 119.95,
+          "new_price": 69.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114854945048,
+          "title": "14\" Encore Henny Base Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 60.0,
+          "old_price": 119.95,
+          "new_price": 89.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114849243416,
+          "title": "14\" Encore Showerhead Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 74.95,
+          "new_price": 64.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114858254616,
+          "title": "14\" Encore Showerhead Straight",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 74.95,
+          "new_price": 64.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112065044760,
+          "title": "14'' Wrap and Rake Straight (one off) - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 52.5,
+          "old_price": 124.95,
+          "new_price": 79.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112369590552,
+          "title": "14.5\" Fume Straight - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 52.5,
+          "old_price": 159.95,
+          "new_price": 79.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068119290136,
+          "title": "14\u2033 Clear 7mm Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 37.5,
+          "old_price": 89.95,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885290561816,
+          "title": "14\u2033 Highway Color Accent Twin Turbo Straight",
+          "category": "Bongs & Water Pipes",
+          "cost": 60.0,
+          "old_price": 139.99,
+          "new_price": 89.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10121229369624,
+          "title": "15\" Decal Base Triple Tree Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 54.0,
+          "old_price": 99.95,
+          "new_price": 84.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10112369525016,
+          "title": "15' Fume Beaker - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 52.5,
+          "old_price": 124.95,
+          "new_price": 79.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068123123992,
+          "title": "15\u2033 Encore Deep Etch Thick Base Beaker",
+          "category": "Wyn Brands",
+          "cost": 60.0,
+          "old_price": 130.0,
+          "new_price": 89.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114853765400,
+          "title": "16\" Encore Twist & Turn Zong",
+          "category": "Smoke Shop Products",
+          "cost": 67.5,
+          "old_price": 149.95,
+          "new_price": 109.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112063602968,
+          "title": "16'' 7mm Thick Egyptian Glow Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 79.95,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112113082648,
+          "title": "16'' Monark Color Accent Inline Double Uptake Recycler Straight w/ Matching Color Bowl",
+          "category": "Bowls & Slides",
+          "cost": 150.0,
+          "old_price": 399.95,
+          "new_price": 229.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885291184408,
+          "title": "16.5\u2033 Linda Biggs Fairy Decal Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 60.0,
+          "old_price": 129.99,
+          "new_price": 89.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885291217176,
+          "title": "16.5\u2033 Linda Biggs Fairy Decal Straight",
+          "category": "Bongs & Water Pipes",
+          "cost": 60.0,
+          "old_price": 159.99,
+          "new_price": 89.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068119453976,
+          "title": "16\u2033 Color Lip 7mm Thick Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 45.0,
+          "old_price": 109.99,
+          "new_price": 69.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885288890648,
+          "title": "16\u2033 Encore Two-Tone Thick Base Beaker",
+          "category": "Wyn Brands",
+          "cost": 52.5,
+          "old_price": 90.49,
+          "new_price": 79.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068122796312,
+          "title": "16\u2033 Nicky Davis Ghost Gang Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 52.5,
+          "old_price": 120.0,
+          "new_price": 79.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885294231832,
+          "title": "16\u2033 Wrap and Rake Fume Beaker \u2013 Made in USA",
+          "category": "Made In Usa",
+          "cost": 97.5,
+          "old_price": 219.99,
+          "new_price": 149.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068126892312,
+          "title": "17\u2033 Triple Matrix Straight",
+          "category": "Bongs & Water Pipes",
+          "cost": 75.0,
+          "old_price": 150.0,
+          "new_price": 119.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068127056152,
+          "title": "18.5\u2033 Donut Body Cone Perc XL",
+          "category": "Bongs & Water Pipes",
+          "cost": 75.0,
+          "old_price": 150.0,
+          "new_price": 119.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068120895768,
+          "title": "18\u2033 Color Lip 7mm Thick Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 52.5,
+          "old_price": 129.99,
+          "new_price": 79.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885292757272,
+          "title": "18\u2033 Multi-Perc XL St",
+          "category": "Bongs & Water Pipes",
+          "cost": 75.0,
+          "old_price": 169.99,
+          "new_price": 119.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885265723672,
+          "title": "1\u2033 Quartz Control Tower Hollow Insert",
+          "category": "Quartz",
+          "cost": 4.0,
+          "old_price": 24.99,
+          "new_price": 9.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885265690904,
+          "title": "1\u2033 Quartz Control Tower Solid Insert",
+          "category": "Quartz",
+          "cost": 4.0,
+          "old_price": 24.99,
+          "new_price": 9.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113686274328,
+          "title": "2\" 14mm Color Scalloped Flower Bowl",
+          "category": "Bowls & Slides",
+          "cost": 5.0,
+          "old_price": 14.99,
+          "new_price": 12.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112365396248,
+          "title": "2\" 18mm Color Worked Joint Flower Bowl",
+          "category": "Bowls & Slides",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10112370835736,
+          "title": "2\" 18mm Color Worked Joint Flower Bowl",
+          "category": "Bowls & Slides",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10112541884696,
+          "title": "2\" Boobies Double Flower Bowl",
+          "category": "Bowls & Slides",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114860187928,
+          "title": "2\" Cactus Orb Carb Cap",
+          "category": "Smoke Shop Products",
+          "cost": 6.0,
+          "old_price": 18.99,
+          "new_price": 12.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113681752344,
+          "title": "2\" Element Joint Holder - Made in USA",
+          "category": "Accessories",
+          "cost": 12.75,
+          "old_price": 34.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114866741528,
+          "title": "2\" Sculpted Mushrooms Carb Cap",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 34.99,
+          "new_price": 29.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10112070287640,
+          "title": "2'' Ceramic Cigarette Chillum",
+          "category": "One Hitters & Chillums",
+          "cost": 1.0,
+          "old_price": 6.99,
+          "new_price": 3.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112115966232,
+          "title": "2'' Metal Cigarette Chillum",
+          "category": "One Hitters & Chillums",
+          "cost": 1.0,
+          "old_price": 3.99,
+          "new_price": 3.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885288136984,
+          "title": "2.25\u2033 Peaselburg Dichro Seal Pendant",
+          "category": "Made In Usa",
+          "cost": 45.0,
+          "old_price": 99.99,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113707016472,
+          "title": "2.5\" 14 M 90\u00b0 Glass Reclaim Catcher w/ Color Downstem",
+          "category": "Smoke Shop Products",
+          "cost": 7.5,
+          "old_price": 24.99,
+          "new_price": 14.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114859991320,
+          "title": "2.5\" 14mm Dimple Big Flower Bowl",
+          "category": "Bowls & Slides",
+          "cost": 8.0,
+          "old_price": 24.99,
+          "new_price": 17.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10114864480536,
+          "title": "2.5\" 14mm Hamburger Flower Bowl",
+          "category": "Bowls & Slides",
+          "cost": 11.25,
+          "old_price": 37.99,
+          "new_price": 19.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114863268120,
+          "title": "2.5\" 14mm Rainbow in the Clouds Flower Bowl",
+          "category": "Bowls & Slides",
+          "cost": 8.0,
+          "old_price": 24.99,
+          "new_price": 17.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114834202904,
+          "title": "2.5\" 14mm Sculpted Grogu Baby Yoda Glass Flower Bowl",
+          "category": "Bowls & Slides",
+          "cost": 11.25,
+          "old_price": 29.99,
+          "new_price": 19.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112365003032,
+          "title": "2.5\" 18mm U&M Color Bucket Flower Bowl - Made in USA",
+          "category": "Bowls & Slides",
+          "cost": 9.0,
+          "old_price": 29.99,
+          "new_price": 19.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10112364937496,
+          "title": "2.5\" 18mm U&M Fume Flower Bowl w/ Handle - Made in USA",
+          "category": "Bowls & Slides",
+          "cost": 9.0,
+          "old_price": 29.99,
+          "new_price": 19.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112352289048,
+          "title": "2.5\" Peaselburg Rick & Morty Chillum Pendant",
+          "category": "One Hitters & Chillums",
+          "cost": 15.0,
+          "old_price": 49.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114836201752,
+          "title": "2.5\" Pokeball Grinder",
+          "category": "Grinders",
+          "cost": 9.0,
+          "old_price": 28.99,
+          "new_price": 19.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113725530392,
+          "title": "2.5\" Wigwag Honey Pot Carb Cap",
+          "category": "Smoke Shop Products",
+          "cost": 11.25,
+          "old_price": 34.99,
+          "new_price": 22.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885288694040,
+          "title": "2.5\u2033 14 M 90\u00b0 Assorted Etch Quartz Banger 9PC Display Box",
+          "category": "Quartz",
+          "cost": 52.5,
+          "old_price": 119.99,
+          "new_price": 84.95,
+          "variants_updated": 9
+        },
+        {
+          "product_id": 10068133282072,
+          "title": "2.5\u2033 14mm Clear Heavy Hitter Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 6.0,
+          "old_price": 19.99,
+          "new_price": 12.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068134330648,
+          "title": "2.5\u2033 14mm Clear Horn Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 4.0,
+          "old_price": 14.99,
+          "new_price": 9.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068135018776,
+          "title": "2.5\u2033 14mm Color Lip Horn Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 6.0,
+          "old_price": 14.99,
+          "new_price": 12.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885267362072,
+          "title": "2.5\u2033 14mm Color Lip Horn Martini Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 6.0,
+          "old_price": 21.99,
+          "new_price": 12.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885273489688,
+          "title": "2.5\u2033 14mm Color Spiral Maria Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 21.99,
+          "new_price": 19.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068136395032,
+          "title": "2.5\u2033 14mm Color Thick Oval Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 6.0,
+          "old_price": 14.99,
+          "new_price": 12.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885267558680,
+          "title": "2.5\u2033 14mm Color Thick Oval Flower Bowl \u2013 female",
+          "category": "Flower Bowls",
+          "cost": 7.5,
+          "old_price": 19.49,
+          "new_price": 14.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068138000664,
+          "title": "2.5\u2033 14mm Pretty Patties Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 19.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068138492184,
+          "title": "2.5\u2033 14mm Rainbow Stripe Candy Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 39.99,
+          "new_price": 19.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068139016472,
+          "title": "2.5\u2033 14mm Sandblasted Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 19.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068138623256,
+          "title": "2.5\u2033 14mm Sculpted Cat Glass Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 29.99,
+          "new_price": 19.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068138164504,
+          "title": "2.5\u2033 14mm Sculpted Grenade Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 29.99,
+          "new_price": 19.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885274177816,
+          "title": "2.5\u2033 14MM TITANIUM NECTAR TIP W/ CLIPS \u2013 3-Pack",
+          "category": "Nectar Collectors & Straws",
+          "cost": 12.0,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068139704600,
+          "title": "2.5\u2033 Boobies Grinder",
+          "category": "Grinders",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885272244504,
+          "title": "2.5\u2033 Classic Zinc Grinder",
+          "category": "Grinders",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068492189976,
+          "title": "2.5\u2033 COLOR RIBBON W/ OPAL SLURPER CARB CAP SET W/ PEARL",
+          "category": "Carb Caps",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068492353816,
+          "title": "2.5\u2033 COLOR RIBBON W/ OPAL SLURPER CARB CAP SET W/ PILLAR",
+          "category": "Carb Caps",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068488519960,
+          "title": "2.5\u2033 FULL COLOR LONG BUBBLE CARB CAP",
+          "category": "Carb Caps",
+          "cost": 2.0,
+          "old_price": 9.99,
+          "new_price": 5.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885285450008,
+          "title": "2.5\u2033 Honeycomb Pendant",
+          "category": "Pendants",
+          "cost": 37.5,
+          "old_price": 84.99,
+          "new_price": 64.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885274964248,
+          "title": "2.5\u2033 Peaselburg Rick & Morty Chillum Pendant \u2013 2.5in",
+          "category": "Made In Usa",
+          "cost": 20.0,
+          "old_price": 79.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068140425496,
+          "title": "2.5\u2033 Plastic Magnetic Grinder",
+          "category": "Grinders",
+          "cost": 2.0,
+          "old_price": 9.99,
+          "new_price": 4.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068514439448,
+          "title": "2.5\u2033 Reclaim Catcher",
+          "category": "Essentials & Accessories",
+          "cost": 7.5,
+          "old_price": 27.99,
+          "new_price": 14.99,
+          "variants_updated": 7
+        },
+        {
+          "product_id": 9885273260312,
+          "title": "2.5\u2033 Wigwag Ball Carb Cap",
+          "category": "Carb Caps",
+          "cost": 11.25,
+          "old_price": 29.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068490912024,
+          "title": "2.5\u2033 Wigwag Ball W/ Maria Carb Cap",
+          "category": "Carb Caps",
+          "cost": 9.0,
+          "old_price": 29.99,
+          "new_price": 19.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068491665688,
+          "title": "2.5\u2033 Wigwag Maria Top Ball Carb Cap",
+          "category": "Carb Caps",
+          "cost": 11.25,
+          "old_price": 29.99,
+          "new_price": 22.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10112395837720,
+          "title": "20\" Monark Half Color Recycler Beaker (one off)",
+          "category": "Smoke Shop Products",
+          "cost": 135.0,
+          "old_price": 289.95,
+          "new_price": 189.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885296558360,
+          "title": "2015 Creep Frankenstein Pendant",
+          "category": "Made In Usa",
+          "cost": 300.0,
+          "old_price": 500.0,
+          "new_price": 409.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885295837464,
+          "title": "20\u2033 Monark Half Color Recycler Beaker",
+          "category": "Wyn Brands",
+          "cost": 144.0,
+          "old_price": 240.0,
+          "new_price": 199.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068127285528,
+          "title": "21\u2033 Quad Capsule Recycler Beaker",
+          "category": "Bongs & Water Pipes",
+          "cost": 120.0,
+          "old_price": 200.0,
+          "new_price": 169.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068513128728,
+          "title": "2mm Quartz Banger",
+          "category": "Quartz",
+          "cost": 3.0,
+          "old_price": 24.99,
+          "new_price": 7.99,
+          "variants_updated": 15
+        },
+        {
+          "product_id": 9885271195928,
+          "title": "2\u2033 14 M 90\u00b0 Rick & Morty Reclaim Catcher",
+          "category": "Flower Bowls",
+          "cost": 7.5,
+          "old_price": 24.99,
+          "new_price": 14.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068133511448,
+          "title": "2\u2033 14mm Bubble Flower Bowl w/ 3 Dots",
+          "category": "Flower Bowls",
+          "cost": 3.0,
+          "old_price": 8.99,
+          "new_price": 7.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068133413144,
+          "title": "2\u2033 14mm Clear Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 3.0,
+          "old_price": 14.99,
+          "new_price": 7.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068136689944,
+          "title": "2\u2033 14mm Color Butterfly Shaped Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 6.0,
+          "old_price": 14.99,
+          "new_price": 12.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068135772440,
+          "title": "2\u2033 14mm Color Glass Screen Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 6.0,
+          "old_price": 16.49,
+          "new_price": 12.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885266706712,
+          "title": "2\u2033 14mm Color Hour Glass Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 6.0,
+          "old_price": 17.99,
+          "new_price": 12.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068134789400,
+          "title": "2\u2033 14mm Color Lip Hourglass Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 5.0,
+          "old_price": 14.99,
+          "new_price": 12.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068135444760,
+          "title": "2\u2033 14mm Color Screen Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 6.0,
+          "old_price": 19.99,
+          "new_price": 12.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068137017624,
+          "title": "2\u2033 14mm Color Skull Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 7.5,
+          "old_price": 15.99,
+          "new_price": 14.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885272637720,
+          "title": "2\u2033 14mm Female Black & Slyme Triangle Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 19.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068137869592,
+          "title": "2\u2033 14mm Wrap & Rake Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 19.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885272015128,
+          "title": "2\u2033 18mm Black Color Lip Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 21.49,
+          "new_price": 19.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885275259160,
+          "title": "2\u2033 18mm Color Worked Joint Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 20.0,
+          "old_price": 38.99,
+          "new_price": 34.99,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 9885272113432,
+          "title": "2\u2033 18mm Element Color and Fume Flower Bowl \u2013 Made in USA",
+          "category": "Made In Usa",
+          "cost": 10.5,
+          "old_price": 39.99,
+          "new_price": 24.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885272670488,
+          "title": "2\u2033 18mm Female Black & Slyme Triangle Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 19.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885267951896,
+          "title": "2\u2033 18mm Full Color Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 8.0,
+          "old_price": 19.99,
+          "new_price": 17.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885272703256,
+          "title": "2\u2033 18mm Spiral Can Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 21.49,
+          "new_price": 19.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068140687640,
+          "title": "2\u2033 Biodegradable Grinder",
+          "category": "Grinders",
+          "cost": 3.0,
+          "old_price": 10.99,
+          "new_price": 6.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068488945944,
+          "title": "2\u2033 Carved Spinner Disc Carb Cap",
+          "category": "Carb Caps",
+          "cost": 4.0,
+          "old_price": 15.99,
+          "new_price": 8.99,
+          "variants_updated": 7
+        },
+        {
+          "product_id": 10068141146392,
+          "title": "2\u2033 Classic Zinc Grinder",
+          "category": "Grinders",
+          "cost": 7.5,
+          "old_price": 17.99,
+          "new_price": 17.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885266641176,
+          "title": "2\u2033 Clear Heavywall Ball Carb Cap",
+          "category": "Carb Caps",
+          "cost": 5.0,
+          "old_price": 19.49,
+          "new_price": 12.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885265756440,
+          "title": "2\u2033 Clear Spinner Carb Cap",
+          "category": "Carb Caps",
+          "cost": 5.0,
+          "old_price": 29.99,
+          "new_price": 12.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885267525912,
+          "title": "2\u2033 Clear Vortex Carb Cap",
+          "category": "Flower Bowls",
+          "cost": 3.0,
+          "old_price": 18.49,
+          "new_price": 7.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068491338008,
+          "title": "2\u2033 Color Dot Implosion Carb Cap",
+          "category": "Carb Caps",
+          "cost": 11.25,
+          "old_price": 34.99,
+          "new_price": 22.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068489535768,
+          "title": "2\u2033 Color Orb Triple Airflow Carb Cap",
+          "category": "Carb Caps",
+          "cost": 8.0,
+          "old_price": 21.99,
+          "new_price": 19.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068136198424,
+          "title": "2\u2033 Color Thick Horn Flower Bowl w/ Screen",
+          "category": "Flower Bowls",
+          "cost": 6.0,
+          "old_price": 12.99,
+          "new_price": 12.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885267460376,
+          "title": "2\u2033 Color Thick Horn Flower Bowl w/ Screen \u2013 14mm",
+          "category": "Flower Bowls",
+          "cost": 7.5,
+          "old_price": 22.99,
+          "new_price": 14.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885289447704,
+          "title": "2\u2033 Eli Mazet Seahorse Glass Pendant",
+          "category": "Made In Usa",
+          "cost": 52.5,
+          "old_price": 90.49,
+          "new_price": 79.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068488356120,
+          "title": "2\u2033 Full Color Simple Bubble Carb Cap",
+          "category": "Carb Caps",
+          "cost": 1.0,
+          "old_price": 15.99,
+          "new_price": 3.49,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10068139966744,
+          "title": "2\u2033 Love You Forever Grinder",
+          "category": "Grinders",
+          "cost": 7.5,
+          "old_price": 19.99,
+          "new_price": 17.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068140949784,
+          "title": "2\u2033 Notched Zinc Grinder",
+          "category": "Grinders",
+          "cost": 7.5,
+          "old_price": 22.99,
+          "new_price": 17.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885288038680,
+          "title": "2\u2033 Peaselburg Dichro Dragon Pendant",
+          "category": "Made In Usa",
+          "cost": 45.0,
+          "old_price": 89.99,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885287907608,
+          "title": "2\u2033 Peaselburg Dichro Shark Pendant",
+          "category": "Made In Usa",
+          "cost": 45.0,
+          "old_price": 99.99,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885288202520,
+          "title": "2\u2033 Peaselburg Dichro Stingray Pendant",
+          "category": "Made In Usa",
+          "cost": 45.0,
+          "old_price": 399.99,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885288366360,
+          "title": "9\u2033 Encore Heavy Hex Bubbler",
+          "category": "Wyn Brands",
+          "cost": 54.0,
+          "old_price": 90.0,
+          "new_price": 79.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885289021720,
+          "title": "7.5\u2033 Oregon Made Glass Hammer Bubbler \u2013 Made in USA \u2013 7.5in",
+          "category": "Made In Usa",
+          "cost": 63.0,
+          "old_price": 105.0,
+          "new_price": 94.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885289054488,
+          "title": "Vibes Wide Tips Box \u2013 Kraft",
+          "category": "Rolling Papers",
+          "cost": 52.5,
+          "old_price": 105.0,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885289120024,
+          "title": "3\u2033 Peaselburg Dichro Large Turtle Pendant",
+          "category": "Made In Usa",
+          "cost": 52.5,
+          "old_price": 299.99,
+          "new_price": 79.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885289185560,
+          "title": "8.5\u2033 Full Color Waffle Recycler",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 52.5,
+          "old_price": 129.99,
+          "new_price": 79.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885289218328,
+          "title": "9.5\u2033 Pillar Recycler",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 52.5,
+          "old_price": 159.99,
+          "new_price": 79.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885289316632,
+          "title": "7.5\u2033 Color Accent Double Uptake Recycler",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 52.5,
+          "old_price": 99.0,
+          "new_price": 79.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885289349400,
+          "title": "7\u2033 Monark Clear Single Uptake Recycler",
+          "category": "Wyn Brands",
+          "cost": 52.5,
+          "old_price": 90.49,
+          "new_price": 79.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885289480472,
+          "title": "Sandblast Honeycomb Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 63.0,
+          "old_price": 159.99,
+          "new_price": 94.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885289546008,
+          "title": "8\u2033 Color Klein Recycler",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 54.0,
+          "old_price": 149.99,
+          "new_price": 84.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885289742616,
+          "title": "Zig Zag King Size Rolling Papers",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885289808152,
+          "title": "Zig Zag Original White Papers",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 120.0,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885289840920,
+          "title": "Zig Zag 1 1/4 Ultra Thin Papers",
+          "category": "Rolling Papers",
+          "cost": 40.0,
+          "old_price": 66.67,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885289873688,
+          "title": "Zig Zag Kutcorners Slow Burning Papers",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885289939224,
+          "title": "ZIG ZAG PROMO DISPLAY \u2013 1 1/4 UNBLEACHED CONES \u2013 36-Pack",
+          "category": "Rolling Papers",
+          "cost": 40.0,
+          "old_price": 120.0,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885289971992,
+          "title": "ZIG ZAG PROMO DISPLAY \u2013 1 1/4 CONES \u2013 36-Pack",
+          "category": "Rolling Papers",
+          "cost": 40.0,
+          "old_price": 99.99,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885290135832,
+          "title": "9\u2033 Color Lip/Foot Double Uptake Matrix Recycler",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 60.0,
+          "old_price": 149.99,
+          "new_price": 89.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885290594584,
+          "title": "Vibes Rice Cones Box \u2013 1.25\u2033",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 119.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885290627352,
+          "title": "Vibes Ultra Thin Cones Box \u2013 1.25\u2033",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885290692888,
+          "title": "Vibes Hemp Papers Box \u2013 1.25\u2033",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885290725656,
+          "title": "Vibes Ultra Thin Papers Box \u2013 1.25\u2033",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885290758424,
+          "title": "Vibes Organic Hemp Papers Box \u2013 1.25\u2033",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885290823960,
+          "title": "Vibes Rice Papers Box \u2013 King Size Slim",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885290856728,
+          "title": "Vibes Ultra Thin Papers Box \u2013 King Size Slim",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885290922264,
+          "title": "Vibes Organic Hemp Papers Box \u2013 King Size Slim",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885291086104,
+          "title": "6\u2033 Monark Clear Mini Floating Rig",
+          "category": "Wyn Brands",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 89.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885291315480,
+          "title": "Elements 1 1/4 Classic Papers 300S 20/BOX",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885291413784,
+          "title": "9\u2033 Black Sheep Color Accent Double Ratchet Rig",
+          "category": "Wyn Brands",
+          "cost": 67.5,
+          "old_price": 139.99,
+          "new_price": 99.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885291512088,
+          "title": "3\u2033 MAVEN TUNER TORCH DISPLAY \u2013 20-Pack",
+          "category": "Torches",
+          "cost": 67.5,
+          "old_price": 112.5,
+          "new_price": 109.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885291544856,
+          "title": "3\u2033 MAVEN PRO-MINI TORCH DISPLAY \u2013 15-Pack",
+          "category": "Torches",
+          "cost": 67.5,
+          "old_price": 129.99,
+          "new_price": 109.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885291610392,
+          "title": "3.5\u2033 MAVEN ALPHA+ GRADIENT TORCH DISPLAY \u2013 15-Pack",
+          "category": "Torches",
+          "cost": 67.5,
+          "old_price": 112.5,
+          "new_price": 109.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885291675928,
+          "title": "3.5\u2033 MAVEN ALPHA+ NEON TORCH DISPLAY \u2013 15-Pack",
+          "category": "Torches",
+          "cost": 67.5,
+          "old_price": 112.5,
+          "new_price": 109.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885291708696,
+          "title": "3.5\u2033 MAVEN ALPHA+ TRANSPARENT TORCH DISPLAY \u2013 15-Pack",
+          "category": "Torches",
+          "cost": 67.5,
+          "old_price": 119.99,
+          "new_price": 109.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885291774232,
+          "title": "Vibes X Cookies King Size Slim Ultra Thin \u2013 3 / 30 Display Box \u2013 Blue",
+          "category": "Wyn Brands",
+          "cost": 67.5,
+          "old_price": 112.5,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885291807000,
+          "title": "3.5\u2033 MAVEN ALPHA+ CHROME TORCH DISPLAY \u2013 15-Pack",
+          "category": "Torches",
+          "cost": 67.5,
+          "old_price": 112.5,
+          "new_price": 109.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885291938072,
+          "title": "3\u2033 MAVEN PRO-MINI SEQUOIA COLLECTION TORCH DISPLAY \u2013 15-Pack",
+          "category": "Torches",
+          "cost": 67.5,
+          "old_price": 129.99,
+          "new_price": 109.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885292003608,
+          "title": "MAVEN POPPER SEQUOIA COLLECTION TRANSPARENT TORCH DISPLAY \u2013 15-Pack",
+          "category": "Torches",
+          "cost": 67.5,
+          "old_price": 129.99,
+          "new_price": 109.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 9885292036376,
+          "title": "8\u2033 Two-Tone 5 Tube Dewar Recycler",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 67.5,
+          "old_price": 129.99,
+          "new_price": 109.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885292101912,
+          "title": "9\u2033 Black Sheep Clear Accent Double Ratchet Rig",
+          "category": "Wyn Brands",
+          "cost": 52.5,
+          "old_price": 139.99,
+          "new_price": 79.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885292232984,
+          "title": "9.5\u2033 Monark Big Tube Double Uptake Recycler",
+          "category": "Wyn Brands",
+          "cost": 67.5,
+          "old_price": 159.99,
+          "new_price": 99.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885292298520,
+          "title": "5 Oz Glass Jar w/ Black Cr Lid",
+          "category": "Wyn Brands",
+          "cost": 72.0,
+          "old_price": 120.0,
+          "new_price": 109.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885292364056,
+          "title": "9\u201d Monark Color Accent Reclaim Rig",
+          "category": "Wyn Brands",
+          "cost": 80.0,
+          "old_price": 159.99,
+          "new_price": 119.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885292527896,
+          "title": "9.5\u2033 Black Sheep Color Accent Ratchet Rig",
+          "category": "Wyn Brands",
+          "cost": 75.0,
+          "old_price": 125.0,
+          "new_price": 109.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885292658968,
+          "title": "Vibes Blanco Booklets Fatty 33 \u2013 50 Display Box",
+          "category": "Rolling Papers",
+          "cost": 75.0,
+          "old_price": 125.0,
+          "new_price": 119.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885292691736,
+          "title": "Vibes Blanco Booklets with Tips Fatty 33 \u2013 24 Display Box",
+          "category": "Rolling Papers",
+          "cost": 75.0,
+          "old_price": 125.0,
+          "new_price": 119.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885293052184,
+          "title": "Miyagi Paints Square Sesh Sceptor Dab Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 75.0,
+          "old_price": 125.0,
+          "new_price": 109.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885293379864,
+          "title": "Vibes X Cookies 1.25\u2033 Ultra Thin Cones \u2013 6 / 30 Display Box \u2013 Blue",
+          "category": "Wyn Brands",
+          "cost": 82.5,
+          "old_price": 137.5,
+          "new_price": 119.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885293412632,
+          "title": "Vibes X Cookies 1.25\u2033 Ultra Thin \u2013 50 / 50 Display Box \u2013 Blue",
+          "category": "Wyn Brands",
+          "cost": 82.5,
+          "old_price": 137.5,
+          "new_price": 119.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885293543704,
+          "title": "9\u2033 Encore Two-Tone Fab Lighthouse Rig",
+          "category": "Wyn Brands",
+          "cost": 105.0,
+          "old_price": 175.0,
+          "new_price": 149.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885293642008,
+          "title": "Zig Zag Single Red King Rose Cone \u2013 Carton",
+          "category": "Rolling Papers",
+          "cost": 90.0,
+          "old_price": 150.0,
+          "new_price": 139.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885293674776,
+          "title": "8\u2033 Color Fume Double Uptake Wheel Recycler",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 90.0,
+          "old_price": 150.0,
+          "new_price": 139.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885293871384,
+          "title": "Vibes X Cookies King Size Slim Ultra Thin \u2013 33 / 50 Display Box \u2013 Blue",
+          "category": "Wyn Brands",
+          "cost": 90.0,
+          "old_price": 150.0,
+          "new_price": 139.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885293904152,
+          "title": "MAVEN PHANTOM TORCH DISPLAY \u2013 6-Pack",
+          "category": "Torches",
+          "cost": 112.5,
+          "old_price": 187.5,
+          "new_price": 169.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885294166296,
+          "title": "9.5\u2033 Color Fume Maria Drain Incycler",
+          "category": "Bongs & Water Pipes",
+          "cost": 90.0,
+          "old_price": 159.99,
+          "new_price": 139.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885294264600,
+          "title": "Zig Zag 1 1/4 Bulk Cones \u2013 (900 Cone Carton)",
+          "category": "Rolling Papers",
+          "cost": 65.0,
+          "old_price": 149.99,
+          "new_price": 109.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885294330136,
+          "title": "Zig Zag King Size Bulk Unbleached Cones \u2013 (800 Cone Carton)",
+          "category": "Rolling Papers",
+          "cost": 97.5,
+          "old_price": 162.5,
+          "new_price": 149.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885294461208,
+          "title": "9\u2033 Encore Color w/ Color Yoshi Recycler",
+          "category": "Wyn Brands",
+          "cost": 97.5,
+          "old_price": 162.5,
+          "new_price": 149.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885294821656,
+          "title": "Zig Zag 1 1/4 French Orange Papers Promo Display",
+          "category": "Rolling Papers",
+          "cost": 75.0,
+          "old_price": 129.99,
+          "new_price": 119.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885294887192,
+          "title": "Zig Zag  Original White Papers Promo Display \u2013 display-box",
+          "category": "Rolling Papers",
+          "cost": 72.0,
+          "old_price": 225.0,
+          "new_price": 119.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885295051032,
+          "title": "ZIG ZAG PROMO DISPLAY \u2013 1 1/4 ULTRA THIN PAPERS \u2013 48-Pack",
+          "category": "Rolling Papers",
+          "cost": 75.0,
+          "old_price": 149.99,
+          "new_price": 119.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885295247640,
+          "title": "Vibes X Cookies 53mm Ultra Thin Cones \u2013 9 / 30 Display Box \u2013 Blue",
+          "category": "Wyn Brands",
+          "cost": 112.5,
+          "old_price": 189.99,
+          "new_price": 159.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885295477016,
+          "title": "9\u2033 Monark Half Color Barrel Recycler",
+          "category": "Wyn Brands",
+          "cost": 120.0,
+          "old_price": 200.0,
+          "new_price": 169.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885295608088,
+          "title": "7\u2033 Color Fume Horn Waffle Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 112.0,
+          "old_price": 186.67,
+          "new_price": 159.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 9885295968536,
+          "title": "ZIG ZAG ROSE CONES \u2013 CARTON \u2013 3-Pack",
+          "category": "Rolling Papers",
+          "cost": 100.0,
+          "old_price": 166.67,
+          "new_price": 149.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885296460056,
+          "title": "TERP SLURP PUMP (BANGER BIDET) STARTER \u2013 Pack",
+          "category": "Quartz",
+          "cost": 187.5,
+          "old_price": 312.5,
+          "new_price": 299.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885296591128,
+          "title": "Swan Confetti & Marble Bottle",
+          "category": "Made In Usa",
+          "cost": 300.0,
+          "old_price": 500.0,
+          "new_price": 409.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885296689432,
+          "title": "Kerby Yellow Bot Head",
+          "category": "Made In Usa",
+          "cost": 281.25,
+          "old_price": 499.99,
+          "new_price": 379.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885296754968,
+          "title": "Kerby Black Bot Head",
+          "category": "Made In Usa",
+          "cost": 281.25,
+          "old_price": 499.0,
+          "new_price": 379.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885296886040,
+          "title": "Cove Glass Purple Hands Recycler Set",
+          "category": "Made In Usa",
+          "cost": 437.5,
+          "old_price": 729.17,
+          "new_price": 599.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885296918808,
+          "title": "5\u2033 Phd Glass Full Cfl Facet Opal Rip Curl Bottle",
+          "category": "Made In Usa",
+          "cost": 500.0,
+          "old_price": 833.34,
+          "new_price": 674.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885296951576,
+          "title": "Kerby Armed Bot",
+          "category": "Made In Usa",
+          "cost": 700.0,
+          "old_price": 1499.0,
+          "new_price": 874.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885297049880,
+          "title": "Kid Dino Hatchling Dino Egg \u2013 Yellow",
+          "category": "Made In Usa",
+          "cost": 625.0,
+          "old_price": 1041.67,
+          "new_price": 799.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885297082648,
+          "title": "9\u2033 710 Sci Glass Wigwag Triple Can Recycler",
+          "category": "Made In Usa",
+          "cost": 750.0,
+          "old_price": 1250.0,
+          "new_price": 949.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 9885297148184,
+          "title": "Kerby Space Bot",
+          "category": "Made In Usa",
+          "cost": 937.5,
+          "old_price": 1999.99,
+          "new_price": 1174.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 9885297180952,
+          "title": "Kid Dino Hatchling Set",
+          "category": "Made In Usa",
+          "cost": 937.5,
+          "old_price": 1562.5,
+          "new_price": 1174.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885297312024,
+          "title": "Amani Summerday 3 Piece Set",
+          "category": "Made In Usa",
+          "cost": 1250.0,
+          "old_price": 2083.34,
+          "new_price": 1874.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885297377560,
+          "title": "Darby Ray Run Rig",
+          "category": "Made In Usa",
+          "cost": 2100.0,
+          "old_price": 4999.99,
+          "new_price": 3149.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885297410328,
+          "title": "Cowboy Holy Waters Sherlock Pipe",
+          "category": "Made In Usa",
+          "cost": 2800.0,
+          "old_price": 4666.67,
+          "new_price": 4199.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 9885297508632,
+          "title": "Bowman Mechbird Sculpture",
+          "category": "Made In Usa",
+          "cost": 3750.0,
+          "old_price": 6720.0,
+          "new_price": 5624.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068121616664,
+          "title": "5.5\u2033 Silicone Labubu w/ Pants",
+          "category": "Bongs & Water Pipes",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068123648280,
+          "title": "7\u2033 Linda Biggs Fairy Rig Box Set",
+          "category": "Bongs & Water Pipes",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 89.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068125057304,
+          "title": "8\u2033 Fume Beaker \u2013 Made in USA",
+          "category": "Made In Usa",
+          "cost": 30.0,
+          "old_price": 59.99,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068125155608,
+          "title": "8\u2033 Fume Bubble Beaker \u2013 Made in USA",
+          "category": "Made In Usa",
+          "cost": 30.0,
+          "old_price": 59.99,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068125286680,
+          "title": "8\u2033 Fume Venetian Bubble Beaker \u2013 Made in USA",
+          "category": "Made In Usa",
+          "cost": 30.0,
+          "old_price": 59.99,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068127613208,
+          "title": "7\u2033 Color Frit Spiral Chunky Bubbler",
+          "category": "Bubblers",
+          "cost": 22.5,
+          "old_price": 59.99,
+          "new_price": 44.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068127809816,
+          "title": "4.5\u2033 Polka Dot Fume Bubbler",
+          "category": "Bubblers",
+          "cost": 11.25,
+          "old_price": 23.49,
+          "new_price": 22.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068128268568,
+          "title": "7.5\u2033 Fume Wrap & Rake Hammer Bubbler",
+          "category": "Bubblers",
+          "cost": 22.5,
+          "old_price": 57.49,
+          "new_price": 44.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068128497944,
+          "title": "7\u2033 Fume Color Wrap Trunk Neck Bubbler",
+          "category": "Bubblers",
+          "cost": 22.5,
+          "old_price": 54.99,
+          "new_price": 44.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068128792856,
+          "title": "5.5\u2033 Blue Frit Rasta Scribble Bubbler",
+          "category": "Bubblers",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068128989464,
+          "title": "7\u2033 Polka Dot Fume Square Body Bubbler",
+          "category": "Bubblers",
+          "cost": 22.5,
+          "old_price": 59.99,
+          "new_price": 44.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068129218840,
+          "title": "6.5\u2033 Opaque Color Accent 3 Dot Bubbler",
+          "category": "Bubblers",
+          "cost": 26.25,
+          "old_price": 50.49,
+          "new_price": 44.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068129382680,
+          "title": "6\u2033 Double Maria Rasta Scribble Bubbler",
+          "category": "Bubblers",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068129644824,
+          "title": "4\u2033 Fume Color Linework Glass Bubbler",
+          "category": "Bubblers",
+          "cost": 11.25,
+          "old_price": 39.99,
+          "new_price": 22.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068129906968,
+          "title": "5.5\u2033 Inside Out Fume Three Dot Bubbler",
+          "category": "Bubblers",
+          "cost": 11.25,
+          "old_price": 59.99,
+          "new_price": 22.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068130136344,
+          "title": "6\u2033 Two-Tone Twist Cane Fume Accent Bubbler",
+          "category": "Bubblers",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068130332952,
+          "title": "5\u2033 Twisted & Color Cane Fume Bubbler",
+          "category": "Bubblers",
+          "cost": 11.25,
+          "old_price": 27.99,
+          "new_price": 22.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068130562328,
+          "title": "6\u2033 Cobalt Fume Dot Hammer Bubbler",
+          "category": "Bubblers",
+          "cost": 11.25,
+          "old_price": 44.99,
+          "new_price": 22.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068130693400,
+          "title": "6\u2033 Twisted Cane Fume Bubbler",
+          "category": "Bubblers",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068130890008,
+          "title": "6\u2033 Rasta Swirl Bubbler",
+          "category": "Bubblers",
+          "cost": 15.0,
+          "old_price": 44.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068131119384,
+          "title": "7\u2033 Color Line Wrap Fume Bubbler",
+          "category": "Bubblers",
+          "cost": 18.75,
+          "old_price": 62.49,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068131315992,
+          "title": "7\u2033 Fume Wrap & Rake Mouth/Body Hammer Bubbler",
+          "category": "Bubblers",
+          "cost": 18.75,
+          "old_price": 52.49,
+          "new_price": 34.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068131578136,
+          "title": "7\u2033 Two-Tone Twisted Cane Bubbler",
+          "category": "Bubblers",
+          "cost": 22.5,
+          "old_price": 69.99,
+          "new_price": 44.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068132102424,
+          "title": "6.5\u2033 Ufo Base Triple Maria Neck Fume Bubbler",
+          "category": "Bubblers",
+          "cost": 22.5,
+          "old_price": 49.99,
+          "new_price": 44.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068132299032,
+          "title": "7.5\u2033 Frit Donut Mushroom Implosion Glass Bubbler",
+          "category": "Bubblers",
+          "cost": 30.0,
+          "old_price": 59.99,
+          "new_price": 49.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068132462872,
+          "title": "8\u2033 Color Swirl Glass Bubbler",
+          "category": "Bubblers",
+          "cost": 30.0,
+          "old_price": 59.99,
+          "new_price": 49.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068132692248,
+          "title": "7\u2033 Inside Out Sidecar Orb Bubbler",
+          "category": "Bubblers",
+          "cost": 30.0,
+          "old_price": 59.99,
+          "new_price": 49.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068132954392,
+          "title": "7.5\u2033 Color Frit w/ Critter & Mushroom Implosion Glass Bubbler",
+          "category": "Bubblers",
+          "cost": 30.0,
+          "old_price": 54.99,
+          "new_price": 49.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068133118232,
+          "title": "3.5\u2033 14mm Thick Fume Up Horn Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 18.75,
+          "old_price": 35.99,
+          "new_price": 34.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068133839128,
+          "title": "9.5mm Grommet Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 4.0,
+          "old_price": 14.99,
+          "new_price": 9.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068138328344,
+          "title": "3\u2033 14mm Ice Cream Cone Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 19.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068139475224,
+          "title": "3.5\u2033 14mm Tri Horn Full Color Spiral Flower Bowl",
+          "category": "Flower Bowls",
+          "cost": 18.75,
+          "old_price": 35.99,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068140228888,
+          "title": "3\u2033 Shiny Mushroom Grinder",
+          "category": "Grinders",
+          "cost": 7.5,
+          "old_price": 18.99,
+          "new_price": 17.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068141474072,
+          "title": "4\u2033 XL Grinder",
+          "category": "Grinders",
+          "cost": 30.0,
+          "old_price": 57.49,
+          "new_price": 44.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068142031128,
+          "title": "4\u2033 Full Color Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 7.5,
+          "old_price": 16.99,
+          "new_price": 14.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068142194968,
+          "title": "4\u2033 Phil Cobalt Fume Hand Pipe \u2013 Made in USA",
+          "category": "Hand Pipes",
+          "cost": 18.75,
+          "old_price": 35.99,
+          "new_price": 34.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068142424344,
+          "title": "5\u2033 Capybara Sculpted Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068142784792,
+          "title": "6.5\u2033 Phil Cobalt Fume Sherlock \u2013 Made in USA",
+          "category": "Hand Pipes",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068142981400,
+          "title": "3.5\u2033 Silicone Hand Pipe w/ Glass Flower Bowl",
+          "category": "Hand Pipes",
+          "cost": 3.0,
+          "old_price": 17.99,
+          "new_price": 7.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068143079704,
+          "title": "3.5\u2033 Silicone Hand Pipe w/ Metal Bowl & Lid",
+          "category": "Hand Pipes",
+          "cost": 3.0,
+          "old_price": 16.99,
+          "new_price": 7.99,
+          "variants_updated": 7
+        },
+        {
+          "product_id": 10068143145240,
+          "title": "3.5\u2033 Silicone Decal Hand Pipe w/ Glass Bowl",
+          "category": "Hand Pipes",
+          "cost": 4.0,
+          "old_price": 18.99,
+          "new_price": 9.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068143210776,
+          "title": "3.5\u2033 Silicone Decal Hand Pipe w/ Metal Bowl & Lid",
+          "category": "Hand Pipes",
+          "cost": 4.0,
+          "old_price": 19.99,
+          "new_price": 9.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068143309080,
+          "title": "4\u2033 Silicone Honeycomb Spoon w/ Poker",
+          "category": "Hand Pipes",
+          "cost": 8.0,
+          "old_price": 22.99,
+          "new_price": 17.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068143407384,
+          "title": "4\u201d Silicone Game Controller Pipe",
+          "category": "Hand Pipes",
+          "cost": 10.0,
+          "old_price": 21.99,
+          "new_price": 19.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068143505688,
+          "title": "4.5\u2033 Silicone Mushroom Pipe",
+          "category": "Hand Pipes",
+          "cost": 7.5,
+          "old_price": 17.99,
+          "new_price": 14.99,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10068143538456,
+          "title": "4.5\u2033 Clear w/ Color Swirl Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 7.5,
+          "old_price": 22.99,
+          "new_price": 14.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068143571224,
+          "title": "4\u2033 Color Frit Glass Hand Pipes",
+          "category": "Hand Pipes",
+          "cost": 7.5,
+          "old_price": 21.49,
+          "new_price": 14.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068143702296,
+          "title": "4.5\u2033 Fume Frit Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 11.25,
+          "old_price": 22.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068143898904,
+          "title": "4\u2033 Fume Maria Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 10.0,
+          "old_price": 24.99,
+          "new_price": 19.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068143931672,
+          "title": "4.5\u2033 Fume Swirl Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 7.5,
+          "old_price": 19.99,
+          "new_price": 14.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068143964440,
+          "title": "4.5\u2033 Simple Fume Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 7.5,
+          "old_price": 19.99,
+          "new_price": 14.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068144062744,
+          "title": "5\u2033 Soda Lime Penis Pipe",
+          "category": "Hand Pipes",
+          "cost": 7.5,
+          "old_price": 22.99,
+          "new_price": 14.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068144292120,
+          "title": "4\u2033 Ice Cream Popsicle Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068144324888,
+          "title": "5\u2033 Frit Color Swirl Fume Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068144619800,
+          "title": "5\u2033 Linda Biggs Fairy Mug Hand Pipe",
+          "category": "Essentials & Accessories",
+          "cost": 15.0,
+          "old_price": 34.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068144881944,
+          "title": "7.5\u2033 Oregon Made Glass Hammer Bubbler \u2013 Made in USA",
+          "category": "Made In Usa",
+          "cost": 63.0,
+          "old_price": 105.0,
+          "new_price": 94.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068145045784,
+          "title": "3.5\u2033 Silicone Hand Pipe w/ Metal Bowl & Lid \u2013 40ct Jar",
+          "category": "Hand Pipes",
+          "cost": 90.0,
+          "old_price": 150.0,
+          "new_price": 139.95,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10068145078552,
+          "title": "3.5\u2033 Silicone Decal Hand Pipe w/ Metal Bowl & Lid \u2013 40ct Jar",
+          "category": "Hand Pipes",
+          "cost": 120.0,
+          "old_price": 200.0,
+          "new_price": 169.95,
+          "variants_updated": 12
+        },
+        {
+          "product_id": 10068145471768,
+          "title": "3\u2033 Bulb Mouth Fume Cannon Chillum",
+          "category": "One Hitters & Chillums",
+          "cost": 5.0,
+          "old_price": 13.99,
+          "new_price": 12.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068145668376,
+          "title": "3\u2033 Flat Mouth Fume Color Swirl Chillum",
+          "category": "One Hitters & Chillums",
+          "cost": 6.0,
+          "old_price": 24.99,
+          "new_price": 14.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068145799448,
+          "title": "4\u2033 Cylinder Wood Dugout \u2013 wood",
+          "category": "One Hitters & Chillums",
+          "cost": 7.5,
+          "old_price": 19.99,
+          "new_price": 17.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068145864984,
+          "title": "3.5\u2033 OG Chillum 100 Pack w/ Display",
+          "category": "One Hitters & Chillums",
+          "cost": 90.0,
+          "old_price": 150.0,
+          "new_price": 139.95,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10068145963288,
+          "title": "RAW Classic 20pk Pre-Roll King Size Cones 12bx",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 57.49,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068145996056,
+          "title": "Elements Classic Perforated Rollup Tips 50bx",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 57.49,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068146028824,
+          "title": "Zig Zag Paper Cones 1 \u00bc \u2013 2pk",
+          "category": "Rolling Papers",
+          "cost": 18.75,
+          "old_price": 39.99,
+          "new_price": 34.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068146782488,
+          "title": "OCB Bamboo 1 \u00bc  Papers + Tips",
+          "category": "Rolling Papers",
+          "cost": 57.75,
+          "old_price": 96.25,
+          "new_price": 94.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068146913560,
+          "title": "OCB Solaire Slim Papers + Tips",
+          "category": "Rolling Papers",
+          "cost": 57.75,
+          "old_price": 99.49,
+          "new_price": 94.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068147044632,
+          "title": "OCB Premium Slim Papers + Tips",
+          "category": "Rolling Papers",
+          "cost": 57.75,
+          "old_price": 130.0,
+          "new_price": 94.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068147142936,
+          "title": "OCB Premium 1 \u00bc Papers + Tips",
+          "category": "Rolling Papers",
+          "cost": 57.75,
+          "old_price": 99.49,
+          "new_price": 94.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068147274008,
+          "title": "OCB Organic Hemp Slim Papers + Tips",
+          "category": "Rolling Papers",
+          "cost": 57.75,
+          "old_price": 96.25,
+          "new_price": 94.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068147405080,
+          "title": "OCB Organic Hemp 1 \u00bc Papers + Tips",
+          "category": "Rolling Papers",
+          "cost": 57.75,
+          "old_price": 99.49,
+          "new_price": 94.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068147601688,
+          "title": "OCB Unbleached 1 \u00bc Cones 100 Count Tower",
+          "category": "Rolling Papers",
+          "cost": 25.5,
+          "old_price": 48.99,
+          "new_price": 44.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068147765528,
+          "title": "OCB Organic Hemp 1 \u00bc Cones 100 Count Tower",
+          "category": "Rolling Papers",
+          "cost": 25.5,
+          "old_price": 48.99,
+          "new_price": 44.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068147929368,
+          "title": "OCB Bamboo 1 \u00bc Cones 100 Count Tower",
+          "category": "Rolling Papers",
+          "cost": 25.5,
+          "old_price": 48.99,
+          "new_price": 44.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068148060440,
+          "title": "Zig Zag Paper Cones King \u2013 1pk",
+          "category": "Rolling Papers",
+          "cost": 18.75,
+          "old_price": 49.95,
+          "new_price": 34.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068148158744,
+          "title": "Zig Zag Promo Display (36 Pack) \u2013 King Unbleached Cones",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068148289816,
+          "title": "Zig Zag 70\u2019S Unbleached Cones \u2013 24 CT \u2013 12 Pack Carton",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068148388120,
+          "title": "Zig Zag Paper Cones Organic Hemp King \u2013 3pk",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068148486424,
+          "title": "Zig Zag Paper Cones Organic Hemp 1 \u00bc \u2013 6pk",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068148551960,
+          "title": "Blazy Susan Shorty 53mm Purple Pre Rolled Cones | Full Box",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 130.0,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068148683032,
+          "title": "Blazy Susan Shorty 53mm Pink Pre Rolled Cones | Full Box",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068148945176,
+          "title": "Blazy Susan Glass Cleaner, 16OZ Original Design, Pink",
+          "category": "Rolling Papers",
+          "cost": 21.0,
+          "old_price": 40.49,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068149076248,
+          "title": "Blazy Susan Wraps \u2013 Honey Lemon Tea Leaf Wraps",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068149174552,
+          "title": "Blazy Susan Wraps \u2013 Rose Wrap, Natural/Unflavored",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 74.99,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068149338392,
+          "title": "Blazy Susan Wraps \u2013 Russian Cream Tea Leaf",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 57.49,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068149502232,
+          "title": "Blazy Susan Purize Filters, 10ct Box, Regular, Pink",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 130.0,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068149633304,
+          "title": "Blazy Susan Purple Paper Cones \u2013 110mm King Size 20ct",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068149698840,
+          "title": "Blazy Susan Purple Paper Cones \u2013 78mm (1 \u00bc) 20ct",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068149764376,
+          "title": "Blazy Susan Purple Cones \u2013 12ct 53mm Shortys Cones",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068149862680,
+          "title": "Blazy Susan Purple Paper Cones \u2013 Queen Size 25ct",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068149928216,
+          "title": "Blazy Susan Purple Paper Cones \u2013 King Size, 50ct Cones",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068149993752,
+          "title": "Blazy Susan Purple Paper Cones \u2013 1 \u00bc 50ct",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068150092056,
+          "title": "Blazy Susan Purple Cones \u2013 50ct 53mm Shortys Cones",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068150157592,
+          "title": "Blazy Susan Purple Cones \u2013 King Size 3PCK Cones",
+          "category": "Rolling Papers",
+          "cost": 45.0,
+          "old_price": 77.49,
+          "new_price": 74.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068150223128,
+          "title": "Blazy Susan Purple Cones \u2013 50ct 98mm Cones",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068150452504,
+          "title": "Blazy Susan Purple Rolling Papers \u2013 1 \u00bc",
+          "category": "Rolling Papers",
+          "cost": 45.0,
+          "old_price": 77.49,
+          "new_price": 74.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068150649112,
+          "title": "Blazy Susan Pink Cones \u2013 King Size 20ct",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 130.0,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068150845720,
+          "title": "Blazy Susan Filter Tips, Tin Case, 100ct Pink Pre-Rolled",
+          "category": "Rolling Papers",
+          "cost": 45.0,
+          "old_price": 77.49,
+          "new_price": 74.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068150944024,
+          "title": "Blazy Susan Pink Paper Cones \u2013 Queen Size 25ct",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068151009560,
+          "title": "Blazy Susan Pink Paper Cones \u2013 53mm 50ct Shortys Cones",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068151107864,
+          "title": "Blazy Susan Pink Paper Cones \u2013 King Size, 50ct Cones",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068151468312,
+          "title": "RAW Ecoplastic 79mm 2-WAY Adjustable Roller 12bx",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068151697688,
+          "title": "RAW Classic Connoisseur 1 \u00bc Rolling Papers with Tips 24bx",
+          "category": "Rolling Papers",
+          "cost": 52.5,
+          "old_price": 90.49,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068151861528,
+          "title": "RAW Classic King Size Connoisseur with Tips Rolling Papers 24bx",
+          "category": "Rolling Papers",
+          "cost": 52.5,
+          "old_price": 90.49,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068152058136,
+          "title": "RAW Black Classic Extra Long Perforated Tips 36bx",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 57.49,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068152189208,
+          "title": "RAW Gummed Tips 33ct 24bx",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 57.49,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068152385816,
+          "title": "RAW Pre-Rolled 21pk Wide Tips 20bx",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 57.49,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068152975640,
+          "title": "RAW Organic Connoisseur 1 \u00bc Rolling Papers with Tips 24bx",
+          "category": "Rolling Papers",
+          "cost": 52.5,
+          "old_price": 90.49,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068153205016,
+          "title": "RAW Classic 1 \u00bc Rolling Papers",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 79.95,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068153729304,
+          "title": "RAW Original Tips",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 57.49,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068154056984,
+          "title": "RAW Perfecto Cone Tips with Perforation 24bx",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068154319128,
+          "title": "RAW Classic King Size 54mm Wide 3M Long Roll 12bx",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 57.49,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068154482968,
+          "title": "RAW Black Classic Rolls King Size Wide 12bx",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 79.95,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068154679576,
+          "title": "Elements 1 1/4 Classic Perfect Fold Papers 25bx",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068154843416,
+          "title": "RAW Classic Vegan Gum Strip Rolls Sw 24bx",
+          "category": "Rolling Papers",
+          "cost": 45.0,
+          "old_price": 77.49,
+          "new_price": 74.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068155040024,
+          "title": "RAW Organic 3pk Pre-Roll King Size Cones 32bx",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068155236632,
+          "title": "RAW Classic 3pk Pre-Roll King Size Cones 32bx",
+          "category": "Rolling Papers",
+          "cost": 52.5,
+          "old_price": 90.49,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068155826456,
+          "title": "RAW Black King Size Triangle Scoop Cones 3pk 30bx",
+          "category": "Rolling Papers",
+          "cost": 45.0,
+          "old_price": 79.99,
+          "new_price": 74.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068156121368,
+          "title": "RAW Black 1 \u00bc Triangle Scoop Cones 6pk 30bx",
+          "category": "Rolling Papers",
+          "cost": 52.5,
+          "old_price": 90.49,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068156252440,
+          "title": "RAW Organic 6pk Pre-Roll 1 \u00bc Cones 32bx",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 130.0,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068156383512,
+          "title": "RAW Black Classic 1 \u00bc 6pk Cones 32bx",
+          "category": "Rolling Papers",
+          "cost": 67.5,
+          "old_price": 112.5,
+          "new_price": 109.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068156580120,
+          "title": "RAW Classic 6pk Pre-Roll 1 \u00bc Cones 32bx",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068157104408,
+          "title": "RAW 250FT Hempwick Ball European Edition 1PC",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068157563160,
+          "title": "RAW Classic 20pk Pre-Roll 1 \u00bc Cones 12bx",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 79.99,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068157858072,
+          "title": "RAW Classic King Size Slim Rolling Papers 50bx",
+          "category": "Rolling Papers",
+          "cost": 45.0,
+          "old_price": 77.49,
+          "new_price": 74.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068158087448,
+          "title": "RAW Black Organic Hemp 1 \u00bc Rolling Papers 24bx",
+          "category": "Rolling Papers",
+          "cost": 30.0,
+          "old_price": 57.49,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068158710040,
+          "title": "Zig Zag Hemp Wraps Npp \u2013 Georgia Fields",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068159758616,
+          "title": "Zig Zag Hemp Wraps Npp \u2013 Mellow Haze",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068161134872,
+          "title": "Zig Zag Unbleached Rolling Tips 50 Pack Carton",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068161397016,
+          "title": "Zig Zag Unbleached Wide Rolling Tips 50 Pack Carton",
+          "category": "Rolling Papers",
+          "cost": 22.5,
+          "old_price": 59.95,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068161888536,
+          "title": "Zig Zag 1 \u00bc Size Cones Carton",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068162052376,
+          "title": "Zig Zag 1 \u00bc Unbleached Papers Carton",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068162216216,
+          "title": "Zig Zag 1 \u00bc Organic Hemp Papers",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068162314520,
+          "title": "Zig Zag Cigarette Roller 70mm Carton",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068162478360,
+          "title": "Zig Zag Cigarette Roller 78mm Carton",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068163002648,
+          "title": "Zig Zag 1 \u00bc French Orange Rolling Papers",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 130.0,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068163232024,
+          "title": "Zig Zag 1 \u00bc Ultra Thin Papers",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068163461400,
+          "title": "Zig Zag Promo Display (36 Pack) \u2013 1 \u00bc Cones",
+          "category": "Rolling Papers",
+          "cost": 60.0,
+          "old_price": 102.99,
+          "new_price": 99.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068163625240,
+          "title": "Zig Zag 1 \u00bc Bulk Cones \u2013 (900 Cone Carton)",
+          "category": "Rolling Papers",
+          "cost": 97.5,
+          "old_price": 162.5,
+          "new_price": 149.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068164149528,
+          "title": "Zig Zag Promo Display (48 Pack) \u2013 1 \u00bc Ultra Thin Papers",
+          "category": "Rolling Papers",
+          "cost": 112.5,
+          "old_price": 187.5,
+          "new_price": 169.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068486619416,
+          "title": "Vibes Private Island Rolling Tray \u2013 Large",
+          "category": "Rolling Papers",
+          "cost": 12.0,
+          "old_price": 23.99,
+          "new_price": 22.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068486684952,
+          "title": "Vibes Mingo Rolling Tray \u2013 Large",
+          "category": "Rolling Papers",
+          "cost": 12.0,
+          "old_price": 29.99,
+          "new_price": 22.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068486750488,
+          "title": "Vibes Catch a Vibe Rolling Tray \u2013 Large",
+          "category": "Rolling Papers",
+          "cost": 12.0,
+          "old_price": 24.0,
+          "new_price": 22.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068486816024,
+          "title": "Vibes 1-800 What I Smoke Rolling Tray \u2013 Large",
+          "category": "Rolling Papers",
+          "cost": 12.0,
+          "old_price": 29.99,
+          "new_price": 22.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068486881560,
+          "title": "Vibes 1-800 What I Smoke Rolling Tray \u2013 Medium",
+          "category": "Rolling Papers",
+          "cost": 7.5,
+          "old_price": 15.99,
+          "new_price": 14.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068486979864,
+          "title": "Vibes Catch a Vibe Rolling Tray \u2013 Medium",
+          "category": "Rolling Papers",
+          "cost": 7.5,
+          "old_price": 16.99,
+          "new_price": 14.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068487471384,
+          "title": "Zig Zag Mini Palm Rolls Carton 2pk \u2013 Banana",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068487569688,
+          "title": "Zig Zag Mini Palm Rolls Carton 2pk \u2013 Natural",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068487635224,
+          "title": "Zig Zag Mini Palm Rolls Carton 2pk \u2013 Grape",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068487733528,
+          "title": "Zig Zag Mini Palm Rolls Carton 2pk \u2013 Vanilla",
+          "category": "Rolling Papers",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068487897368,
+          "title": "Small Rolling Tray",
+          "category": "Essentials & Accessories",
+          "cost": 3.0,
+          "old_price": 8.99,
+          "new_price": 7.99,
+          "variants_updated": 7
+        },
+        {
+          "product_id": 10068488093976,
+          "title": "Medium Rolling Tray",
+          "category": "Essentials & Accessories",
+          "cost": 4.0,
+          "old_price": 10.99,
+          "new_price": 9.99,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10068490420504,
+          "title": "2\u2033 \u2013 2.5\u2033 Pikachu Solid Carb Cap",
+          "category": "Carb Caps",
+          "cost": 7.5,
+          "old_price": 19.99,
+          "new_price": 17.49,
+          "variants_updated": 7
+        },
+        {
+          "product_id": 10068491895064,
+          "title": "3.5\u2033 Vac Stack Cactus Carb Cap",
+          "category": "Carb Caps",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068492779800,
+          "title": "8\u2033 Encore Color Lip/foot Chopper Perc Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 30.0,
+          "old_price": 99.99,
+          "new_price": 54.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068493041944,
+          "title": "7\u2033 Color Sculpted Dragon Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 30.0,
+          "old_price": 129.99,
+          "new_price": 54.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068493205784,
+          "title": "5\u2033 Iridescent Purse Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 22.5,
+          "old_price": 54.99,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068493369624,
+          "title": "7\u2033 Iridescent Twist Neck Geometric Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 15.0,
+          "old_price": 59.99,
+          "new_price": 29.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068493599000,
+          "title": "8\u2033 Cone Perc Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 30.0,
+          "old_price": 79.99,
+          "new_price": 54.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068494352664,
+          "title": "7\u2033 Tentacle Rig W/ Matching Carb Cap",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 45.0,
+          "old_price": 119.99,
+          "new_price": 69.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068494582040,
+          "title": "6\u2033 Alien on Beach Decal Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 22.5,
+          "old_price": 49.99,
+          "new_price": 39.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068494811416,
+          "title": "7.5\u2033 Iridescent Double Uptake Recycler",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 52.5,
+          "old_price": 90.49,
+          "new_price": 79.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068495401240,
+          "title": "6.5\u2033 Mushroom Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 30.0,
+          "old_price": 69.99,
+          "new_price": 54.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068495761688,
+          "title": "5\u2033 Neon Two-Tone Camera Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 18.75,
+          "old_price": 79.99,
+          "new_price": 34.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068495859992,
+          "title": "7\u2033 Dualcycler Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 37.5,
+          "old_price": 89.99,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068496089368,
+          "title": "4.5\u2033 Watercolor Dewar",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 22.5,
+          "old_price": 49.99,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068497039640,
+          "title": "9.5\u2033 Encore Color Accent Turbine Rig",
+          "category": "Wyn Brands",
+          "cost": 37.5,
+          "old_price": 99.99,
+          "new_price": 59.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068497400088,
+          "title": "6\u2033 Color Sculpted Cat Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 37.5,
+          "old_price": 79.99,
+          "new_price": 64.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068497727768,
+          "title": "7\u2033 Rick & Morty Double Uptake Recycler",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 45.0,
+          "old_price": 79.99,
+          "new_price": 69.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068498219288,
+          "title": "8\u201d Sketch & Burn Ball Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 67.5,
+          "old_price": 112.5,
+          "new_price": 109.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068498612504,
+          "title": "8.5\u201d Color Accent Mushroom Perc Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 60.0,
+          "old_price": 139.99,
+          "new_price": 89.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068499300632,
+          "title": "6.5\u201d Color Cactus Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 22.5,
+          "old_price": 59.99,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068499431704,
+          "title": "7.5\u2033 Color Accent Hourglass Sidecar Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 37.5,
+          "old_price": 96.0,
+          "new_price": 64.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068499792152,
+          "title": "7\u2033 Silicone Pineapple Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 15.0,
+          "old_price": 34.99,
+          "new_price": 29.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068500480280,
+          "title": "6\u2033 COLOR LIP/MARBLE PEANUT RIG",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 1562.5,
+          "old_price": 2604.17,
+          "new_price": 2349.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068500545816,
+          "title": "5\u2033 Iridescent Facet Diamond Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 15.0,
+          "old_price": 49.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068501070104,
+          "title": "6\u2033 Color Lip Mini Cake Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 15.0,
+          "old_price": 59.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068501168408,
+          "title": "6\u2033 Silicone Dragon Rig (one Off)",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068501528856,
+          "title": "6.5\u2033 Fillacello Decal Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 22.5,
+          "old_price": 49.99,
+          "new_price": 39.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068501692696,
+          "title": "7\u2033 Iridescent Sculpted Rocket Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 22.5,
+          "old_price": 59.99,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068501823768,
+          "title": "7\u2033 Color Lip Reclaim Rig",
+          "category": "Dab Rigs",
+          "cost": 30.0,
+          "old_price": 79.99,
+          "new_price": 54.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068501987608,
+          "title": "4\u2033 Full Color Sculpted Shark Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 45.0,
+          "old_price": 99.99,
+          "new_price": 69.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068502315288,
+          "title": "6\u2033 Fume Gear Rig",
+          "category": "Dab Rigs / Oil Rigs",
+          "cost": 52.5,
+          "old_price": 90.49,
+          "new_price": 79.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068502544664,
+          "title": "Kerby Armed Bot \u2013 Orange",
+          "category": "Made In Usa",
+          "cost": 625.0,
+          "old_price": 1041.67,
+          "new_price": 799.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068503265560,
+          "title": "4.5\u2033 Stainless Steel DAB Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 2.0,
+          "old_price": 9.99,
+          "new_price": 4.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068503462168,
+          "title": "Round Sesh Sceptor DAB Tool \u2013 Amethyst",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068503757080,
+          "title": "Square Sesh Sceptor DAB Tool \u2013 Aqua",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068503986456,
+          "title": "Round Sesh Sceptor DAB Tool \u2013 Auburn",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 89.99,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068504314136,
+          "title": "Miyagi Paints Square Sesh Sceptor DAB Tool \u2013 Auburn",
+          "category": "Dab Tools / Dabbers",
+          "cost": 75.0,
+          "old_price": 149.99,
+          "new_price": 109.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068504674584,
+          "title": "Square Sesh Sceptor DAB Tool \u2013 Auburn",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068504903960,
+          "title": "Miyagi Paints Round Sesh Sceptor DAB Tool \u2013 Cerulean",
+          "category": "Dab Tools / Dabbers",
+          "cost": 75.0,
+          "old_price": 139.0,
+          "new_price": 109.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068505100568,
+          "title": "Round Sesh Sceptor DAB Tool V2 \u2013 Amber",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068505198872,
+          "title": "Round Sesh Sceptor DAB Tool V2 \u2013 Clear",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068505395480,
+          "title": "Round Sesh Sceptor DAB Tool V2 \u2013 Cobalt",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068505592088,
+          "title": "Round Sesh Sceptor DAB Tool V2 \u2013 Kelp",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068505821464,
+          "title": "Round Sesh Sceptor DAB Tool V2 \u2013 Lucy UV",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068506083608,
+          "title": "Square Sesh Sceptor DAB Tool V2 \u2013 Amber",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068506312984,
+          "title": "Square Sesh Sceptor DAB Tool V2 \u2013 Clear",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068506542360,
+          "title": "Square Sesh Sceptor DAB Tool V2 \u2013 Cobalt",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068506771736,
+          "title": "Square Sesh Sceptor DAB Tool V2 \u2013 Kelp",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 75.0,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068507033880,
+          "title": "Square Sesh Sceptor DAB Tool V2 \u2013 Lucy UV",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068507230488,
+          "title": "Miyagi Paints Square Sesh Sceptor DAB Tool \u2013 Cerulean",
+          "category": "Dab Tools / Dabbers",
+          "cost": 75.0,
+          "old_price": 149.99,
+          "new_price": 109.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068507394328,
+          "title": "Round Sesh Sceptor DAB Tool \u2013 Royal",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 62.5,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068507787544,
+          "title": "Square Sesh Sceptor DAB Tool \u2013 Royal",
+          "category": "Dab Tools / Dabbers",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068507885848,
+          "title": "5\u2033 Iridescent Stainless Steel DAB Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 2.0,
+          "old_price": 10.99,
+          "new_price": 4.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068508279064,
+          "title": "5\u2033 Iridescent Stainless Steel DAB Tool W/ Silicone Tips",
+          "category": "Dab Tools / Dabbers",
+          "cost": 2.5,
+          "old_price": 8.99,
+          "new_price": 6.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068508410136,
+          "title": "7\u2033 Iridescent Stainless Steel DAB Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 3.0,
+          "old_price": 14.99,
+          "new_price": 7.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068508606744,
+          "title": "7\u201d Stainless Steel DAB Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 2.5,
+          "old_price": 13.99,
+          "new_price": 6.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068508672280,
+          "title": "DAB Tool Travel Case",
+          "category": "Dab Tools / Dabbers",
+          "cost": 7.5,
+          "old_price": 21.49,
+          "new_price": 14.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068508770584,
+          "title": "5.5\u2033 Fume W/ Cobalt Donut Stand Nectar Straw",
+          "category": "Nectar Collectors & Straws",
+          "cost": 7.5,
+          "old_price": 24.99,
+          "new_price": 17.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068509065496,
+          "title": "7\u2033 One Piece Worm Nectar Straw",
+          "category": "Nectar Collectors & Straws",
+          "cost": 7.5,
+          "old_price": 32.99,
+          "new_price": 17.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068509229336,
+          "title": "4\u2033 Glass Nectar Straw W/ Screw on Titanium Tip",
+          "category": "Nectar Collectors & Straws",
+          "cost": 15.0,
+          "old_price": 34.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068509950232,
+          "title": "4\u2033 Iridescent Zong Nectar Straw",
+          "category": "Nectar Collectors & Straws",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068510310680,
+          "title": "5\u2033 Watercolor Nectar Straw",
+          "category": "Nectar Collectors & Straws",
+          "cost": 8.0,
+          "old_price": 29.99,
+          "new_price": 19.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068512309528,
+          "title": "6mm Quartz Glow-In-The-Dark Terp Pearls (2 Pack)",
+          "category": "Quartz",
+          "cost": 2.0,
+          "old_price": 9.99,
+          "new_price": 4.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068512440600,
+          "title": "3mm Stone Terp Pearls (5 Pack)",
+          "category": "Quartz",
+          "cost": 2.0,
+          "old_price": 5.99,
+          "new_price": 4.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068512506136,
+          "title": "6mm Stone Terp Pearls (2 Pack)",
+          "category": "Quartz",
+          "cost": 2.0,
+          "old_price": 10.39,
+          "new_price": 4.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068512702744,
+          "title": "6mm Stone Terp Pill",
+          "category": "Quartz",
+          "cost": 2.0,
+          "old_price": 9.99,
+          "new_price": 4.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068514734360,
+          "title": "3.5\u2033 Aleaf Mini Turbo Flame Blow Torch",
+          "category": "Torches",
+          "cost": 11.25,
+          "old_price": 29.99,
+          "new_price": 19.99,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10068514930968,
+          "title": "4.75\u2033 Aleaf Jet Blow Torch",
+          "category": "Torches",
+          "cost": 11.25,
+          "old_price": 26.99,
+          "new_price": 19.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068515127576,
+          "title": "5\u2033 Aleaf Blue Turbo Blow Torch V2",
+          "category": "Torches",
+          "cost": 16.5,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068515324184,
+          "title": "5\u2033 Aleaf Brass Blow Torch",
+          "category": "Torches",
+          "cost": 30.0,
+          "old_price": 50.0,
+          "new_price": 44.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068515619096,
+          "title": "7\u2033 Aleaf Turbo Flame Blow Torch",
+          "category": "Torches",
+          "cost": 16.5,
+          "old_price": 32.99,
+          "new_price": 29.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068515848472,
+          "title": "Aleaf Torch Guard",
+          "category": "Torches",
+          "cost": 11.25,
+          "old_price": 29.99,
+          "new_price": 19.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068516077848,
+          "title": "Fyre Gas Pump Torch",
+          "category": "Electronics",
+          "cost": 37.5,
+          "old_price": 64.49,
+          "new_price": 59.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068516241688,
+          "title": "Maven Prism \u2013 4 Pack Display",
+          "category": "Torches",
+          "cost": 75.0,
+          "old_price": 125.0,
+          "new_price": 119.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068516339992,
+          "title": "Maven Hurricane Torch \u2013 4 Pack Display",
+          "category": "Torches",
+          "cost": 90.0,
+          "old_price": 150.0,
+          "new_price": 139.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068516471064,
+          "title": "6.5\u2033 Maven K-2 Torch",
+          "category": "Torches",
+          "cost": 27.0,
+          "old_price": 49.99,
+          "new_price": 44.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10068516864280,
+          "title": "Extre Squirt Gun Vape Battery",
+          "category": "Electronics",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 34.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068517814552,
+          "title": "Smyle Purse 510 Cart Battery \u2013 Pursejamin",
+          "category": "Electronics",
+          "cost": 22.5,
+          "old_price": 42.99,
+          "new_price": 34.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068518273304,
+          "title": "Raygun Penjamin Battery with Lights and Sound",
+          "category": "Electronics",
+          "cost": 26.25,
+          "old_price": 43.75,
+          "new_price": 39.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068519649560,
+          "title": "Smyle Penjamine 510 Battery Writing Pen",
+          "category": "Electronics",
+          "cost": 12.5,
+          "old_price": 29.99,
+          "new_price": 22.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10068519780632,
+          "title": "Smyle Labs Permanent Marker Penjamin Cart Battery",
+          "category": "Electronics",
+          "cost": 18.75,
+          "old_price": 35.99,
+          "new_price": 34.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068521615640,
+          "title": "3.5\u2033 480mah Nebul by Vixor \u2013 Box of 20 Stick Batteries",
+          "category": "Electronics",
+          "cost": 150.0,
+          "old_price": 250.0,
+          "new_price": 209.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10068522336536,
+          "title": "3\u2033 Silicone Downstem",
+          "category": "Silicone",
+          "cost": 2.0,
+          "old_price": 11.99,
+          "new_price": 4.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068522467608,
+          "title": "Clear Downstems",
+          "category": "Essentials & Accessories",
+          "cost": 3.0,
+          "old_price": 12.99,
+          "new_price": 7.99,
+          "variants_updated": 9
+        },
+        {
+          "product_id": 10068522533144,
+          "title": "Box of Screens \u2013 Metal",
+          "category": "Essentials & Accessories",
+          "cost": 7.5,
+          "old_price": 19.99,
+          "new_price": 14.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068522631448,
+          "title": "Box of Screens \u2013 Brass",
+          "category": "Essentials & Accessories",
+          "cost": 7.5,
+          "old_price": 15.99,
+          "new_price": 14.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068522860824,
+          "title": "4\u2033 Crystal Poker \u2013 Made in USA",
+          "category": "Made In Usa",
+          "cost": 5.0,
+          "old_price": 18.99,
+          "new_price": 12.49,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10068523254040,
+          "title": "2\u2033 Skateboard Pendant",
+          "category": "Pendants",
+          "cost": 11.25,
+          "old_price": 34.0,
+          "new_price": 22.49,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10068524630296,
+          "title": "Silicone Glass Bowl W/ Screen Replacement",
+          "category": "Silicone",
+          "cost": 2.0,
+          "old_price": 6.49,
+          "new_price": 4.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10068524761368,
+          "title": "Silicone Glass Bowl Replacement",
+          "category": "Silicone",
+          "cost": 2.0,
+          "old_price": 8.99,
+          "new_price": 4.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112039649560,
+          "title": "4.5\" Classic Dab Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 1.5,
+          "old_price": 4.99,
+          "new_price": 3.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112044499224,
+          "title": "6.5\" Large Crystal Dab Tool - Made in USA",
+          "category": "Dab Tools / Dabbers",
+          "cost": 11.25,
+          "old_price": 37.99,
+          "new_price": 22.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112051282200,
+          "title": "8'' Color Lip Straight",
+          "category": "Smoke Shop Products",
+          "cost": 13.5,
+          "old_price": 44.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112071467288,
+          "title": "Small Silicone Oil Slick",
+          "category": "Rolling Accessories",
+          "cost": 1.0,
+          "old_price": 3.99,
+          "new_price": 2.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112072024344,
+          "title": "Large Silicone Oil Slick",
+          "category": "Rolling Accessories",
+          "cost": 1.0,
+          "old_price": 3.99,
+          "new_price": 2.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112074219800,
+          "title": "6\" Encore Shot Glass Rig",
+          "category": "Dab Rigs",
+          "cost": 22.5,
+          "old_price": 44.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112080216344,
+          "title": "4mm Quartz Banger",
+          "category": "Smoke Shop Products",
+          "cost": 3.5,
+          "old_price": 10.99,
+          "new_price": 8.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112082706712,
+          "title": "DC&G Oil Pendant Red",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112096567576,
+          "title": "6\" Silicone Pop Top Decal Rig",
+          "category": "Dab Rigs",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112097583384,
+          "title": "3'' Metal Cigarette Chillum",
+          "category": "One Hitters & Chillums",
+          "cost": 1.0,
+          "old_price": 6.99,
+          "new_price": 3.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112099615000,
+          "title": "3'' Ceramic Cigarette Chillum",
+          "category": "One Hitters & Chillums",
+          "cost": 1.0,
+          "old_price": 7.99,
+          "new_price": 3.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112121241880,
+          "title": "6\" Encore Color Accent Bulb Showerhead Rig",
+          "category": "Dab Rigs",
+          "cost": 22.5,
+          "old_price": 49.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112127893784,
+          "title": "9'' Monark Color Accent Reclaim Rig",
+          "category": "Dab Rigs",
+          "cost": 75.0,
+          "old_price": 144.95,
+          "new_price": 119.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112337477912,
+          "title": "8\" Element Chubbler - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 41.25,
+          "old_price": 74.95,
+          "new_price": 64.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112337576216,
+          "title": "9'' Encore Color Lip/Foot Matrix Rig",
+          "category": "Dab Rigs",
+          "cost": 37.5,
+          "old_price": 69.95,
+          "new_price": 64.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112339509528,
+          "title": "4\" Element Butterfly Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 17.25,
+          "old_price": 34.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112340033816,
+          "title": "3.5\" OG Chillum",
+          "category": "One Hitters & Chillums",
+          "cost": 96.0,
+          "old_price": 160.0,
+          "new_price": 149.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112340689176,
+          "title": "4\" 14mm Nectar Collector Kit w/ Zipper Case",
+          "category": "Nectar Collectors",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112340918552,
+          "title": "4'' Silicone Game Controller Pipe",
+          "category": "Hand Pipes",
+          "cost": 8.0,
+          "old_price": 19.99,
+          "new_price": 17.49,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10112342065432,
+          "title": "5.5\" Element Fume Side Arm Bubbler - Made in USA",
+          "category": "Bubblers",
+          "cost": 30.0,
+          "old_price": 74.95,
+          "new_price": 49.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112347504920,
+          "title": "4\" Element Kraken Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 20.25,
+          "old_price": 44.99,
+          "new_price": 34.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10112353403160,
+          "title": "Kerby Armed Bot - Green",
+          "category": "Smoke Shop Products",
+          "cost": 625.0,
+          "old_price": 1050.0,
+          "new_price": 799.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112359498008,
+          "title": "8\" Encore Color Lip/Encalmo Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 22.5,
+          "old_price": 44.99,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112370147608,
+          "title": "5'' 14 M 90\u00b0 Monark Color Shower Head Ash Catcher",
+          "category": "Smoke Shop Products",
+          "cost": 27.0,
+          "old_price": 54.95,
+          "new_price": 49.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112375226648,
+          "title": "4\" Element Oregon State University Beavers Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 20.25,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112381288728,
+          "title": "4\" Element Fume Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 13.5,
+          "old_price": 34.99,
+          "new_price": 29.99,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10112389447960,
+          "title": "Zig Zag 1 \u00bc Bulk Unbleached Cones - (900 Cone Carton)",
+          "category": "Rolling Accessories",
+          "cost": 97.5,
+          "old_price": 194.95,
+          "new_price": 149.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112392298776,
+          "title": "5ML Blank Box for Jar",
+          "category": "Storage Jars",
+          "cost": 1056.25,
+          "old_price": 1774.95,
+          "new_price": 1599.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112392528152,
+          "title": "Mylar Bags for Storage",
+          "category": "Smoke Shop Products",
+          "cost": 112.5,
+          "old_price": 299.95,
+          "new_price": 159.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112396886296,
+          "title": "8\" Color Bevel Lip Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 13.5,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112527958296,
+          "title": "8\" Encore Reticello Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 22.5,
+          "old_price": 59.95,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112528384280,
+          "title": "7.5\" Silicone w/ Glass Globe Rig",
+          "category": "Dab Rigs",
+          "cost": 11.25,
+          "old_price": 34.99,
+          "new_price": 22.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10112529236248,
+          "title": "8\" Encore Wigwag Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 22.5,
+          "old_price": 59.99,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112533659928,
+          "title": "Clipper Lighters Ckj11 Jet Zig Zag Bw D48 - Tray",
+          "category": "Accessories",
+          "cost": 67.5,
+          "old_price": 124.95,
+          "new_price": 109.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10112540016920,
+          "title": "8\" Bee & Honeycomb Decal Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10112548765976,
+          "title": "7\" Corn Man w/ Shoes Rig",
+          "category": "Dab Rigs",
+          "cost": 45.0,
+          "old_price": 134.95,
+          "new_price": 69.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112549093656,
+          "title": "8\" Full Color Dewar Halo Drain Recycler",
+          "category": "Smoke Shop Products",
+          "cost": 75.0,
+          "old_price": 125.0,
+          "new_price": 119.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112550895896,
+          "title": "4\" Element Chicken Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 17.25,
+          "old_price": 49.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112555221272,
+          "title": "8\" Encore Color Diffuser Bubbler",
+          "category": "Bubblers",
+          "cost": 15.0,
+          "old_price": 49.99,
+          "new_price": 29.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10112555548952,
+          "title": "Special K - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 89.95,
+          "new_price": 69.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112557121816,
+          "title": "Special K - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 249.95,
+          "new_price": 69.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10112557416728,
+          "title": "Special K - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 200.0,
+          "new_price": 69.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10112557973784,
+          "title": "Special K - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 136.0,
+          "old_price": 226.67,
+          "new_price": 189.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112562528536,
+          "title": "Special K Bongs - Made in USA",
+          "category": "Water Pipes",
+          "cost": 80.0,
+          "old_price": 133.34,
+          "new_price": 119.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10112563052824,
+          "title": "Special K Bongs - Made in USA",
+          "category": "Water Pipes",
+          "cost": 80.0,
+          "old_price": 133.34,
+          "new_price": 119.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10113633452312,
+          "title": "7.5\" Oregon Made Glass Hammer Bubbler - Made in USA",
+          "category": "Bubblers",
+          "cost": 52.5,
+          "old_price": 104.95,
+          "new_price": 74.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113639973144,
+          "title": "8\" Iridescent 7mm Thick Straight",
+          "category": "Smoke Shop Products",
+          "cost": 30.0,
+          "old_price": 69.95,
+          "new_price": 54.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113641316632,
+          "title": "6\" Encore Hex Steamroller",
+          "category": "Steamrollers",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113642037528,
+          "title": "6\" Encore Salt Shaker Medium Hammer Bubbler",
+          "category": "Bubblers",
+          "cost": 22.5,
+          "old_price": 49.99,
+          "new_price": 44.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113646952728,
+          "title": "4\" Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 7.5,
+          "old_price": 24.99,
+          "new_price": 14.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113647051032,
+          "title": "4\" Peaselburg Hammer Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 45.0,
+          "old_price": 89.95,
+          "new_price": 69.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10113647116568,
+          "title": "4\" Peaselburg Sherlock Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 45.0,
+          "old_price": 89.95,
+          "new_price": 69.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113651081496,
+          "title": "3.5\" Maven Tuner Sequoia Collection Transparent Torch - 20 Pack Display",
+          "category": "Lighters & Torches",
+          "cost": 67.5,
+          "old_price": 169.95,
+          "new_price": 109.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10113655537944,
+          "title": "Special K - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 89.95,
+          "new_price": 69.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113655603480,
+          "title": "Special K - Made in USA",
+          "category": "Smoke Shop Products",
+          "cost": 45.0,
+          "old_price": 94.95,
+          "new_price": 69.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113655767320,
+          "title": "Special K Bongs - Made in USA",
+          "category": "Water Pipes",
+          "cost": 80.0,
+          "old_price": 149.95,
+          "new_price": 119.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113676476696,
+          "title": "5\" Silicone Decal Transformers Bubbler",
+          "category": "Bubblers",
+          "cost": 8.0,
+          "old_price": 24.99,
+          "new_price": 19.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10113676968216,
+          "title": "6\u2033 Color Lip/Marble Hourglass Rig",
+          "category": "Dab Rigs",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113678573848,
+          "title": "6\" Silicone Hexagon Rig (one off)",
+          "category": "Dab Rigs",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113680081176,
+          "title": "4\" Element Cat Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 17.25,
+          "old_price": 37.99,
+          "new_price": 29.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10113680507160,
+          "title": "4\" Element Toad Hand Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 20.25,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113680638232,
+          "title": "4\" Element Zelda Wings Hand Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 20.25,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10113682997528,
+          "title": "4\" Element Zelda Hand Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 20.25,
+          "old_price": 44.99,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113683718424,
+          "title": "4\" Glass Cat Paw Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 11.25,
+          "old_price": 37.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113693384984,
+          "title": "8\" Sculpted Pineapple Rig",
+          "category": "Dab Rigs",
+          "cost": 45.0,
+          "old_price": 99.99,
+          "new_price": 69.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10113694597400,
+          "title": "7\" Monark Sherlock Bubbler",
+          "category": "Bubblers",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113700364568,
+          "title": "8\" Clear Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 35.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113702265112,
+          "title": "4.5\" Color Dog Rig",
+          "category": "Dab Rigs",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113704624408,
+          "title": "Royal Blunts Hemparillo All Natural (4 Wraps) - OGK",
+          "category": "Smoke Shop Products",
+          "cost": 14.25,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10113705050392,
+          "title": "Royal Blunts Hemparillo All Natural (4 Wraps) - Sugar Cane",
+          "category": "Smoke Shop Products",
+          "cost": 14.25,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113705312536,
+          "title": "Royal Blunts Hemparillo All Natural (4 Wraps) - Sweets",
+          "category": "Smoke Shop Products",
+          "cost": 14.25,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113705378072,
+          "title": "5.5\" Stainless Steel & Resin Dab Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 11.25,
+          "old_price": 24.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113706918168,
+          "title": "3.5\" Silicone Decal Hand Pipe w/ Glass Bowl - 40ct Jar",
+          "category": "Hand Pipes",
+          "cost": 120.0,
+          "old_price": 210.0,
+          "new_price": 169.95,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10113707180312,
+          "title": "3.5\" Silicone Hand Pipe w/ Glass Bowl - 40ct Jar",
+          "category": "Hand Pipes",
+          "cost": 90.0,
+          "old_price": 180.0,
+          "new_price": 139.95,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10113707573528,
+          "title": "Cyclones 2pk Klear Ice Dream 24bx",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 47.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113708097816,
+          "title": "Cyclones 2pk Klear Blueberry 24bx",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113708458264,
+          "title": "7\" Calvo 10mm Dab Rig (one off)",
+          "category": "Dab Tools / Dabbers",
+          "cost": 41.25,
+          "old_price": 89.95,
+          "new_price": 69.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10113712718104,
+          "title": "5'' 14 M 45\u00b0 Monark Color Shower Head Ash Catcher",
+          "category": "Smoke Shop Products",
+          "cost": 27.0,
+          "old_price": 69.95,
+          "new_price": 49.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113713668376,
+          "title": "RAW Pre-Rolled 21pk Slim Tips 20bx",
+          "category": "Smoke Shop Products",
+          "cost": 22.5,
+          "old_price": 49.99,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113714323736,
+          "title": "RAW Black Classic Tips",
+          "category": "Smoke Shop Products",
+          "cost": 30.0,
+          "old_price": 62.95,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113714585880,
+          "title": "Elements Premium Rolling Tips",
+          "category": "Rolling Accessories",
+          "cost": 30.0,
+          "old_price": 79.95,
+          "new_price": 54.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113714848024,
+          "title": "RAW Pre-Rolled 21pk Wide Tips 20bx",
+          "category": "Smoke Shop Products",
+          "cost": 40.0,
+          "old_price": 99.95,
+          "new_price": 69.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113715175704,
+          "title": "RAW EcoPlastic 79mm Roller 12bx",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 67.95,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113715634456,
+          "title": "7\" Color Fume Horn Waffle Rig (one off)",
+          "category": "Dab Rigs",
+          "cost": 105.0,
+          "old_price": 224.95,
+          "new_price": 149.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113719337240,
+          "title": "6.5\" Decal Beaker w/ Facet Diamond (one off)",
+          "category": "Smoke Shop Products",
+          "cost": 22.5,
+          "old_price": 44.99,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113720680728,
+          "title": "510 Skateboard Battery",
+          "category": "Batteries & Devices",
+          "cost": 35.0,
+          "old_price": 58.34,
+          "new_price": 54.95,
+          "variants_updated": 8
+        },
+        {
+          "product_id": 10113720844568,
+          "title": "6\" Rainbow Bee Decal Rig",
+          "category": "Dab Rigs",
+          "cost": 35.0,
+          "old_price": 69.95,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113721532696,
+          "title": "4\" Fume Maria Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 7.5,
+          "old_price": 24.99,
+          "new_price": 14.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10113723138328,
+          "title": "Royal Blunts Hemparillo All Natural (4 Wraps) - Bubble Gum",
+          "category": "Smoke Shop Products",
+          "cost": 14.25,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113723203864,
+          "title": "Royal Blunts Hemparillo All Natural (4 Wraps) - Vanilla",
+          "category": "Smoke Shop Products",
+          "cost": 14.25,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10113723629848,
+          "title": "4\" Element Boobs Hand Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 20.25,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113723859224,
+          "title": "4\" Fume Color Swirl Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 11.25,
+          "old_price": 37.99,
+          "new_price": 22.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113725268248,
+          "title": "4\" Cat Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 7.5,
+          "old_price": 29.99,
+          "new_price": 14.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10113725595928,
+          "title": "5.5\" Silicone Sitting Labubu",
+          "category": "Rolling Accessories",
+          "cost": 15.0,
+          "old_price": 49.99,
+          "new_price": 29.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114828402968,
+          "title": "7\" Heart Recycler (one off)",
+          "category": "Smoke Shop Products",
+          "cost": 30.0,
+          "old_price": 74.95,
+          "new_price": 54.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114829779224,
+          "title": "4.5\" Pink Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 15.0,
+          "old_price": 34.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114830008600,
+          "title": "8\" Sculpted Pineapple Rig (one off)",
+          "category": "Dab Rigs",
+          "cost": 30.0,
+          "old_price": 69.95,
+          "new_price": 54.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114830500120,
+          "title": "Sandblast Honeycomb Rig (one off)",
+          "category": "Dab Rigs",
+          "cost": 52.5,
+          "old_price": 119.95,
+          "new_price": 79.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114830663960,
+          "title": "9\" Encore Heavy Hex Bubbler (one off)",
+          "category": "Bubblers",
+          "cost": 37.5,
+          "old_price": 69.99,
+          "new_price": 59.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114830958872,
+          "title": "8\" Encore Bread & Butter Recycler (one off)",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 84.95,
+          "new_price": 64.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114831745304,
+          "title": "6\" Rainbow Bee Decal Rig (one off)",
+          "category": "Dab Rigs",
+          "cost": 18.75,
+          "old_price": 44.99,
+          "new_price": 34.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114834497816,
+          "title": "4\" Element Sonics Hand Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 20.25,
+          "old_price": 59.95,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114845278488,
+          "title": "8\" Balloon Reversal Recycler (one off)",
+          "category": "Smoke Shop Products",
+          "cost": 75.0,
+          "old_price": 159.95,
+          "new_price": 119.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114846359832,
+          "title": "OCB Bamboo Mini Cones - 10 Count / 24 Packs",
+          "category": "Rolling Accessories",
+          "cost": 48.75,
+          "old_price": 124.95,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114846490904,
+          "title": "OCB Bamboo 1 \u00bc Cones  - 6 Count / 24 Packs",
+          "category": "Rolling Accessories",
+          "cost": 48.75,
+          "old_price": 129.95,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114847179032,
+          "title": "OCB Organic Hemp 1 \u00bc Cones - 6 Count / 24 Packs",
+          "category": "Rolling Accessories",
+          "cost": 48.75,
+          "old_price": 139.95,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114847506712,
+          "title": "OCB Organic Hemp King Cones - 3 Count / 24 Packs",
+          "category": "Rolling Accessories",
+          "cost": 48.75,
+          "old_price": 119.95,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114847703320,
+          "title": "OCB Unbleached 1 \u00bc Cones \u2013 6 Count / 24 Packs",
+          "category": "Rolling Accessories",
+          "cost": 48.75,
+          "old_price": 149.95,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114848031000,
+          "title": "OCB Unbleached King Cones \u2013 3 Count / 24 Packs",
+          "category": "Rolling Accessories",
+          "cost": 48.75,
+          "old_price": 129.95,
+          "new_price": 84.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114848719128,
+          "title": "8\" Encore Lazy Pounder w/ Reversal Decal",
+          "category": "Smoke Shop Products",
+          "cost": 52.5,
+          "old_price": 124.95,
+          "new_price": 79.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10114849866008,
+          "title": "4\" Element Mariners Trident Pipe - Made in USA",
+          "category": "Hand Pipes",
+          "cost": 20.25,
+          "old_price": 54.95,
+          "new_price": 34.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114850291992,
+          "title": "3\" Plastic Grinder",
+          "category": "Grinders",
+          "cost": 2.5,
+          "old_price": 6.99,
+          "new_price": 5.99,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10114850619672,
+          "title": "4\" Deep Plastic Grinder",
+          "category": "Grinders",
+          "cost": 3.0,
+          "old_price": 7.99,
+          "new_price": 6.99,
+          "variants_updated": 6
+        },
+        {
+          "product_id": 10114851045656,
+          "title": "5\" Encore Color Steam Roller",
+          "category": "Smoke Shop Products",
+          "cost": 7.5,
+          "old_price": 24.99,
+          "new_price": 14.99,
+          "variants_updated": 8
+        },
+        {
+          "product_id": 10114851471640,
+          "title": "4\" Large Zinc Grinder",
+          "category": "Grinders",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10114852323608,
+          "title": "5.5\" Silicone Pikachu w/ Glass Flower Bowl",
+          "category": "Bowls & Slides",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114853044504,
+          "title": "6\" Hemp Rope Soda Lime Glass w/ Carb Bongs - 6 Pack Display",
+          "category": "Water Pipes",
+          "cost": 45.0,
+          "old_price": 139.95,
+          "new_price": 69.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114853634328,
+          "title": "6\" Electroplate Glass Bong w/ Carb - 6 Pack Display",
+          "category": "Water Pipes",
+          "cost": 45.0,
+          "old_price": 89.95,
+          "new_price": 69.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114855928088,
+          "title": "4.5\" Silicone Kirby Rig",
+          "category": "Dab Rigs",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114856747288,
+          "title": "Smyle Inhaler 510 Cart Battery + Cloud Filters",
+          "category": "Batteries & Devices",
+          "cost": 26.25,
+          "old_price": 59.95,
+          "new_price": 39.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10114857271576,
+          "title": "7\" Encore Mini Bent Henny",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 69.95,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114857533720,
+          "title": "6.5\" Encore Bent Neck Fixie Beaker Rig",
+          "category": "Dab Rigs",
+          "cost": 22.5,
+          "old_price": 44.99,
+          "new_price": 39.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114857926936,
+          "title": "8\" Wooden Neck Beaker",
+          "category": "Smoke Shop Products",
+          "cost": 22.5,
+          "old_price": 74.95,
+          "new_price": 39.99,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114858189080,
+          "title": "Exhale Buddy Smoke Filter",
+          "category": "Smoke Shop Products",
+          "cost": 15.0,
+          "old_price": 34.99,
+          "new_price": 29.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114859204888,
+          "title": "8\" Encore Mini Henny",
+          "category": "Smoke Shop Products",
+          "cost": 37.5,
+          "old_price": 89.95,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114859893016,
+          "title": "6\" Color Gameboy Rig",
+          "category": "Dab Rigs",
+          "cost": 22.5,
+          "old_price": 49.99,
+          "new_price": 39.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114860351768,
+          "title": "8.5\" Encore Clear Inline Rig",
+          "category": "Dab Rigs",
+          "cost": 30.0,
+          "old_price": 74.95,
+          "new_price": 54.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114860777752,
+          "title": "4\" Silicone Ash Tray w/ Lid",
+          "category": "Rolling Accessories",
+          "cost": 7.5,
+          "old_price": 19.99,
+          "new_price": 14.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114861203736,
+          "title": "7.5\" Encore Color Showerhead Footed Rig",
+          "category": "Dab Rigs",
+          "cost": 30.0,
+          "old_price": 74.95,
+          "new_price": 54.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114861531416,
+          "title": "6\" Silicone Cat w/ Wings",
+          "category": "Rolling Accessories",
+          "cost": 15.0,
+          "old_price": 49.99,
+          "new_price": 29.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114861629720,
+          "title": "510 Thread Hot Knife Replacement Tip",
+          "category": "Smoke Shop Products",
+          "cost": 7.5,
+          "old_price": 15.99,
+          "new_price": 14.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114862678296,
+          "title": "5\" Silicone Standing Flower Guy Bong",
+          "category": "Water Pipes",
+          "cost": 15.0,
+          "old_price": 49.99,
+          "new_price": 29.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10114863005976,
+          "title": "Cone LED Stand Up Rolling Tray Kit",
+          "category": "Rolling Accessories",
+          "cost": 37.5,
+          "old_price": 69.95,
+          "new_price": 64.95,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114863038744,
+          "title": "6.5\" Scream Silicone Bong",
+          "category": "Water Pipes",
+          "cost": 15.0,
+          "old_price": 39.99,
+          "new_price": 29.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10114864120088,
+          "title": "5\" Labubu Nectar w/ Ceramic Tip",
+          "category": "Smoke Shop Products",
+          "cost": 7.5,
+          "old_price": 24.99,
+          "new_price": 14.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10114864185624,
+          "title": "Wood Dugout w/ Metal Pipe",
+          "category": "Hand Pipes",
+          "cost": 11.25,
+          "old_price": 36.99,
+          "new_price": 22.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114864283928,
+          "title": "6.5\" Encore Maria Neck Bell Rig",
+          "category": "Dab Rigs",
+          "cost": 37.5,
+          "old_price": 74.95,
+          "new_price": 64.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114865168664,
+          "title": "5\" Gummy Worm Glass Pencil Dab Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 7.5,
+          "old_price": 24.99,
+          "new_price": 14.99,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114865332504,
+          "title": "5.5\" Fume Scallop Wigwag Bubbler",
+          "category": "Bubblers",
+          "cost": 45.0,
+          "old_price": 109.95,
+          "new_price": 74.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114865430808,
+          "title": "5.5\" Dick Dab Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 7.5,
+          "old_price": 19.99,
+          "new_price": 14.99,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10114865463576,
+          "title": "5\" Dog Bone Dab Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 8.0,
+          "old_price": 18.99,
+          "new_price": 17.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114865889560,
+          "title": "4.5\" Bear Paw Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114866020632,
+          "title": "3\" Clear Puffco Dry Top",
+          "category": "Smoke Shop Products",
+          "cost": 11.25,
+          "old_price": 49.99,
+          "new_price": 22.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10114866348312,
+          "title": "4.5\" Double Bowl Titty Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 15.0,
+          "old_price": 49.99,
+          "new_price": 29.99,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114866512152,
+          "title": "5\" Glass Dichro Sword Pendant Dab Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 11.25,
+          "old_price": 29.99,
+          "new_price": 22.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114867003672,
+          "title": "6\" Wavy Glass Pencil Dab Tool",
+          "category": "Dab Tools / Dabbers",
+          "cost": 8.0,
+          "old_price": 19.99,
+          "new_price": 17.49,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114867396888,
+          "title": "7.5\" Fume & Color Pillar Rig",
+          "category": "Dab Rigs",
+          "cost": 60.0,
+          "old_price": 149.95,
+          "new_price": 89.95,
+          "variants_updated": 3
+        },
+        {
+          "product_id": 10114868576536,
+          "title": "9\" Color Accent Inner Wall Perc Rig w/ Opal",
+          "category": "Dab Rigs",
+          "cost": 67.5,
+          "old_price": 124.95,
+          "new_price": 109.95,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10114870149400,
+          "title": "4.5\" Shibari Girl Figure Rig",
+          "category": "Dab Rigs",
+          "cost": 18.75,
+          "old_price": 49.99,
+          "new_price": 34.99,
+          "variants_updated": 4
+        },
+        {
+          "product_id": 10114870378776,
+          "title": "8\" Mosaic Beaker Hand Finished in USA",
+          "category": "Smoke Shop Products",
+          "cost": 30.0,
+          "old_price": 99.95,
+          "new_price": 54.95,
+          "variants_updated": 5
+        },
+        {
+          "product_id": 10117346394392,
+          "title": "4.5\" Green Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 11.25,
+          "old_price": 34.99,
+          "new_price": 22.49,
+          "variants_updated": 2
+        },
+        {
+          "product_id": 10117346492696,
+          "title": "Extre Skatedeck 510 Skateboard Battery",
+          "category": "Batteries & Devices",
+          "cost": 26.25,
+          "old_price": 54.95,
+          "new_price": 39.99,
+          "variants_updated": 8
+        },
+        {
+          "product_id": 10118894321944,
+          "title": "4.5\" Green Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 11.25,
+          "old_price": 34.99,
+          "new_price": 22.49,
+          "variants_updated": 1
+        },
+        {
+          "product_id": 10121229205784,
+          "title": "4.5\" Green Glass Hand Pipe",
+          "category": "Hand Pipes",
+          "cost": 15.0,
+          "old_price": 37.99,
+          "new_price": 29.99,
+          "variants_updated": 2
+        }
+      ]
+    }
+  ]
+}
