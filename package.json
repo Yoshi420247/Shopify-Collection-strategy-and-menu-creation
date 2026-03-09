@@ -33,6 +33,8 @@
     "validate:fix": "node src/metadata-validator.js --fix",
     "validate:execute": "node src/metadata-validator.js --fix --execute",
     "validate:json": "node src/metadata-validator.js --json",
+    "perf": "node src/fix-performance-seo.js",
+    "perf:execute": "node src/fix-performance-seo.js --execute",
     "costs": "node src/update-product-costs.js",
     "costs:execute": "node src/update-product-costs.js --execute",
     "import": "python3 tools/pdf_product_importer.py --dry-run",

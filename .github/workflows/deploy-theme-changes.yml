@@ -1,0 +1,84 @@
+name: Deploy Theme Changes (Performance & SEO)
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Deployment mode'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run        # Diagnose issues only, no changes
+          - execute        # Apply all performance & SEO fixes to live theme
+      theme_id:
+        description: 'Theme ID (leave blank for published theme)'
+        required: false
+        type: string
+
+jobs:
+  deploy-theme:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy Performance & SEO Fixes
+        env:
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          SHOPIFY_THEME_ID: ${{ inputs.theme_id }}
+        run: |
+          echo "=== Theme Deployment ==="
+          echo "Mode: ${{ inputs.mode }}"
+          echo "Theme ID: ${SHOPIFY_THEME_ID:-'(published theme default)'}"
+          echo ""
+
+          if [ "${{ inputs.mode }}" == "execute" ]; then
+            echo "Applying performance & SEO fixes to live theme..."
+            node src/fix-performance-seo.js --execute
+          else
+            echo "Running diagnostic (dry-run)..."
+            node src/fix-performance-seo.js
+          fi
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## Theme Deployment Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** \`${{ inputs.mode }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Theme ID:** \`${{ inputs.theme_id || 'published (default)' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Fixes Applied" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Fix | Description |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Hero LCP | Set loading=\"eager\" + fetchpriority=\"high\" on hero image |" >> $GITHUB_STEP_SUMMARY
+          echo "| Render-blocking scripts | Added defer/async to non-critical scripts |" >> $GITHUB_STEP_SUMMARY
+          echo "| Liquid complexity | Reduced homepage product grid limits |" >> $GITHUB_STEP_SUMMARY
+          echo "| og:image | Added fallback og:image meta tag |" >> $GITHUB_STEP_SUMMARY
+          echo "| Duplicate H1 | Demoted second banner title to H2 |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: theme-deploy-logs-${{ github.run_number }}
+          path: |
+            *.log
+            *.json
+          retention-days: 30
+          if-no-files-found: ignore
